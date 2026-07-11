@@ -5,7 +5,7 @@ description: Implementation pattern library for deriving minimal implementations
 
 # Implementation Patterns
 
-## 📋 Common Implementation Patterns
+##  Common Implementation Patterns
 
 ### Pattern 1: Validation First (Then Success/Error)
 
@@ -101,7 +101,7 @@ export function AppCreatePage() {
 }
 ```
 
-## 🚀 Example: CreateApp Interactor
+##  Example: CreateApp Interactor
 
 **Given Failing Tests** (like CreateApp.test.ts):
 
@@ -200,16 +200,16 @@ export class CreateAppInteractor {
 
 **Why This Implementation**:
 
-- ✅ Validates empty/whitespace (passes empty string test)
-- ✅ Validates length (passes 101-char test)
-- ✅ Checks duplicate uniqueness (passes duplicate test)
-- ✅ Returns exact response structure (matches assertions)
-- ✅ Uses domain error codes (from domain entities)
-- ✅ Catches and handles infrastructure errors (500 status)
-- ✅ Nothing extra (no logging, no util functions, no comments)
-- ✅ All tests pass
+-  Validates empty/whitespace (passes empty string test)
+-  Validates length (passes 101-char test)
+-  Checks duplicate uniqueness (passes duplicate test)
+-  Returns exact response structure (matches assertions)
+-  Uses domain error codes (from domain entities)
+-  Catches and handles infrastructure errors (500 status)
+-  Nothing extra (no logging, no util functions, no comments)
+-  All tests pass
 
-## 🎨 Frontend Component Example
+##  Frontend Component Example
 
 **Given Tests** (like AppCreatePage.test.tsx):
 
@@ -274,9 +274,9 @@ export function AppCreatePage() {
 }
 ```
 
-## 🚫 What NOT To Do
+##  What NOT To Do
 
-### ❌ Anti-Pattern 1: Over-Making Features Beyond Tests
+###  Anti-Pattern 1: Over-Making Features Beyond Tests
 
 ```typescript
 // WRONG - Adds pagination not tested
@@ -295,7 +295,7 @@ async findAll(): Promise<App[]> {
 }
 ```
 
-### ❌ Anti-Pattern 2: Refactoring Code During Green Phase
+###  Anti-Pattern 2: Refactoring Code During Green Phase
 
 ```typescript
 // WRONG - Extracting helper function before it's tested
@@ -309,7 +309,7 @@ if (input.name.length > 100) {
 }
 ```
 
-### ❌ Anti-Pattern 3: Hardcoding Rejection (When It Doesn't Pass Tests)
+###  Anti-Pattern 3: Hardcoding Rejection (When It Doesn't Pass Tests)
 
 ```typescript
 // WRONG - Hardcoding when tests expect real logic
@@ -324,7 +324,7 @@ async findByName(name: string): Promise<App | null> {
 }
 ```
 
-### ❌ Anti-Pattern 4: Modifying Tests to Pass
+###  Anti-Pattern 4: Modifying Tests to Pass
 
 ```typescript
 // WRONG - Modifying test expectations

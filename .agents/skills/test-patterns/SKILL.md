@@ -15,8 +15,8 @@ ComponentName.medium.test.ts    # integration tests — local DB / localhost
 ComponentName.large.test.ts     # E2E tests — full system / external services
 ```
 
-- ❌ `ComponentName.test.ts` — **not allowed** (no size prefix)
-- ❌ `ComponentName.spec.ts` — **not allowed** (use `.test.ts`)
+-  `ComponentName.test.ts` — **not allowed** (no size prefix)
+-  `ComponentName.spec.ts` — **not allowed** (use `.test.ts`)
 
 ## When to Write Tests
 
@@ -70,7 +70,7 @@ const mockAppRepository: AppRepository = {
 };
 ```
 
-## 🎨 Test Design Techniques
+##  Test Design Techniques
 
 ### 1. Normal Cases (Happy Path)
 
@@ -137,7 +137,7 @@ describe("Decision Table - Edit Permissions", () => {
 });
 ```
 
-## 📝 Example: CreateApp Usecase Tests
+##  Example: CreateApp Usecase Tests
 
 **Input Specification:**
 

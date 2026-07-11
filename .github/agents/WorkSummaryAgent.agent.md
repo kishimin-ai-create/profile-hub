@@ -134,9 +134,9 @@ If git commands fail or return no results, use the current session context, chan
 
 ## Prohibited Actions
 
-1. ❌ Running `git commit`, `git push`, or any command that writes to git history — WorkSummaryAgent has **read-only** git access. File creation/editing is allowed; committing is not.
-2. ❌ Inventing work that is not supported by observable context
-3. ❌ Overwriting prior diary entries instead of appending
+1.  Running `git commit`, `git push`, or any command that writes to git history — WorkSummaryAgent has **read-only** git access. File creation/editing is allowed; committing is not.
+2.  Inventing work that is not supported by observable context
+3.  Overwriting prior diary entries instead of appending
 
 ## Definition of done
 
@@ -158,7 +158,7 @@ If git commands fail or return no results, use the current session context, chan
 @WorkSummaryAgent recent changes
 ```
 
-## 📚 Governing Rules
+##  Governing Rules
 
 Before acting, read `.github/copilot-instructions.md` and the following instruction files, then apply them throughout all work:
 

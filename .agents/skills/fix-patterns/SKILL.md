@@ -5,7 +5,7 @@ description: Bug fix pattern library. Aggregates typical fix patterns, checklist
 
 # Bug Fix Patterns
 
-## 🎯 Common Fix Patterns
+##  Common Fix Patterns
 
 ### Pattern 1: Wrong Status Code / Error Code
 
@@ -181,14 +181,14 @@ and verify document.title changes with the selected service name.
 **Why correct**: Loading and browser chrome are user-visible UI. If they bypass
 the active locale, the app appears only partially internationalized.
 
-## 🔍 Pre-Fix Checklist
+##  Pre-Fix Checklist
 
 Before fixing:
 
 - [ ] Root cause identified (not just the symptom)
 - [ ] Specification or rule confirms what the correct behavior should be
 - [ ] A failing test that reproduces the bug has been written
-- [ ] The failing test has been run and confirmed to fail (🔴 RED)
+- [ ] The failing test has been run and confirmed to fail ( RED)
 - [ ] Understand which tests are failing and why
 - [ ] Identify the minimal change required
 - [ ] For proxy/deployment bugs, direct backend output, frontend proxy output,
@@ -208,11 +208,11 @@ Before fixing:
 - [ ] Confirm no protected paths are involved
 - [ ] All pre-existing tests currently pass (except those directly related to the defect)
 
-## 🔍 Post-Fix Checklist
+##  Post-Fix Checklist
 
 After fixing:
 
-- [ ] The newly written test now passes (🟢 GREEN confirmed)
+- [ ] The newly written test now passes ( GREEN confirmed)
 - [ ] Defect is resolved (symptom no longer manifests)
 - [ ] All tests pass (no regressions introduced)
 - [ ] TypeScript compiles without errors
@@ -222,9 +222,9 @@ After fixing:
 - [ ] Refactoring (if any) is scoped only to code touched by the fix
 - [ ] Verified and committed (test + fix in one commit)
 
-## ❌ Anti-Patterns: Things That Look Like Fixes But Aren't
+##  Anti-Patterns: Things That Look Like Fixes But Aren't
 
-### ❌ Anti-Pattern 1: "Fix + Cleanup" in One Commit
+###  Anti-Pattern 1: "Fix + Cleanup" in One Commit
 
 ```typescript
 // WRONG - Bug fix bundled with unrelated rename
@@ -235,7 +235,7 @@ After fixing:
 **Why risky**: Two changes in one commit make it impossible to revert only the
 bug fix. Keep fixes atomic.
 
-### ❌ Anti-Pattern 2: Rewriting Instead of Fixing
+###  Anti-Pattern 2: Rewriting Instead of Fixing
 
 ```typescript
 // WRONG - Complete rewrite to fix one validation bug
@@ -249,7 +249,7 @@ bug fix. Keep fixes atomic.
 
 **Why risky**: Rewrites introduce new bugs in code that was previously correct.
 
-### ❌ Anti-Pattern 3: Fixing Without Understanding Root Cause
+###  Anti-Pattern 3: Fixing Without Understanding Root Cause
 
 ```typescript
 // WRONG - Trial-and-error fix
@@ -262,7 +262,7 @@ user?.name ?? '' // was user.name (user is always defined)
 **Why risky**: Masking errors with optional chaining hides real bugs and can
 change behavior in unexpected ways.
 
-### ❌ Anti-Pattern 4: Over-fixing (Fixing More Than Reported)
+###  Anti-Pattern 4: Over-fixing (Fixing More Than Reported)
 
 ```typescript
 // WRONG - User asked to fix error code; agent also "fixed" error messages,

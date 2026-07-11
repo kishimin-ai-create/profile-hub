@@ -25,7 +25,7 @@ step only passed `chromium` to `bunx playwright install --with-deps`. The WebKit
 absent in CI and the suite would fail on the second project. The install step has been updated to
 include both browsers.
 
-> ✅ Fixed by FixAgent — `.github/workflows/ci-pr.yml` install step changed from
+>  Fixed by FixAgent — `.github/workflows/ci-pr.yml` install step changed from
 > `bunx playwright install --with-deps chromium` to
 > `bunx playwright install --with-deps chromium webkit`
 
@@ -47,7 +47,7 @@ with a localhost fallback so CI or staging environments can override the target 
 source code. The `webServer.url` field (Playwright's internal health-check address) was intentionally
 left as-is since it always refers to the locally-started dev server.
 
-> ✅ Fixed by FixAgent — `frontend/playwright.config.ts` `use.baseURL` changed to
+>  Fixed by FixAgent — `frontend/playwright.config.ts` `use.baseURL` changed to
 > `process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000"` (commit `bb76045`)
 
 ---
@@ -65,7 +65,7 @@ Agreed — `input.target: "http://localhost:3000/openapi/v1.json"` in the `diary
 hardcoded URL literal in direct violation of the no-hardcoded-urls rule. The URL is now read from an
 `OPENAPI_URL` environment variable with the localhost path as fallback.
 
-> ✅ Fixed by FixAgent — `frontend/orval.config.ts` both `diary` and `diaryZod` input targets
+>  Fixed by FixAgent — `frontend/orval.config.ts` both `diary` and `diaryZod` input targets
 > replaced with `process.env.OPENAPI_URL ?? "http://localhost:3000/openapi/v1.json"` via a shared
 > top-level constant (commit `6735b96`)
 
@@ -84,7 +84,7 @@ Correct — both `diary` and `diaryZod` blocks shared the same hardcoded URL. Bo
 through the same `OPENAPI_URL` constant introduced in the fix for Finding 3, so a single environment
 variable controls both client generation paths.
 
-> ✅ Fixed by FixAgent — addressed together with Finding 3 in the same commit (`6735b96`)
+>  Fixed by FixAgent — addressed together with Finding 3 in the same commit (`6735b96`)
 
 ---
 
@@ -105,7 +105,7 @@ package. The correct fix is removal of these packages (and their corresponding `
 in `.storybook/main.ts`), not a version upgrade. FixAgent confirmed `bun run typecheck` and
 `bun run lint` pass cleanly after removal.
 
-> ✅ Fixed by FixAgent — removed `@storybook/addon-essentials ^8.6.14`,
+>  Fixed by FixAgent — removed `@storybook/addon-essentials ^8.6.14`,
 > `@storybook/addon-interactions ^8.6.14`, and `@storybook/test ^8.6.15` from
 > `frontend/package.json`; removed corresponding entries from `frontend/.storybook/main.ts`;
 > `bun.lock` updated via `bun install`
@@ -126,7 +126,7 @@ Agreed — `"has title"` only states the assertion type and not the subject, con
 outcome. The test name has been updated to follow the subject / condition / expected-outcome
 convention used across this codebase. Test logic is unchanged.
 
-> ✅ Fixed by FixAgent — `frontend/e2e/example.spec.ts` test name changed from `"has title"` to
+>  Fixed by FixAgent — `frontend/e2e/example.spec.ts` test name changed from `"has title"` to
 > `"home page / on load / page title includes 'diary'"`
 
 ---
@@ -147,7 +147,7 @@ block sets `languageOptions: { globals: globals.browser }`, any use of `process.
 file like `playwright.config.ts` or `vitest.config.ts` could trigger `no-undef`. The override now
 explicitly adds Node globals. `bun run lint` exits cleanly.
 
-> ✅ Fixed by FixAgent — `frontend/eslint.config.mjs` config/tooling files override block extended
+>  Fixed by FixAgent — `frontend/eslint.config.mjs` config/tooling files override block extended
 > with `languageOptions: { globals: globals.node }`
 
 ---
@@ -167,7 +167,7 @@ the default export object. The named import `import { create } from "axios"` fai
 typechecking. The import has been corrected to the default import and the call site updated
 accordingly. `bun run typecheck` exits cleanly.
 
-> ✅ Fixed by FixAgent — `frontend/app/api/mutator/custom-instance.ts` changed from
+>  Fixed by FixAgent — `frontend/app/api/mutator/custom-instance.ts` changed from
 > `import { create } from "axios"` + `create({...})` to
 > `import axios from "axios"` + `axios.create({...})` (commit `2cc5936`)
 
@@ -213,7 +213,7 @@ npm/yarn/pnpm/bun alternatives. Since the monorepo uses Bun exclusively for pack
 script execution (confirmed in CI and all workspace configs), the scaffold alternatives are
 misleading. The Getting Started section now shows only `bun install` and `bun dev`.
 
-> ✅ Fixed by FixAgent — `frontend/README.md` Getting Started block replaced with Bun-only
+>  Fixed by FixAgent — `frontend/README.md` Getting Started block replaced with Bun-only
 > instructions (`bun install` + `bun dev`); npm/yarn/pnpm alternatives removed (commit `bdb8b17`)
 
 ---
@@ -257,7 +257,7 @@ completely overwrote those spread values. Testing Library's plugin and all its r
 dropped; only Vitest rules were active. The fix explicitly merges both plugin sets and rule sets so
 both Testing Library and Vitest checks are enforced on test files.
 
-> ✅ Fixed by FixAgent — `frontend/eslint.config.mjs` test-files override block updated:
+>  Fixed by FixAgent — `frontend/eslint.config.mjs` test-files override block updated:
 > `plugins` changed to `{ ...testingLibrary.configs["flat/react"].plugins, vitest }` and
 > `rules` changed to `{ ...testingLibrary.configs["flat/react"].rules, ...vitest.configs.recommended.rules, ... }`;
 > `bun run lint` exits cleanly (commit `3ccdc01`)
@@ -280,7 +280,7 @@ caused by an outdated API rather than being a harmless cast. The fix removes the
 (which only contained the now-invalid `autodocs: "tag"` property), eliminating both the assertion
 and the underlying type mismatch. `bun run typecheck` now reports zero errors.
 
-> ✅ Fixed by FixAgent — `frontend/.storybook/main.ts` entire `docs: { autodocs: "tag" } as StorybookConfig["docs"]`
+>  Fixed by FixAgent — `frontend/.storybook/main.ts` entire `docs: { autodocs: "tag" } as StorybookConfig["docs"]`
 > block removed; `bun run typecheck` exits with 0 errors
 
 ---
@@ -302,7 +302,7 @@ for an E2E test that uses localhost network access). The ESLint test override pa
 `**/*.{small,medium,large}.test.{ts,tsx}` already covers the renamed file — no ESLint config changes
 were needed. Git history is preserved via `git mv`. `bun run lint` exits cleanly.
 
-> ✅ Fixed by FixAgent — `frontend/e2e/example.spec.ts` renamed to `frontend/e2e/example.medium.test.ts`
+>  Fixed by FixAgent — `frontend/e2e/example.spec.ts` renamed to `frontend/e2e/example.medium.test.ts`
 > via `git mv`; file content unchanged; ESLint pattern already covers the new name (commit `3ccdc01`)
 
 ---

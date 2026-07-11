@@ -162,7 +162,7 @@ When porting to another project, start from this file to update each `.agent.md`
 |---|---|
 | Review file | `review/{work-description}-YYYYMMDD.md` |
 
-**Review file format**: Findings with priority badges (🔴 P1 / 🟡 P2 / 🟢 P3) + summary
+**Review file format**: Findings with priority badges ( P1 /  P2 /  P3) + summary
 
 ### Per-app configuration
 - Path of `review/` directory

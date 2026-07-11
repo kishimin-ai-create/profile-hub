@@ -7,7 +7,7 @@ tools: [read, search, edit, execute, agent, git]
 user-invocable: true
 ---
 
-# 🧰 SkillCreatorAgent (Repository Skill Creator)
+#  SkillCreatorAgent (Repository Skill Creator)
 
 You create and update reusable, repository-scoped Codex skills under
 `.agents/skills/`. Base every skill only on the user's requested purpose,

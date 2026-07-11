@@ -18,7 +18,7 @@ handling) must follow the rules below without exception.
 
 ## 1. Password Hashing
 
-### ✅ Required
+###  Required
 
 | Requirement | Detail |
 |---|---|
@@ -28,20 +28,20 @@ handling) must follow the rules below without exception.
 | Never store plaintext passwords | Not in DB, not in logs, not in error messages |
 | Never return password hash to client | Strip `passwordHash` from any API response |
 
-### ❌ Prohibited
+###  Prohibited
 
 ```typescript
-// ❌ Storing plaintext
+//  Storing plaintext
 await db.insert(users).values({ passwordHash: input.password });
 
-// ❌ String equality comparison
+//  String equality comparison
 if (user.passwordHash !== input.password) throw new Error("INVALID");
 
-// ❌ Returning hash in response
+//  Returning hash in response
 return { id: user.id, email: user.email, passwordHash: user.passwordHash };
 ```
 
-### ✅ Correct pattern
+###  Correct pattern
 
 ```typescript
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
@@ -65,7 +65,7 @@ function verifyPassword(plain: string, stored: string): boolean {
 
 **Do not reveal whether an email exists in the system.**
 
-| Situation | ❌ Bad message | ✅ Required message |
+| Situation |  Bad message |  Required message |
 |---|---|---|
 | Email not found | `"Email not found"` | `"Invalid email or password"` |
 | Wrong password | `"Wrong password"` | `"Invalid email or password"` |

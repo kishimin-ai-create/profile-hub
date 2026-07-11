@@ -5,7 +5,7 @@ description: Refactoring pattern library for TypeScript code. Aggregates detaile
 
 # Refactoring Patterns
 
-## 🎯 Common Refactoring Patterns
+##  Common Refactoring Patterns
 
 ### Pattern 1: Extract Validation Logic (No Behavior Change)
 
@@ -150,7 +150,7 @@ try {
 
 **Why safe**: Same error path, identical return values, behavior preserved.
 
-## 📋 Specific Refactoring Techniques for Backend (Hono + TypeScript)
+##  Specific Refactoring Techniques for Backend (Hono + TypeScript)
 
 ### Technique 1: Extract Port/Adapter Responsibilities
 
@@ -176,7 +176,7 @@ try {
 // Clear separation between input validation / business logic / error handling
 ```
 
-## 📋 Specific Refactoring Techniques for Frontend (React + TypeScript)
+##  Specific Refactoring Techniques for Frontend (React + TypeScript)
 
 ### Technique 1: Extract Components (No Behavior Change)
 
@@ -240,9 +240,9 @@ export function AppCreatePage() {
 <SubmitButton isLoading={loading} onSubmit={handleSubmit} />
 ```
 
-## ❌ Anti-Patterns: Things That Look Safe But Aren't
+##  Anti-Patterns: Things That Look Safe But Aren't
 
-### ❌ Anti-Pattern 1: "Just Optimizing" (Without Clarity Improvement)
+###  Anti-Pattern 1: "Just Optimizing" (Without Clarity Improvement)
 
 ```typescript
 // WRONG - Performance improvement only, no clarity gain
@@ -254,7 +254,7 @@ export function AppCreatePage() {
 **Why risky**: Optimization-only changes can hide behavior differences. Stay
 conservative.
 
-### ❌ Anti-Pattern 2: "Better Organization" (Changing Behavior)
+###  Anti-Pattern 2: "Better Organization" (Changing Behavior)
 
 ```typescript
 // WRONG - Looks like organization but changes behavior
@@ -272,7 +272,7 @@ async execute(input) {
 **Why risky**: Changed order of operations can impact behavior (e.g., skipping
 database call).
 
-### ❌ Anti-Pattern 3: "Adding Comments for Future Devs"
+###  Anti-Pattern 3: "Adding Comments for Future Devs"
 
 ```typescript
 // WRONG - Adding explanations as code changes
@@ -287,7 +287,7 @@ const result = await repo.find(id); // Get from database
 
 **Why risky**: You've added code/comments (side effects). Keep refactoring pure.
 
-### ❌ Anti-Pattern 4: "Fixing Supposed Bugs" While Refactoring
+###  Anti-Pattern 4: "Fixing Supposed Bugs" While Refactoring
 
 ```typescript
 // WRONG - Refactoring + bug fix combined
@@ -305,7 +305,7 @@ if (status === "open" || status === "pending") {
 **Why risky**: Tests define correctness. If tests pass, code is correct. Never
 "fix" without new failing tests.
 
-## 🎯 Safety-First Example: CreateAppInteractor Refactoring
+##  Safety-First Example: CreateAppInteractor Refactoring
 
 **Original Code** (works, tests pass):
 
@@ -463,10 +463,10 @@ export class CreateAppInteractor {
 
 **Why This Refactoring is Safe**:
 
-- ✅ All tests pass (same return values, error codes)
-- ✅ External behavior identical
-- ✅ Validation logic clearer
-- ✅ Error handling consolidated
-- ✅ Easier to maintain and extend
-- ✅ Side effects preserved (repository calls unchanged)
-- ✅ No new features added
+-  All tests pass (same return values, error codes)
+-  External behavior identical
+-  Validation logic clearer
+-  Error handling consolidated
+-  Easier to maintain and extend
+-  Side effects preserved (repository calls unchanged)
+-  No new features added

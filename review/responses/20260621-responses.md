@@ -46,12 +46,12 @@ agent instructions were pointing future work at a non-existent source-of-truth p
 **Disposition:** fixed
 
 > **Original comment:**
-> The review template now tells CodeReviewAgent to emit mojibake (`総 / 綜`) instead of the intended reaction symbols, so generated review files will contain unreadable feedback prompts. This encoding corruption appears throughout the updated agent docs, so restore the original UTF-8 characters rather than committing the garbled bytes.
+> The review template now tells CodeReviewAgent to emit mojibake (` / `) instead of the intended reaction symbols, so generated review files will contain unreadable feedback prompts. This encoding corruption appears throughout the updated agent docs, so restore the original UTF-8 characters rather than committing the garbled bytes.
 
 **Reply:**
 Confirmed. The CodeReviewAgent review template contained corrupted reaction placeholders in all
 three priority examples. Those prompts now use the intended readable symbols: `Useful? React with
-👍 / 👎.`
+ / .`
 
 > Fixed by Codex fallback after FixAgent delegation was unavailable — updated
 > `.github/agents/CodeReviewAgent.agent.md` reaction prompts.

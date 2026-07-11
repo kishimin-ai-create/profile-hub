@@ -37,7 +37,7 @@ Target: "createApp usecase"
 Scope: "usecase layer integration tests"
 ```
 
-## 豆 Output
+##  Output
 
 Red Agent **MUST** deliver:
 
@@ -79,7 +79,7 @@ describe("CreateApp Usecase", () => {
 });
 ```
 
-## 搭 Rules (Non-Negotiable)
+##  Rules (Non-Negotiable)
 
 1. **Test-First Mindset**: Write tests that FAIL initially. Never write tests
    that pass without implementation.
@@ -87,8 +87,8 @@ describe("CreateApp Usecase", () => {
    assertions = multiple tests.
 3. **Descriptive Names**: Test names must clearly state: **[When Condition]
    [Then Expected Outcome]**
-   - 笨・`returns 201 status with created app data when valid name provided`
-   - 笶・`test creation`
+   - `returns 201 status with created app data when valid name provided`
+   - `test creation`
 4. **No Implementation Logic**: Test files contain ONLY test code. Mocks and
    test utilities are OK.
 5. **Mock External Dependencies**: Use dependency injection and mock
@@ -99,7 +99,7 @@ describe("CreateApp Usecase", () => {
    Testing Library patterns).
 8. **Proceed Autonomously**: Do not ask the user for permission or confirmation before writing test files. Receive the instruction and act immediately.
 
-## 笨・Definition of Done
+## Definition of Done
 
 A Red Agent test suite is complete when:
 
@@ -144,7 +144,7 @@ When generating tests:
 7. **Assertion Precision**: Each assertion should verify exactly ONE behavior
    claim.
 
-## 噫 Workflow
+##  Workflow
 
 1. **Parse Specification**: Read the specification document completely.
    Identify:
@@ -175,7 +175,7 @@ When generating tests:
 
 For detailed test patterns, mocking guidance, and full example files, read [`.github/skills/test-patterns/SKILL.md`](../skills/test-patterns/SKILL.md).
 
-## 識 Key Principles
+##  Key Principles
 
 1. **Tests Drive Development**: Write tests first, then implement to make them
    pass.

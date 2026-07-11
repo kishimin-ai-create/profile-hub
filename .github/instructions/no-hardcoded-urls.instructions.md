@@ -26,10 +26,10 @@ in source code is **prohibited**. All URLs must be sourced from configuration.
 
 This rule applies to **all source files** in `frontend/src/` and `backend/src/`.
 
-- ✅ `vite.config.ts` proxy config may reference `localhost` for local dev convenience.
-- ✅ Test files may use `http://localhost` or `http://127.0.0.1` when pointing at a local test server.
-- ✅ Docker / CI config files are exempt — they are environment config themselves.
-- ❌ Any `.ts`, `.tsx`, `.js`, `.jsx` file under `src/` must not contain hardcoded `http://`, `https://`, or `wss://` production URLs.
+-  `vite.config.ts` proxy config may reference `localhost` for local dev convenience.
+-  Test files may use `http://localhost` or `http://127.0.0.1` when pointing at a local test server.
+-  Docker / CI config files are exempt — they are environment config themselves.
+-  Any `.ts`, `.tsx`, `.js`, `.jsx` file under `src/` must not contain hardcoded `http://`, `https://`, or `wss://` production URLs.
 
 ## Relative API Paths (Frontend)
 
@@ -37,8 +37,8 @@ Frontend code calls the backend via **relative paths** (e.g., `/api/v1/apps`).
 The Vite dev-server proxy and the production reverse proxy both map `/api` to the
 backend origin. This means:
 
-- ✅ `fetch("/api/v1/apps")` — correct: relative, proxy-agnostic
-- ❌ `fetch("https://my-backend.onrender.com/api/v1/apps")` — hardcoded origin, breaks in every other environment
+-  `fetch("/api/v1/apps")` — correct: relative, proxy-agnostic
+-  `fetch("https://my-backend.onrender.com/api/v1/apps")` — hardcoded origin, breaks in every other environment
 
 ## Environment Variables
 

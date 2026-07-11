@@ -9,7 +9,7 @@ A common header and footer shall be displayed on all screens.
 Displayed items:
 
 - Service Logo
-- Service Name (locale-specific: `つづる日記` for ja, `Daybook` for en)
+- Service Name (locale-specific: `` for ja, `Daybook` for en)
 
 ### Footer
 

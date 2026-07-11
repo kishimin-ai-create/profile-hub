@@ -5,7 +5,7 @@ description: Storybook creation pattern library. Aggregates detailed CSF 3.0, MS
 
 # Storybook Patterns
 
-## 🏗️ Story Structure (CSF 3.0 Pattern)
+## ️ Story Structure (CSF 3.0 Pattern)
 
 ### Component Story Template
 
@@ -26,14 +26,14 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// ✅ Default state
+//  Default state
 export const Default: Story = {
   args: {
     // typical prop values
   },
 };
 
-// ✅ Interactive variant
+//  Interactive variant
 export const Hover: Story = {
   args: { /* hover-relevant props */ },
   parameters: {
@@ -41,14 +41,14 @@ export const Hover: Story = {
   },
 };
 
-// ✅ Error state (if component accepts error prop)
+//  Error state (if component accepts error prop)
 export const WithError: Story = {
   args: {
     error: "Validation message",
   },
 };
 
-// ✅ Loading state (if component has async behavior)
+//  Loading state (if component has async behavior)
 export const Loading: Story = {
   args: {
     isLoading: true,
@@ -127,7 +127,7 @@ export const Empty: Story = {
 };
 ```
 
-## 📖 Story Variant Checklist
+##  Story Variant Checklist
 
 For every component, generate these variants when applicable:
 
@@ -169,7 +169,7 @@ For every component, generate these variants when applicable:
 - [ ] **Keyboard Focus** — Focus visible state
 - [ ] **Error** — Error state if applicable
 
-## 🌐 Responsive Stories
+##  Responsive Stories
 
 Show how components adapt to different screen sizes:
 
@@ -194,7 +194,7 @@ export const Tablet: Story = {
 };
 ```
 
-## ♿ Accessibility Stories
+##  Accessibility Stories
 
 Create stories that test keyboard navigation and screen reader usage:
 
@@ -221,7 +221,7 @@ export const FocusVisible: Story = {
 };
 ```
 
-## 🔌 MSW Integration
+##  MSW Integration
 
 ### Example: Component with API call
 
@@ -275,7 +275,7 @@ export const NetworkTimeout: Story = {
 };
 ```
 
-## 🎨 Tailwind-Specific Stories
+##  Tailwind-Specific Stories
 
 When components use Tailwind responsive utilities:
 

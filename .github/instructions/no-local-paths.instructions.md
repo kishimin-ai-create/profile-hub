@@ -38,12 +38,12 @@ This rule applies to **ALL files tracked by git**, including:
 - Agent definitions (`.github/agents/`)
 - Instruction files (`.github/instructions/`) and `.github/copilot-instructions.md`
 
-### ✅ Relative paths are always acceptable
+###  Relative paths are always acceptable
 
 Paths relative to the project root (e.g., `backend/src/infrastructure/hono-app.ts`,
 `./config`, `../instructions/git.instructions.md`) are always permitted and preferred.
 
-### ✅ Exceptions
+###  Exceptions
 
 - `.gitignore` entries — patterns may reference absolute path fragments for
   clarity.

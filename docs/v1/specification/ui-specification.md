@@ -2,7 +2,7 @@
 
 ## Design Direction
 
-- The service name must be `つづる日記` in the Japanese locale and `Daybook` in the English locale.
+- The service name must be `` in the Japanese locale and `Daybook` in the English locale.
 - The visual design may be defined freely, using common diary services and modern web applications as references while prioritizing readability and a calm tone.
 - The interface must prioritize diary readability over decorative presentation.
 - The experience must remain consistent across desktop and mobile screens.

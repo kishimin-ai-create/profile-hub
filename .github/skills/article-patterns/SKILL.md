@@ -5,7 +5,7 @@ description: Article structure pattern library. Aggregates article structures an
 
 # Article Creation Patterns
 
-## 🧱 Recommended Structure
+##  Recommended Structure
 
 Choose the structure that matches the article type unless the user asks for
 another format.
@@ -40,7 +40,7 @@ another format.
 7. Points to watch out for
 8. Summary
 
-## 🎨 Format Variants
+##  Format Variants
 
 ### A. Technical Blog Post
 

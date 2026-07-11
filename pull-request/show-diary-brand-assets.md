@@ -11,7 +11,7 @@ The change is needed because the frontend still had leftover starter assets and 
 ## Related Tasks
 
 - Work diary: `diary/20260623.md`
-- Article: `blog/Next.js App Routerでfaviconとロゴを実サービス表示に整える.md`
+- Article: `blog/Next.js App Routerfavicon.md`
 
 ## What was done
 

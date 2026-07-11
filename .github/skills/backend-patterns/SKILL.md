@@ -5,7 +5,7 @@ description: Backend implementation workflow and testing strategy for the Hono +
 
 # Backend Patterns
 
-## 🏗️ Implementation Workflow
+## ️ Implementation Workflow
 
 Work through the layers in this order. Each step feeds into the next.
 
@@ -28,7 +28,7 @@ Work through the layers in this order. Each step feeds into the next.
 
 ---
 
-## 🧪 Testing Strategy
+##  Testing Strategy
 
 ### Principles
 

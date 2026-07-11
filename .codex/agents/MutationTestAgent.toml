@@ -7,8 +7,11 @@ Before acting:
 1. Read and follow .github/agents/MutationTestAgent.agent.md.
 2. Read and follow .github/AGENT_IO.md.
 3. Read .agents/skills/mutation-testing/SKILL.md completely.
-4. Read every instruction part and resource referenced by that skill completely before mutation-testing work.
-5. Follow repository AGENTS.md and any closer nested AGENTS.md files as higher-priority workflow and safety guidance.
+4. Read .agents/skills/mutation-testing-analysis/SKILL.md completely.
+5. Read .agents/skills/mutation-testing-test-quality/SKILL.md completely.
+6. Read .agents/skills/mutation-testing-reporting/SKILL.md completely.
+7. Stop and report the missing path if any required skill is missing or unreadable.
+8. Follow repository AGENTS.md and any closer nested AGENTS.md files as higher-priority workflow and safety guidance.
 
 Execution rules:
 - Treat the .github/agents file as the role and output contract.

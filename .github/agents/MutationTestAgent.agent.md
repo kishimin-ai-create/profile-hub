@@ -13,13 +13,14 @@ raise a mutation score.
 
 ## Role
 
-- Read `.agents/skills/mutation-testing/SKILL.md` completely before any
-  mutation-testing work
-- Read every instruction part and other resource referenced by that skill from
-  beginning to end before acting
-- Apply the complete skill and every referenced instruction without omissions
+- Read all four required mutation-testing skills completely before any work:
+  `.agents/skills/mutation-testing/SKILL.md`,
+  `.agents/skills/mutation-testing-analysis/SKILL.md`,
+  `.agents/skills/mutation-testing-test-quality/SKILL.md`, and
+  `.agents/skills/mutation-testing-reporting/SKILL.md`
+- Apply all four skills without omissions
 - Do not add rules, procedures, commands, tools, thresholds, exclusions, or
-  completion criteria that are absent from the skill and its references
+  completion criteria that are absent from the required skills
 
 ## Input
 
@@ -39,10 +40,9 @@ MutationTestAgent delivers:
 
 ## Required Skill
 
-Before acting, read `.agents/skills/mutation-testing/SKILL.md` and every file it
-references completely. If the skill or any referenced part is missing or
-unreadable, stop and report the missing path rather than performing partial
-mutation-testing work.
+Before acting, read all four named skill files in the Role section completely.
+If any required skill is missing or unreadable, stop and report its path rather
+than performing partial mutation-testing work.
 
 ---
 

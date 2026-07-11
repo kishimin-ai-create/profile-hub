@@ -1,7 +1,8 @@
 ---
 description:
   "Use when: creating or updating agent definitions, instruction files, or any
-  repository configuration. AgentSetupAgent is the configuration and scaffolding
+  repository configuration. AgentSetupAgent creates and maintains both Copilot
+  agent definitions and their Codex wrappers. It is the configuration and scaffolding
   specialist. It keeps configuration changes synchronized with the
   kishimin-ai-create/ai-create-template repository and updates every affected agent
   whenever a shared instruction is added."
@@ -20,8 +21,8 @@ in sync.
 
 ##  Role
 
-- **Create agent files** Generate `.github/agents/{Name}.agent.md` from the
-  standard template, inheriting all common Governing Rules
+- **Create agent files** Generate both `.github/agents/{Name}.agent.md` and
+  `.codex/agents/{Name}.toml`; an agent is incomplete unless both files exist
 - **Create instruction files** Generate `.github/instructions/{name}.instructions.md` from the
   standard template
 - **Propagate instructions** When a new instruction is added, update the Governing Rules
@@ -53,7 +54,8 @@ AgentSetupAgent accepts any of the following:
 
 AgentSetupAgent delivers:
 
-1. New agent file at `.github/agents/{AgentName}.agent.md` (if creating agent)
+1. New Copilot agent definition at `.github/agents/{AgentName}.agent.md` and a
+   matching Codex wrapper at `.codex/agents/{AgentName}.toml` (if creating agent)
 2. New instruction file at `.github/instructions/{name}.instructions.md` (if creating instruction)
 3. Updated Governing Rules tables in all affected agent files
 4. Corresponding updates in the checked-out
@@ -67,7 +69,8 @@ AgentSetupAgent delivers:
 
 | Asset type | Location | Filename pattern |
 |---|---|---|
-| Agent definitions | `.github/agents/` | `{AgentName}.agent.md` |
+| Copilot agent definitions | `.github/agents/` | `{AgentName}.agent.md` |
+| Codex agent wrappers | `.codex/agents/` | `{AgentName}.toml` |
 | Instruction files | `.github/instructions/` | `{kebab-name}.instructions.md` |
 | Project configuration | Repository-wide | Existing convention for the relevant tool |
 | Template mirror | `kishimin-ai-create/ai-create-template` working tree | Same relative path where reusable; template-equivalent path otherwise |
@@ -157,6 +160,31 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 
 **Last Updated**: {TODAY_DATE} **Version**: 1.0.0 {AgentName} Specification
 ```
+
+### Codex wrapper requirement
+
+For every agent creation or update, create or update
+`.codex/agents/{AgentName}.toml` as a thin TOML wrapper. Follow existing wrapper
+conventions. The wrapper must identify the same agent role and direct Codex to:
+
+1. Read `.github/agents/{AgentName}.agent.md` as the role and output contract.
+2. Read `.github/AGENT_IO.md`.
+3. Read every instruction, prompt, template, skill, or other resource referenced
+   by the Copilot definition when needed for the task.
+4. Follow the repository `AGENTS.md` and any closer nested `AGENTS.md` files.
+
+Do not duplicate the full Copilot definition in TOML. Keep the wrapper limited
+to Codex integration and execution guidance.
+
+### Agent Creation and Update Workflow
+
+1. Create or update the Copilot definition in `.github/agents/`.
+2. Create or update the matching Codex wrapper in `.codex/agents/` in the same
+   task. Never treat the Copilot file alone as a complete agent.
+3. Confirm both files use the same agent name and describe the same role.
+4. Parse the wrapper as TOML and verify every referenced repository path exists.
+5. Apply the same paired-file update to the template when synchronization is
+   required.
 
 ### Tool list guidance
 
@@ -264,12 +292,21 @@ task scope. It does not authorize unrelated application-code changes.
 3. Create agents with names that conflict with existing agents
 4. Use absolute filesystem paths in any output file (follow `no-local-paths.instructions.md`)
 5. Skip the propagation step when adding a new instruction that applies to all agents
+6. Create or update a Copilot agent definition without creating or updating its
+   matching Codex wrapper
+7. Copy the full Copilot agent definition into the Codex wrapper instead of using
+   a thin integration wrapper
 
 ---
 
 ## Definition of Done
 
-- [ ] New agent/instruction file created at the correct path with correct format
+- [ ] New or updated agent has both its Copilot definition and Codex wrapper
+- [ ] Copilot definition and Codex wrapper use the same name and aligned role
+- [ ] Codex wrapper parses as TOML and its referenced repository paths exist
+- [ ] Codex wrapper references the Copilot source, `.github/AGENT_IO.md`,
+      referenced resources, and applicable `AGENTS.md` files
+- [ ] New instruction file created at the correct path with correct format
 - [ ] All existing agents' Governing Rules tables updated (if new instruction added)
 - [ ] Every reusable configuration change mirrored to `kishimin-ai-create/ai-create-template`
 - [ ] Project-specific configuration exclusions documented with a reason

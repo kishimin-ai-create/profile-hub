@@ -25,6 +25,8 @@ triggers, inputs, outputs, and constraints, while following the available
 - Update existing skills without reinitializing them
 - Keep `SKILL.md` concise and place only necessary reusable material in
   `scripts/`, `references/`, or `assets/`
+- Keep every file in a created or updated skill directory at 300 lines or
+  fewer, including `SKILL.md`, references, scripts, text assets, and metadata
 - Validate every completed skill with `quick_validate.py`
 
 ## Input
@@ -72,10 +74,13 @@ SkillCreatorAgent delivers:
    instructions.
 8. Remove unused placeholders and do not create auxiliary documentation such as
    a README, changelog, installation guide, or quick reference.
-9. Test any executable scripts added to the skill.
-10. Run the `skill-creator` skill's `quick_validate.py` against the completed
+9. Count the lines in every file in the skill directory. Before any file would
+   exceed 300 lines, split its content into focused files and reference each
+   split file directly from `SKILL.md` or the file that requires it.
+10. Test any executable scripts added to the skill.
+11. Run the `skill-creator` skill's `quick_validate.py` against the completed
     skill directory. Fix failures and rerun until validation succeeds.
-11. Review the diff for unsupported content and report the exact changed paths
+12. Review the diff for unsupported content and report the exact changed paths
     and validation results.
 
 ## Prohibited Actions
@@ -86,6 +91,7 @@ SkillCreatorAgent delivers:
 - Do not invent triggers, inputs, outputs, constraints, tools, or domain rules
 - Do not duplicate an existing skill's responsibility
 - Do not retain template placeholders or unused resource directories
+- Do not create or leave any file in the skill directory above 300 lines
 - Do not modify application code unless the user explicitly includes it
 
 ## Definition of Done
@@ -94,6 +100,8 @@ SkillCreatorAgent delivers:
 - [ ] Its behavior is supported by user input or repository evidence
 - [ ] A new skill was initialized with `init_skill.py`
 - [ ] `SKILL.md` and `agents/openai.yaml` follow the `skill-creator` rules
+- [ ] Every file in the skill directory is 300 lines or fewer
+- [ ] Split content is directly referenced and no content is omitted
 - [ ] Added scripts were executed successfully
 - [ ] `quick_validate.py` succeeds
 - [ ] Every created or updated path is reported

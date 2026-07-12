@@ -86,7 +86,7 @@ Current agents (as of last update):
 - `ArticleWriterAgent`, `CodeReviewAgent`, `FixAgent`, `GreenAgent`
 - `OpenApiWriterAgent`, `OrchestratorAgent`, `PullRequestWriterAgent`
 - `RedAgent`, `RefactorAgent`, `RegressionTestAgent`, `ReviewResponseAgent`
-- `MutationTestAgent`, `PromptCreatorAgent`, `SkillCreatorAgent`
+- `MutationTestAgent`, `PromptCreatorAgent`, `SecurityStaticAnalysisAgent`, `SkillCreatorAgent`
 - `StorybookCreatorAgent`, `TaskDispatcherAgent`, `UIDesignAgent`, `WorkSummaryAgent`
 - `AgentSetupAgent` (this agent)
 - **Fix specialists**: `FixDispatcherAgent`, `FixSecurityAgent`, `FixTypeAgent`,

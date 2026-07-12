@@ -29,6 +29,9 @@ in sync.
   table in **every existing agent** to include it
 - **Validate consistency** Ensure all agents reference the full set of
   applicable governing instructions
+- **Audit common settings** Before every agent creation or update, read all
+  existing `.github/agents/*.agent.md` files, identify settings and sections
+  shared by applicable peer agents, and include every applicable baseline
 - **Maintain all configuration** Create or update configuration files anywhere
   in the repository when the user's requested scope requires it
 - **Synchronize the template** Mirror every applicable configuration change to
@@ -87,7 +90,7 @@ Current agents (as of last update):
 - `OpenApiWriterAgent`, `OrchestratorAgent`, `PullRequestWriterAgent`
 - `RedAgent`, `RefactorAgent`, `RegressionTestAgent`, `ReviewResponseAgent`
 - `MutationTestAgent`, `PromptCreatorAgent`, `SecurityDynamicAnalysisAgent`, `SecurityStaticAnalysisAgent`
-- `SkillCreatorAgent`
+- `SkillCreatorAgent`, `TestCreatorAgent`
 - `StorybookCreatorAgent`, `TaskDispatcherAgent`, `UIDesignAgent`, `WorkSummaryAgent`
 - `AgentSetupAgent` (this agent)
 - **Fix specialists**: `FixDispatcherAgent`, `FixSecurityAgent`, `FixTypeAgent`,
@@ -179,12 +182,22 @@ to Codex integration and execution guidance.
 
 ### Agent Creation and Update Workflow
 
-1. Create or update the Copilot definition in `.github/agents/`.
-2. Create or update the matching Codex wrapper in `.codex/agents/` in the same
+1. Read every existing `.github/agents/*.agent.md` file and identify the
+   baseline settings and sections shared across applicable peer agents.
+2. Record which common settings apply. Include applicable frontmatter, tool and
+   user-invocation settings, Role/Input/Output, workflow, file/output rules,
+   validation, prohibited actions, Definition of Done, governing rules,
+   `AGENTS.md` hierarchy, Codex wrapper, Git/no-push rules, and post-agent policy.
+   Do not copy specialist-only rules blindly; document why a common setting is
+   omitted when it is not applicable.
+3. Create or update the Copilot definition in `.github/agents/`.
+4. Create or update the matching Codex wrapper in `.codex/agents/` in the same
    task. Never treat the Copilot file alone as a complete agent.
-3. Confirm both files use the same agent name and describe the same role.
-4. Parse the wrapper as TOML and verify every referenced repository path exists.
-5. Apply the same paired-file update to the template when synchronization is
+5. Confirm both files use the same agent name and describe the same role.
+6. Parse the wrapper as TOML and verify every referenced repository path exists.
+7. Verify every applicable common setting is present and every omission has a
+   documented applicability reason.
+8. Apply the same paired-file update to the template when synchronization is
    required.
 
 ### Tool list guidance
@@ -297,12 +310,19 @@ task scope. It does not authorize unrelated application-code changes.
    matching Codex wrapper
 7. Copy the full Copilot agent definition into the Codex wrapper instead of using
    a thin integration wrapper
+8. Create or update an agent without reading all existing Copilot agent
+   definitions and completing the common-settings applicability audit
+9. Omit an applicable shared setting or copy a specialist-only setting without
+   evaluating whether it belongs to the new agent
 
 ---
 
 ## Definition of Done
 
 - [ ] New or updated agent has both its Copilot definition and Codex wrapper
+- [ ] All existing Copilot agent definitions were read before agent creation or update
+- [ ] Applicable peer-baseline settings and sections were identified and included
+- [ ] Inapplicable common settings have a documented omission reason
 - [ ] Copilot definition and Codex wrapper use the same name and aligned role
 - [ ] Codex wrapper parses as TOML and its referenced repository paths exist
 - [ ] Codex wrapper references the Copilot source, `.github/AGENT_IO.md`,

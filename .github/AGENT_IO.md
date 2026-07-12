@@ -22,6 +22,9 @@ When porting to another project, start from this file to update each `.agent.md`
 | [PullRequestWriterAgent](#pullrequestwriteragent) | diff / spec / task context | `pull-request/{title}.md` |
 | [OpenApiWriterAgent](#openapiwriteragent) | Backend implementation files + scope | `docs/spec/backend/openapi.yaml` |
 | [UIDesignAgent](#uidesignagent) | Component path / design reference / scope | Frontend `.tsx` + `.stories.tsx` |
+| [DetailedDesignAgent](#detaileddesignagent) | Requirement / ADR / target area | `docs/v1/specification/` |
+| [TaskSpecificationAgent](#taskspecificationagent) | Feature / requirement / design context | `docs/spec/features/{feature}.md` |
+| [DocumentationUpdateAgent](#documentationupdateagent) | Diff / changed files / documentation scope | Existing documentation in place |
 
 ---
 
@@ -358,6 +361,76 @@ When no scope is specified, audits and improves all of `frontend/src`.
 
 ---
 
+## DetailedDesignAgent
+
+**Role**: Converts requirements and accepted architecture decisions into detailed design documentation.
+
+### Input
+| Item | Description |
+|---|---|
+| Requirement or target area (required) | Feature or subsystem to design |
+| Requirements and ADRs (required) | Authoritative behavior and architecture constraints |
+| Existing design and repository evidence (optional) | Current design, code, and tests used for traceability |
+
+### Output
+| Artifact | Path |
+|---|---|
+| Detailed design | `docs/v1/specification/` |
+
+### Per-app configuration
+- Requirements source: `docs/v1/requirements/`
+- Detailed design location: `docs/v1/specification/`
+- Project design entrypoint: `.github/DESIGN.md`
+
+---
+
+## TaskSpecificationAgent
+
+**Role**: Produces one implementation-ready, verifiable feature task specification.
+
+### Input
+| Item | Description |
+|---|---|
+| Feature or work objective (required) | One coherent implementation outcome |
+| Requirements, ADRs, and designs (required) | Sources for scope and acceptance criteria |
+| Repository evidence and constraints (optional) | Affected areas, dependencies, and validation context |
+
+### Output
+| Artifact | Path |
+|---|---|
+| Task specification | `docs/spec/features/{feature}.md` |
+
+### Per-app configuration
+- Task specification location: `docs/spec/features/`
+- Filename convention: kebab-case feature slug
+- One independently actionable task per file
+
+---
+
+## DocumentationUpdateAgent
+
+**Role**: Updates existing repository documentation in place from verified changes.
+
+### Input
+| Item | Description |
+|---|---|
+| Change scope (required) | Diff, files, commit, branch, feature, or named document |
+| Repository evidence (required) | Changed code, tests, configuration, requirements, or decisions |
+| Documentation scope (optional) | Documents or documentation areas to prioritize |
+
+### Output
+| Artifact | Path |
+|---|---|
+| Updated documentation | Existing authoritative document paths, edited in place |
+| Conflict or blocker report | Agent output when sources disagree or authority is missing |
+
+### Per-app configuration
+- Product behavior source: `docs/v1/requirements/`
+- Architecture decision source: `.github/ADR/`
+- Design entrypoint: `.github/DESIGN.md`
+
+---
+
 ## Global Configuration (Affects All Agents)
 
 | Setting | Value in This Project | Affected Agents |
@@ -375,3 +448,5 @@ When no scope is specified, audits and improves all of `frontend/src`.
 | PR draft location | `pull-request/` | PullRequestWriterAgent |
 | OpenAPI spec | `docs/spec/backend/openapi.yaml` | OpenApiWriterAgent |
 | PR template | `.github/pull_request_template.md` | PullRequestWriterAgent |
+| Detailed designs | `docs/v1/specification/` | DetailedDesignAgent / DocumentationUpdateAgent |
+| Feature task specifications | `docs/spec/features/` | TaskSpecificationAgent / OrchestratorAgent |

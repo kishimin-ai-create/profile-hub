@@ -92,6 +92,7 @@ Current agents (as of last update):
 - `MutationTestAgent`, `PromptCreatorAgent`, `SecurityDynamicAnalysisAgent`, `SecurityStaticAnalysisAgent`
 - `SkillCreatorAgent`, `TestCreatorAgent`
 - `StorybookCreatorAgent`, `TaskDispatcherAgent`, `UIDesignAgent`, `WorkSummaryAgent`
+- `DetailedDesignAgent`, `TaskSpecificationAgent`, `DocumentationUpdateAgent`
 - `AgentSetupAgent` (this agent)
 - **Fix specialists**: `FixDispatcherAgent`, `FixSecurityAgent`, `FixTypeAgent`,
   `FixTestAgent`, `FixLintAgent`, `FixFrontendAgent`, `FixBackendAgent`

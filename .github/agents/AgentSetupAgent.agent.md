@@ -86,7 +86,7 @@ Before creating a new agent, read all files in `.github/agents/` to understand
 the current roster and avoid duplicates.
 
 Current agents (as of last update):
-- `ArticleWriterAgent`, `CodeReviewAgent`, `FixAgent`, `GreenAgent`
+- `ADRAgent`, `ArticleWriterAgent`, `CodeReviewAgent`, `FixAgent`, `GreenAgent`
 - `OpenApiWriterAgent`, `OrchestratorAgent`, `PullRequestWriterAgent`
 - `RedAgent`, `RefactorAgent`, `RegressionTestAgent`, `ReviewResponseAgent`
 - `MutationTestAgent`, `PromptCreatorAgent`, `SecurityDynamicAnalysisAgent`, `SecurityStaticAnalysisAgent`

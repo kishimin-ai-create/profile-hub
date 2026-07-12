@@ -126,7 +126,12 @@ A Green Agent implementation is complete when:
 
 ##  Coverage Strategy
 
-Coverage is collected and reported as part of every test run, but **thresholds are not enforced** while the TDD cycle is in progress. Actual coverage (~276% across the stack) is well below the aspirational target (80%). Once coverage reaches the threshold, checks will be re-enabled to prevent regression.
+Coverage is an enforced TDD exit gate. Green may hand off passing code to
+RefactorAgent, but the TDD loop cannot exit until coverage is measured for every
+changed application. Run `cd backend && npm run test:coverage` and/or
+`cd frontend && npm run test:coverage` as applicable and record the full summary.
+After Refactor, return uncovered areas to RedAgent when any reported overall
+summary dimension is below 80%, the command fails, or the summary is missing.
 
 ## ｧ Thinking Rules
 

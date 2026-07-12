@@ -23,7 +23,23 @@ The goal of TDD is to achieve "clean code that works"
 4. Refactor the code as needed to improve the design.
    - Commit with the prefix `refactor:` (can be done multiple times)
 
-5. Repeat from step 2 until the test list is empty
+5. Repeat from step 2 until the test list is empty, all tests pass, and the
+   applicable coverage report reaches at least 80% in every reported overall
+   summary dimension
+
+## Coverage Exit Gate
+
+TDD is complete only when coverage has been measured for every application
+changed by the task:
+
+- Backend: `cd backend && npm run test:coverage`
+- Frontend: `cd frontend && npm run test:coverage`
+
+Every reported overall summary dimension (statements, branches, functions, and
+lines when reported) must be at least 80%. A missing summary, an unmeasured
+changed application, or a failed coverage command fails the gate and returns
+the uncovered behavior to the Red phase. Record the command and every reported
+percentage in the agent work record.
 
 ---
 

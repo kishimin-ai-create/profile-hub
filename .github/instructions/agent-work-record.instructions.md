@@ -33,6 +33,10 @@ Return Markdown with these headings in this order:
 
 - Use `None` when a section has no entries.
 - Record commands and their observed outcomes under `Validation`.
+- For an orchestrated TDD phase, record the applicable backend and/or frontend
+  `test:coverage` command, every reported overall summary percentage, and an
+  explicit pass or fail against the 80% gate. A missing or failed measurement
+  must be reported as a failed gate.
 - List repository-relative paths only.
 - Put unresolved work, routable finding identifiers, and the next agent input under `Handoff`.
 - Never report a file, command, result, decision, or completion status that was not observed.

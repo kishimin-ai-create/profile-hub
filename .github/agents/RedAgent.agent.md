@@ -115,7 +115,13 @@ A Red Agent test suite is complete when:
 
 ## Coverage Strategy
 
-Coverage is collected and reported as part of every test run, but **thresholds are not enforced** while the TDD cycle is in progress. Actual coverage (~27-6% across the stack) is well below the aspirational target (80%). Once coverage reaches the threshold, checks will be re-enabled to prevent regression.
+Coverage is an enforced TDD exit gate. Design tests to close uncovered behavior,
+branches, and boundaries identified by the latest coverage report. The TDD loop
+must continue until `cd backend && npm run test:coverage` and/or
+`cd frontend && npm run test:coverage` for every changed application reports at least 80%
+for every reported overall summary dimension (statements, branches, functions,
+and lines when reported). Include the measured percentages in the work record.
+A missing summary or failed command does not satisfy the gate.
 
 ## Test Conventions
 

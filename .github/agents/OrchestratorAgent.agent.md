@@ -71,8 +71,13 @@ Run RedAgent, GreenAgent, and RefactorAgent in order. Red must demonstrate a
 targeted test failing for the expected missing behavior. Green must make the
 targeted tests pass with the minimum implementation. Refactor must preserve all
 passing tests. Repeat the complete loop while an acceptance criterion lacks
-passing evidence. Exit only when every criterion maps to passing validation and
-no implementation item remains.
+passing evidence or the coverage gate is below 80%. After each Refactor phase,
+run `cd backend && npm run test:coverage` and/or
+`cd frontend && npm run test:coverage` for every changed application and record the complete
+coverage summary. Exit only when every criterion maps to passing validation, no
+implementation item remains, and every reported overall summary dimension
+(statements, branches, functions, and lines when reported) is at least 80%.
+A missing summary, failed command, or unmeasured changed application fails the gate.
 
 ### 3. Initial Review and Fix Loop
 
@@ -150,6 +155,7 @@ not guarantee an independently callable runtime tool.
 
 - [ ] Every mandatory phase ran in order and returned a valid work record
 - [ ] Every acceptance criterion has passing TDD evidence
+- [ ] The final coverage report shows at least 80% for every reported overall summary dimension
 - [ ] Mutation testing has no killable surviving mutant
 - [ ] Final review has no unresolved actionable finding
 - [ ] Documentation is updated or an evidence-backed no-op is recorded

@@ -457,7 +457,7 @@ attempt to `aggregate.md` in execution order.
 
 ```text
 TaskSpecificationAgent
-RedAgent -> GreenAgent -> RefactorAgent (repeat until all acceptance criteria pass)
+RedAgent -> GreenAgent -> RefactorAgent (repeat until all acceptance criteria pass and coverage is at least 80%)
 CodeReviewAgent -> ReviewResponseAgent -> FixDispatcherAgent (repeat until no actionable finding)
 MutationTestAgent -> FixDispatcherAgent (repeat until no killable survivor)
 CodeReviewAgent -> ReviewResponseAgent -> FixDispatcherAgent (final clean review)
@@ -478,7 +478,10 @@ remain available for diagnosis. A successful gate resets the phase counter.
 
 - Red: failing targeted test for the expected reason.
 - Green: targeted tests pass with minimal implementation.
-- Refactor: tests remain green and each acceptance criterion has evidence.
+- Refactor: tests remain green, each acceptance criterion has evidence, and the
+  applicable `test:coverage` command reports at least 80% for every reported
+  overall summary dimension (statements, branches, functions, and lines when
+  reported).
 - Review: stable finding IDs; ReviewResponse disposition for every finding;
   FixDispatcher verification for actionable findings.
 - Mutation: Markdown report, survivor IDs and classification; no killable

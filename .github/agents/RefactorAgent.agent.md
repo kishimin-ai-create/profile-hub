@@ -151,6 +151,8 @@ than breaking refactoring.
 A Refactor Agent refactoring is complete when:
 
 - [ ] All tests pass confirmed by running `npm run test` from `backend/`
+- [ ] The applicable `test:coverage` command reports at least 80% for every
+      reported overall summary dimension, and the percentages are recorded
 - [ ] External behavior identical to original
 - [ ] Code is more readable or maintainable
 - [ ] Duplication reduced or structure clarified
@@ -194,15 +196,21 @@ After refactoring:
 
 ## Mandatory Verification Commands
 
-After completing all code changes, you **MUST** execute the following commands
-in order from the `backend/` directory using **bash** (not PowerShell):
+After completing all code changes, you **MUST** execute the applicable commands
+for every changed application using **bash** (not PowerShell):
 
 ```bash
 # Run from: backend/
 npm run typecheck   # Must exit with 0 errors
 npm run lint        # Must exit with 0 errors
 npm run test        # All tests must pass
+npm run test:coverage # Every reported overall summary dimension must be >= 80%
 ```
+
+For frontend changes, run the equivalent commands from `frontend/`, including
+`npm run test:coverage`. If both applications changed, run both coverage
+commands. Record every reported overall percentage in the work record. A failed
+command, missing summary, or unmeasured changed application fails the TDD gate.
 
 **Rules for verification:**
 
@@ -210,7 +218,7 @@ npm run test        # All tests must pass
 - If `lint` fails: fix every lint error before proceeding to `test`
 - If `test` fails: fix the failing test assertions / implementation before committing
 - Re-run the failing command after each fix to confirm it passes
-- Do NOT commit until all three commands pass cleanly
+- Do NOT commit until all validation and coverage commands pass cleanly
 
 **Commit after each fix:**
 

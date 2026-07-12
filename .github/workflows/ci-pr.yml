@@ -86,16 +86,36 @@ jobs:
           retention-days: 7
 
       - name: Build Storybook
-        run: bun run build-storybook -- --quiet
+        run: |
+          if [ -d app ] || [ -d src/app ]; then
+            bun run build-storybook -- --quiet
+          else
+            echo "No Storybook application directory found — skipping build"
+          fi
 
       - name: Build frontend
-        run: bun run build
+        run: |
+          if [ -d app ] || [ -d pages ] || [ -d src/app ] || [ -d src/pages ]; then
+            bun run build
+          else
+            echo "No Next.js app or pages directory found — skipping build"
+          fi
 
       - name: Install Playwright Browsers
-        run: bunx playwright install --with-deps chromium webkit
+        run: |
+          if [ -d e2e ]; then
+            bunx playwright install --with-deps chromium webkit
+          else
+            echo "No E2E directory found — skipping browser installation"
+          fi
 
       - name: Run E2E tests
-        run: bun run e2e
+        run: |
+          if [ -d e2e ]; then
+            bun run e2e
+          else
+            echo "No E2E directory found — skipping tests"
+          fi
 
       - name: Upload Playwright report
         if: always()

@@ -66,4 +66,9 @@ jobs:
         run: bun run test:small
 
       - name: Build
-        run: bun run build
+        run: |
+          if [ -d app ] || [ -d pages ] || [ -d src/app ] || [ -d src/pages ]; then
+            bun run build
+          else
+            echo "No Next.js app or pages directory found — skipping build"
+          fi

@@ -214,6 +214,7 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/git.instructions.md`](../instructions/git.instructions.md) | Git workflow rules |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security — password hashing, token handling, input validation |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ## Post-Completion Required Steps
 
@@ -228,4 +229,3 @@ Do not recursively invoke them if the current task is already `@ArticleWriterAge
 ---
 
 **Last Updated**: April 12, 2026 **Version**: 1.0.0 Red Agent Specification
-

@@ -91,6 +91,11 @@ Confirm the file exists before reporting done.
 
 ### Review file format
 
+Every actionable finding must have a stable identifier that remains unchanged
+across reruns, plus severity, repository-relative path and line, observed
+evidence, expected correction, and resolution status. In an orchestrated run,
+return these identifiers in the Markdown work record for ReviewResponseAgent.
+
 ```markdown
 ## Review Target
 
@@ -255,4 +260,4 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/git.instructions.md`](../instructions/git.instructions.md) | Git workflow rules |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security password hashing, token handling, input validation |
-
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |

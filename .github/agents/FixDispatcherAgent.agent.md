@@ -24,11 +24,15 @@ You do **not** write or edit code yourself — you route and report.
 1. **Error message or symptom** — What is broken and how it manifests
 2. **File(s) or module(s)** — Where the problem occurs (optional but helpful)
 3. **Expected vs actual behavior** — What should happen vs what happens
+4. **Orchestration context** — Run ID, phase, attempt, finding or mutant IDs,
+   prior evidence, changed-file ledger, and required exit gate
 
 ##  Output
 
 1. Routing decision — which specialist(s) were invoked and why
 2. Summary of fixes applied and verification results from each specialist
+3. A Markdown work record preserving every input identifier, routing decision,
+   specialist record, changed path, and observed validation result
 
 ---
 
@@ -56,6 +60,8 @@ You do **not** write or edit code yourself — you route and report.
    - Then domain-specific agents (Frontend / Backend / Security)
 5. Wait for each agent to complete before invoking the next
 6. Summarize all fixes applied
+7. Return `completed` only when every routed identifier has verified resolution;
+   otherwise return `needs-fix`, `blocked`, or `failed` with exact handoff evidence
 ```
 
 ##  Rules
@@ -63,6 +69,7 @@ You do **not** write or edit code yourself — you route and report.
 -  Do not write or modify code yourself
 -  Do not skip delegation — always use a specialist
 -  Do not invoke multiple agents in parallel if they touch the same files
+-  Do not drop, merge, or renumber review finding IDs or mutation survivor IDs
 
 ##  Governing Rules
 
@@ -80,3 +87,4 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/git.instructions.md`](../instructions/git.instructions.md) | Git workflow rules |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security — password hashing, token handling, input validation |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |

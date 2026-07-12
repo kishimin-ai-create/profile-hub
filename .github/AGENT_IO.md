@@ -25,6 +25,8 @@ When porting to another project, start from this file to update each `.agent.md`
 | [DetailedDesignAgent](#detaileddesignagent) | Requirement / ADR / target area | `docs/v1/specification/` |
 | [TaskSpecificationAgent](#taskspecificationagent) | Feature / requirement / design context | `docs/spec/features/{feature}.md` |
 | [DocumentationUpdateAgent](#documentationupdateagent) | Diff / changed files / documentation scope | Existing documentation in place |
+| TaskSpecificationWriterAgent | Compatibility name | Delegates to `TaskSpecificationAgent` |
+| DocumentUpdateAgent | Compatibility name | Delegates to `DocumentationUpdateAgent` |
 
 ---
 
@@ -430,6 +432,59 @@ When no scope is specified, audits and improves all of `frontend/src`.
 - Design entrypoint: `.github/DESIGN.md`
 
 ---
+
+## Orchestration Contract
+
+## Orchestrated Run Envelope
+
+Every OrchestratorAgent child receives:
+
+| Field | Meaning |
+|---|---|
+| Run ID | Stable `{feature-slug}-{YYYYMMDD-HHmmss}` identifier |
+| Phase and attempt | State-machine phase and positive attempt number |
+| Task specification | Canonical path under `docs/spec/features/` |
+| Changed-file ledger | Repository-relative paths changed in the run |
+| Prior artifacts | Work records, reviews, reports, and validation evidence needed for the phase |
+| Exit gate | Observable conditions the child must satisfy |
+
+Every child returns the Markdown schema in
+`.github/instructions/agent-work-record.instructions.md`. OrchestratorAgent saves
+records under `agent-work/{run-id}/`, maintains `manifest.md`, and appends every
+attempt to `aggregate.md` in execution order.
+
+## Complete Orchestration Sequence
+
+```text
+TaskSpecificationAgent
+RedAgent -> GreenAgent -> RefactorAgent (repeat until all acceptance criteria pass)
+CodeReviewAgent -> ReviewResponseAgent -> FixDispatcherAgent (repeat until no actionable finding)
+MutationTestAgent -> FixDispatcherAgent (repeat until no killable survivor)
+CodeReviewAgent -> ReviewResponseAgent -> FixDispatcherAgent (final clean review)
+DocumentationUpdateAgent
+PullRequestWriterAgent
+ArticleWriterAgent
+WorkSummaryAgent
+```
+
+`TaskSpecificationWriterAgent` and `DocumentUpdateAgent` are compatibility
+aliases only. The Orchestrator uses the canonical names.
+
+An unchanged failure may occur at most three consecutive times in one phase.
+On the third occurrence the run becomes `blocked`; its manifest and aggregate
+remain available for diagnosis. A successful gate resets the phase counter.
+
+### Phase Handoff Requirements
+
+- Red: failing targeted test for the expected reason.
+- Green: targeted tests pass with minimal implementation.
+- Refactor: tests remain green and each acceptance criterion has evidence.
+- Review: stable finding IDs; ReviewResponse disposition for every finding;
+  FixDispatcher verification for actionable findings.
+- Mutation: Markdown report, survivor IDs and classification; no killable
+  survivor at exit.
+- Documentation: changed authoritative paths or evidence-backed no-op.
+- Delivery: PR draft exists before article and work summary are generated.
 
 ## Global Configuration (Affects All Agents)
 

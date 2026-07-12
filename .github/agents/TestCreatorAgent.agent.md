@@ -188,6 +188,7 @@ instruction files, then apply them throughout all work:
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | No hardcoded production URLs |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security requirements for test data and boundaries |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

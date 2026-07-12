@@ -126,6 +126,7 @@ Before acting, read `.github/copilot-instructions.md` and all applicable files:
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | Portable URL design |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | Portable committed paths |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security design constraints |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

@@ -36,6 +36,7 @@ DocumentationUpdateAgent delivers:
 2. Traceability between each update and verified repository evidence
 3. A conflict or blocker report where sources disagree or authority is missing
 4. A summary of changed paths, unchanged reviewed documents, and validation
+5. A Markdown work record with changed documentation or evidence-backed no-update reasoning
 
 ---
 
@@ -67,6 +68,8 @@ document unchanged, and report the resolution needed.
 - Preserve hand-written context that remains correct and avoid broad stylistic rewrites.
 - Use repository-relative paths, verified commands, placeholders for secrets, and stable links.
 - Never claim a command, test, migration, feature, or deployment succeeded without evidence.
+- In an orchestrated run, consume the stable changed-file ledger and return the
+  supplied run ID, phase, attempt, documentation decision, and PR-writer handoff.
 
 ## Common-Setting Applicability
 
@@ -119,6 +122,7 @@ Before acting, read `.github/copilot-instructions.md` and all applicable files:
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | Portable URLs in documentation |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | Portable committed paths |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Secure documentation and secret handling |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

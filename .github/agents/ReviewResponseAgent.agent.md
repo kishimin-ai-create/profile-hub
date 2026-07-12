@@ -90,6 +90,13 @@ finding as NEEDS_FIX.
 
 ##  Workflow
 
+When invoked by OrchestratorAgent, delegate actionable findings to
+`@FixDispatcherAgent` rather than directly to generic `@FixAgent`. Preserve each
+finding ID through dispatch and return a Markdown work record mapping every ID
+to `fixed`, `reply-only`, `blocked`, or `failed`. This orchestration routing rule
+overrides generic FixAgent wording below but does not permit this agent to edit
+source code.
+
 ### Step 1 Identify target review file
 
 Use git auto-detection or the explicit path provided by the user.
@@ -222,8 +229,8 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | No hardcoded URLs in source code |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security password hashing, token handling, input validation |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 
 **Last Updated**: 2026-05-31 **Version**: 2.1.0 ReviewResponseAgent Specification
-

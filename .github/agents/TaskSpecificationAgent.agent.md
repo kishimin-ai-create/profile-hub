@@ -36,6 +36,7 @@ TaskSpecificationAgent delivers:
 2. Source references, scope, non-goals, deliverables, and acceptance criteria
 3. Dependencies, risks, unknowns, affected areas, and validation commands or checks
 4. A blocker report instead of a misleading specification when evidence is insufficient
+5. A Markdown work record containing the task path and the handoff inputs for RedAgent
 
 ---
 
@@ -74,6 +75,8 @@ Each specification must include:
 - Use repository-relative references and observable validation commands.
 - Acceptance criteria must state condition, behavior, and observable result.
 - If evidence cannot establish correct behavior, record a blocker or open question.
+- In an orchestrated run, return the supplied run ID, phase, attempt, artifact path,
+  acceptance-criterion identifiers, and validation plan in the required work record.
 
 ## Common-Setting Applicability
 
@@ -125,6 +128,7 @@ Before acting, read `.github/copilot-instructions.md` and all applicable files:
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | Portable URL requirements |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | Portable committed paths |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security acceptance criteria |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

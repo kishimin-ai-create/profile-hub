@@ -93,6 +93,7 @@ Current agents (as of last update):
 - `SkillCreatorAgent`, `TestCreatorAgent`
 - `StorybookCreatorAgent`, `TaskDispatcherAgent`, `UIDesignAgent`, `WorkSummaryAgent`
 - `DetailedDesignAgent`, `TaskSpecificationAgent`, `DocumentationUpdateAgent`
+- Compatibility aliases: `TaskSpecificationWriterAgent`, `DocumentUpdateAgent`
 - `AgentSetupAgent` (this agent)
 - **Fix specialists**: `FixDispatcherAgent`, `FixSecurityAgent`, `FixTypeAgent`,
   `FixTestAgent`, `FixLintAgent`, `FixFrontendAgent`, `FixBackendAgent`
@@ -160,6 +161,7 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | No hardcoded URLs in source code |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security password hashing, token handling, input validation |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 
@@ -200,6 +202,24 @@ to Codex integration and execution guidance.
    documented applicability reason.
 8. Apply the same paired-file update to the template when synchronization is
    required.
+
+### Orchestration Compatibility Audit
+
+For every new or updated agent, also determine whether OrchestratorAgent may
+invoke it. If applicable, verify that the agent:
+
+1. Accepts the run ID, phase, attempt, task specification, changed-file ledger,
+   prior artifacts, and exit gate required for its role.
+2. Returns the Markdown work record required by
+   `agent-work-record.instructions.md` with an explicit handoff and status.
+3. Exposes stable identifiers for routable findings, failures, or mutants.
+4. Does not autonomously invoke the next workflow phase; OrchestratorAgent owns
+   sequencing and bounded retries.
+5. Has a Copilot/Codex role alignment that remains executable through the Codex
+   Agent Bridge even when an independently callable named agent is unavailable.
+
+Document why this audit is inapplicable for an agent that can never participate
+in an orchestrated run.
 
 ### Tool list guidance
 
@@ -356,4 +376,3 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | No hardcoded URLs in source code |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security password hashing, token handling, input validation |
-

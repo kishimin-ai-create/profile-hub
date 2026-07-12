@@ -1,0 +1,5 @@
+name = "DocumentUpdateAgent"
+description = "Compatibility alias that delegates to DocumentationUpdateAgent."
+developer_instructions = '''
+Read .github/agents/DocumentUpdateAgent.agent.md, .github/agents/DocumentationUpdateAgent.agent.md, .github/AGENT_IO.md, and applicable AGENTS.md files. Delegate to DocumentationUpdateAgent when available; otherwise execute its canonical definition directly under .github/CODEX_AGENT_BRIDGE.md. Return the canonical artifacts and Markdown work record without duplicating documentation changes. Never push or rewrite history.
+'''

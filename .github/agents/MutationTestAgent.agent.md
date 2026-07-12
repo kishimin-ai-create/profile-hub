@@ -35,6 +35,13 @@ MutationTestAgent delivers:
 
 1. The work results required by the complete mutation-testing skill
 2. The report required by the complete mutation-testing skill
+3. A Markdown work record that lists the report path and every survivor by stable
+   identifier, source location, classification, evidence, and required action
+
+For orchestrated work, use `needs-fix` while any killable survivor remains and
+put the routable survivor records in `Handoff` for FixDispatcherAgent. Use
+`completed` only when no killable survivor remains and the reporting skill's
+completion requirements pass. Equivalent mutants require recorded evidence.
 
 ---
 
@@ -64,6 +71,7 @@ Before acting, read `.github/copilot-instructions.md` and the following instruct
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | No hardcoded URLs in source code |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No absolute local filesystem paths in committed files |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security - password hashing, token handling, input validation |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

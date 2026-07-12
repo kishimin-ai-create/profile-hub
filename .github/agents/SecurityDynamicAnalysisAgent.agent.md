@@ -294,6 +294,7 @@ Before acting, read `.github/copilot-instructions.md` and these instructions:
 | [`.github/instructions/no-hardcoded-urls.instructions.md`](../instructions/no-hardcoded-urls.instructions.md) | URL restrictions |
 | [`.github/instructions/no-local-paths.instructions.md`](../instructions/no-local-paths.instructions.md) | No local absolute paths |
 | [`.github/instructions/security.instructions.md`](../instructions/security.instructions.md) | Security handling rules |
+| [`.github/instructions/agent-work-record.instructions.md`](../instructions/agent-work-record.instructions.md) | Required Markdown work record and orchestration handoff |
 
 ---
 

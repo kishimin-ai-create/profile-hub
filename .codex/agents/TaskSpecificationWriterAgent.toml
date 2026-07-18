@@ -1,5 +1,0 @@
-name = "TaskSpecificationWriterAgent"
-description = "Compatibility alias that delegates to TaskSpecificationAgent."
-developer_instructions = '''
-Read .github/agents/TaskSpecificationWriterAgent.agent.md, .github/agents/TaskSpecificationAgent.agent.md, .github/AGENT_IO.md, and applicable AGENTS.md files. Delegate to TaskSpecificationAgent when available; otherwise execute its canonical definition directly under .github/CODEX_AGENT_BRIDGE.md. Return the canonical artifact and Markdown work record without creating a second specification. Never push or rewrite history.
-'''

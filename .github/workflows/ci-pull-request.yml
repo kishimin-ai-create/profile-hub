@@ -1,0 +1,250 @@
+name: CI (Pull Request)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-pull-request-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUN_VERSION: "1.3.13"
+
+jobs:
+  static:
+    name: Static checks (${{ matrix.workspace }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - workspace: api
+            markup: false
+          - workspace: public-web
+            markup: true
+          - workspace: admin-web
+            markup: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      # Cache the package store rather than node_modules: Bun links workspaces
+      # in isolated mode, so node_modules is a tree of links that does not
+      # survive being archived and restored.
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+        working-directory: apps/${{ matrix.workspace }}
+
+      - name: Type check
+        run: bun run typecheck
+        working-directory: apps/${{ matrix.workspace }}
+
+      - name: Markup lint
+        if: matrix.markup
+        run: bun run lint:markup
+        working-directory: apps/${{ matrix.workspace }}
+
+  lint-rules:
+    name: Custom ESLint rule tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      # Cache the package store rather than node_modules: Bun links workspaces
+      # in isolated mode, so node_modules is a tree of links that does not
+      # survive being archived and restored.
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # The shared config is the only place these rules exist, so a regression
+      # here silently weakens every application at once.
+      - name: Run rule regression tests
+        run: bun run test
+        working-directory: packages/config
+
+  tests:
+    name: Test (${{ matrix.workspace }} / ${{ matrix.size }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [api, public-web, admin-web]
+        size: [Small, Medium]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      # Cache the package store rather than node_modules: Bun links workspaces
+      # in isolated mode, so node_modules is a tree of links that does not
+      # survive being archived and restored.
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run ${{ matrix.size }} tests
+        run: bun run test:${{ matrix.size == 'Small' && 'small' || 'medium' }}
+        working-directory: apps/${{ matrix.workspace }}
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.workspace }}-${{ matrix.size }}-test-results
+          path: apps/${{ matrix.workspace }}/test-result.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  coverage:
+    name: Coverage (${{ matrix.workspace }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [api, public-web, admin-web]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      # Cache the package store rather than node_modules: Bun links workspaces
+      # in isolated mode, so node_modules is a tree of links that does not
+      # survive being archived and restored.
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Collect coverage
+        run: bun run test:coverage
+        working-directory: apps/${{ matrix.workspace }}
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.workspace }}-coverage-report
+          path: apps/${{ matrix.workspace }}/coverage
+          if-no-files-found: ignore
+          retention-days: 14
+
+  report:
+    name: Test report
+    needs: tests
+    if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: "*-test-results"
+          path: results
+
+      - name: Report Vitest and Bun test results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const root = "results";
+            if (!fs.existsSync(root)) {
+              console.log("No test result artifacts were produced.");
+              return;
+            }
+
+            const sections = [];
+            for (const dir of fs.readdirSync(root).sort()) {
+              const file = path.join(root, dir, "test-result.json");
+              if (!fs.existsSync(file)) {
+                continue;
+              }
+
+              const result = JSON.parse(fs.readFileSync(file, "utf8"));
+              const label = dir.replace(/-test-results$/, "");
+              sections.push([
+                `## ${label}`,
+                `**${result.success ? "All tests passed" : "Some tests failed"}**`,
+                "",
+                `- Suites: ${result.numTotalTestSuites} (passed ${result.numPassedTestSuites}, failed ${result.numFailedTestSuites})`,
+                `- Cases: ${result.numTotalTests} (passed ${result.numPassedTests}, failed ${result.numFailedTests})`,
+              ].join("\n"));
+            }
+
+            if (sections.length === 0) {
+              console.log("No workspace emitted a test-result.json yet.");
+              return;
+            }
+
+            const runLink = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const body = ["# Test Results", ...sections, "", `Full report: ${runLink}`].join("\n\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });

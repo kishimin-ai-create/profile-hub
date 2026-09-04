@@ -35,27 +35,22 @@ Controller -> Service -> Model
 ## Layer Rules
 
 - `models/` must not depend on frameworks, HTTP, database code, or outer layers.
-- `services/` contains business logic and orchestration, but no infrastructure
-  details.
-- Repository interfaces belong near the domain; implementations belong in
-  infrastructure.
+- `services/` contains business logic and orchestration, but no infrastructure details.
+- Repository interfaces belong near the domain; implementations belong in infrastructure.
 - `controllers/` must stay thin and call services only.
-- `infrastructures/` handles external systems and must not contain business
-  rules.
+- `infrastructures/` handles external systems and must not contain business rules.
 - Do not leak raw infrastructure errors outside the infrastructure layer.
 - Map infrastructure failures to domain or application errors.
 
 ## API and Security
 
-- Validate and sanitize input at the Hono route boundary or validator
-  middleware.
-- Do not trust client-supplied IDs for authorization; verify ownership in the
-  use case or repository layer.
+- Validate and sanitize input at the Hono route boundary or validator middleware.
+- Do not trust client-supplied IDs for authorization; verify ownership in the use case or repository
+  layer.
 - Never return password hashes or secret values in API responses.
 - Authentication errors must not reveal whether an email exists.
 - Use timing-safe password comparison when implementing password verification.
-- Read configuration from `process.env`; do not hardcode production URLs or
-  credentials.
+- Read configuration from `process.env`; do not hardcode production URLs or credentials.
 
 ## Tests
 
@@ -78,5 +73,5 @@ bun run typecheck
 bun run test
 ```
 
-Use the narrowest useful command while iterating, then run broader checks before
-finishing risky changes.
+Use the narrowest useful command while iterating, then run broader checks before finishing risky
+changes.

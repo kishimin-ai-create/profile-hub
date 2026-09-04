@@ -1,6 +1,9 @@
 {
-  "name": "backend",
+  "name": "@profile-hub/api",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
+    "build": "echo \"the API runs from TypeScript source under Bun\"",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts",
     "test": "bun test",

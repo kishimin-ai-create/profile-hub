@@ -91,12 +91,7 @@ function createDatabaseUrlFromParts(
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${database}`;
 }
 
-type DatabaseEnvKey =
-  | "DB_HOST"
-  | "DB_NAME"
-  | "DB_PASSWORD"
-  | "DB_PORT"
-  | "DB_USER";
+type DatabaseEnvKey = "DB_HOST" | "DB_NAME" | "DB_PASSWORD" | "DB_PORT" | "DB_USER";
 
 function readEnv(
   key: DatabaseEnvKey,

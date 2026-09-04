@@ -1,5 +1,5 @@
 {
-  "name": "@profile-hub/public-web",
+  "name": "@profile-hub/admin-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,11 +19,11 @@
     "test:large": "vitest run --passWithNoTests large.test",
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "test:coverage:pr": "COVERAGE_THRESHOLD=80 vitest run --coverage --passWithNoTests small.test medium.test",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "vrt:capture": "storycap --serverCmd \"bunx serve storybook-static -p 6006\" http://localhost:6006",
+    "vrt:capture": "storycap --serverCmd \"bunx serve storybook-static -p 6007\" http://localhost:6007",
     "vrt": "reg-suit run",
     "api:generate": "orval"
   },

@@ -1,6 +1,6 @@
-# Public Web Codex Instructions
+# Admin Web Codex Instructions
 
-These rules apply inside `apps/public-web/`.
+These rules apply inside `apps/admin-web/`.
 
 ## Stack
 
@@ -77,7 +77,7 @@ the administrator console cannot drift apart.
 
 ## Commands
 
-Run commands from `apps/public-web/`:
+Run commands from `apps/admin-web/`:
 
 ```bash
 bun run lint

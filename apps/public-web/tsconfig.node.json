@@ -1,0 +1,15 @@
+{
+  "extends": "@profile-hub/config/tsconfig/base",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": [
+    "vite.config.ts",
+    "orval.config.ts",
+    "orval-url.ts",
+    "playwright.config.ts",
+    ".storybook/main.ts"
+  ]
+}

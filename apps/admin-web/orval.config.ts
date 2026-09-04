@@ -4,13 +4,13 @@ import { readOpenApiUrl } from "./orval-url";
 const OPENAPI_URL = readOpenApiUrl();
 
 export default defineConfig({
-  publicApi: {
+  adminApi: {
     input: {
       target: OPENAPI_URL,
     },
     output: {
       mode: "tags-split",
-      target: "src/api/endpoints/public-api.ts",
+      target: "src/api/endpoints/admin-api.ts",
       schemas: "src/models",
       client: "react-query",
       httpClient: "axios",
@@ -24,7 +24,7 @@ export default defineConfig({
       },
     },
   },
-  publicApiZod: {
+  adminApiZod: {
     input: {
       target: OPENAPI_URL,
     },

@@ -111,8 +111,6 @@ dependency list.
 │   ├── types
 │   ├── ui
 │   └── utils
-├── pull-request
-├── review
 ├── bun.lock
 ├── package.json
 └── README.md
@@ -131,13 +129,6 @@ dependency list.
 | `packages/types`    | Types shared between the applications and the API               |
 | `packages/ui`       | Shared UI components, empty until the design tokens are settled |
 | `packages/utils`    | Utilities shared between the applications and the API           |
-| `pull-request`      | Pull request drafts written before a pull request is opened     |
-| `review`            | Code review findings, and the replies written against them      |
-
-Both `pull-request/` and `review/` currently hold only their `AGENTS.md`; the predecessor's drafts
-and review records were removed with the rest of the Daybook material.
-
-Each workspace and document directory carries an `AGENTS.md` stating the rules that apply inside it.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

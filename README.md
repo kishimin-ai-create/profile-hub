@@ -53,16 +53,16 @@ The monorepo, the shared lint baseline, and the CI workflows are in place. The a
 themselves are scaffolds: each one builds, lints, type checks, and runs its tests, but none of the
 product features exist yet.
 
-| Area              | State                                                                       |
-| ----------------- | --------------------------------------------------------------------------- |
-| `apps/api`        | Configuration and the Drizzle config factory. No routes, no schema          |
-| `apps/public-web` | Vite scaffold that renders a placeholder. No routing, no pages              |
-| `apps/admin-web`  | Vite scaffold that renders a placeholder. No auth guard, no screens         |
-| `packages/config` | Complete. Shared ESLint, oxlint, markuplint, Prettier, and TypeScript base  |
-| `packages/ui`     | Empty on purpose until the design token set is settled                      |
-| `docs/v1/`        | Still describes the predecessor Daybook — diary domain, PostgreSQL, Next.js |
-| `render.yaml`     | Still targets Render with `diary-*` service names, and is superseded        |
-| Container images  | Only `apps/api` has a Dockerfile, and it expects sources that do not exist  |
+| Area              | State                                                                      |
+| ----------------- | -------------------------------------------------------------------------- |
+| `apps/api`        | Configuration and the Drizzle config factory. No routes, no schema         |
+| `apps/public-web` | Vite scaffold that renders a placeholder. No routing, no pages             |
+| `apps/admin-web`  | Vite scaffold that renders a placeholder. No auth guard, no screens        |
+| `packages/config` | Complete. Shared ESLint, oxlint, markuplint, Prettier, and TypeScript base |
+| `packages/ui`     | Empty on purpose until the design token set is settled                     |
+| Requirements      | None. The predecessor's documents were removed and have no replacement yet |
+| Deployment        | Nothing configured. `infra/` is a placeholder                              |
+| Container images  | Only `apps/api` has a Dockerfile, and it expects sources that do not exist |
 
 The lint baseline is ported from [mojica](https://github.com/kishimin/mojica); see
 `packages/config/README.md` for what is enforced and what was deliberately left out. The remaining
@@ -103,10 +103,6 @@ dependency list.
 │       ├── .storybook
 │       ├── public
 │       └── src
-├── docs
-│   └── v1
-│       ├── requirements
-│       └── specification
 ├── infra
 ├── packages
 │   ├── config
@@ -117,11 +113,9 @@ dependency list.
 │   └── utils
 ├── pull-request
 ├── review
-│   └── responses
 ├── bun.lock
 ├── package.json
-├── README.md
-└── render.yaml
+└── README.md
 ```
 
 ### Main Directories
@@ -132,7 +126,6 @@ dependency list.
 | `apps/admin-web`    | Administrator console (Vite + React)                            |
 | `apps/api`          | Hono API                                                        |
 | `apps/public-web`   | Public site (Vite + React)                                      |
-| `docs/v1`           | Requirements and specifications, currently describing Daybook   |
 | `infra`             | Sakura Cloud configuration, not yet written                     |
 | `packages/config`   | Shared lint, formatting, and TypeScript baselines               |
 | `packages/types`    | Types shared between the applications and the API               |
@@ -140,6 +133,9 @@ dependency list.
 | `packages/utils`    | Utilities shared between the applications and the API           |
 | `pull-request`      | Pull request drafts written before a pull request is opened     |
 | `review`            | Code review findings, and the replies written against them      |
+
+Both `pull-request/` and `review/` currently hold only their `AGENTS.md`; the predecessor's drafts
+and review records were removed with the rest of the Daybook material.
 
 Each workspace and document directory carries an `AGENTS.md` stating the rules that apply inside it.
 

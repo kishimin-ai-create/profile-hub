@@ -1,0 +1,44 @@
+{
+  "name": "@profile-hub/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs",
+    "./eslint/react": "./eslint/react.mjs",
+    "./oxlint": "./oxlint/oxlintrc.json",
+    "./markuplint": "./markuplint/markuplintrc.json",
+    "./prettier": "./prettier/index.json",
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/react": "./tsconfig/react.json"
+  },
+  "scripts": {
+    "test": "node --test eslint/rules.test.mjs",
+    "test:small": "node --test eslint/rules.test.mjs",
+    "test:medium": "echo \"no medium tests\"",
+    "test:large": "echo \"no large tests\"",
+    "lint": "echo \"config package is linted by its consumers\"",
+    "typecheck": "echo \"no TypeScript sources\"",
+    "build": "echo \"nothing to build\""
+  },
+  "dependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
+    "@eslint/js": "9.39.5",
+    "@vitest/eslint-plugin": "^1.6.27",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^64.2.0",
+    "eslint-plugin-oxlint": "^1.78.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-storybook": "^10.5.8",
+    "eslint-plugin-testing-library": "^7.16.2",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.11.0",
+    "typescript-eslint": "^8.67.0"
+  },
+  "peerDependencies": {
+    "eslint": "^9.39.5"
+  }
+}

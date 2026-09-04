@@ -1,0 +1,4 @@
+{
+  "extends": "@profile-hub/config/tsconfig/base",
+  "include": ["src"]
+}

@@ -43,8 +43,7 @@ A diary entry shall contain:
 - Title
 - Content
 
-The system shall associate the diary entry with the administrator account that
-created it.
+The system shall associate the diary entry with the administrator account that created it.
 
 The system shall automatically record the creation timestamp.
 

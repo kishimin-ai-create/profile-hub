@@ -2,25 +2,24 @@
 
 ## Common Conventions
 
-| Item | Rule |
-| ---- | ---- |
-| Base path | `/api` |
-| Content type | `application/json` |
-| Authentication | `Authorization: Bearer <accessToken>` for protected endpoints |
-| Identifier format | UUID |
-| Timestamp format | ISO 8601 UTC string |
-| Success without body | `204 No Content` |
-| Error payload | `{ "message": "..." }` |
+| Item                 | Rule                                                          |
+| -------------------- | ------------------------------------------------------------- |
+| Base path            | `/api`                                                        |
+| Content type         | `application/json`                                            |
+| Authentication       | `Authorization: Bearer <accessToken>` for protected endpoints |
+| Identifier format    | UUID                                                          |
+| Timestamp format     | ISO 8601 UTC string                                           |
+| Success without body | `204 No Content`                                              |
+| Error payload        | `{ "message": "..." }`                                        |
 
 ## Performance Expectations
 
-- The API must provide sufficient response performance to satisfy the
-  non-functional requirements under normal operating conditions.
-- In particular, the APIs used for diary browsing must be designed and
-  implemented so the diary list page can be displayed within 3 seconds under
-  normal operating conditions.
-- `GET /api/diaries` uses pagination to keep response payloads bounded and to
-  support the required performance.
+- The API must provide sufficient response performance to satisfy the non-functional requirements
+  under normal operating conditions.
+- In particular, the APIs used for diary browsing must be designed and implemented so the diary list
+  page can be displayed within 3 seconds under normal operating conditions.
+- `GET /api/diaries` uses pagination to keep response payloads bounded and to support the required
+  performance.
 
 ## Authentication APIs
 
@@ -34,11 +33,11 @@ Creates the first and only administrator account.
 
 #### Request Body
 
-| Field | Type | Required | Rules |
-| ----- | ---- | -------- | ----- |
-| `name` | string | Yes | Trimmed length 1 to 50 characters |
-| `email` | string | Yes | Valid email format, max 255 characters, unique |
-| `password` | string | Yes | Length must be between 8 and 255 characters and include at least one letter and one number |
+| Field      | Type   | Required | Rules                                                                                      |
+| ---------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `name`     | string | Yes      | Trimmed length 1 to 50 characters                                                          |
+| `email`    | string | Yes      | Valid email format, max 255 characters, unique                                             |
+| `password` | string | Yes      | Length must be between 8 and 255 characters and include at least one letter and one number |
 
 #### Success Response
 
@@ -54,11 +53,11 @@ Creates the first and only administrator account.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Validation failure |
-| `409 Conflict` | Administrator account already exists |
-| `500 Internal Server Error` | Unexpected server-side failure |
+| Status                      | Condition                            |
+| --------------------------- | ------------------------------------ |
+| `400 Bad Request`           | Validation failure                   |
+| `409 Conflict`              | Administrator account already exists |
+| `500 Internal Server Error` | Unexpected server-side failure       |
 
 ### POST /api/auth/login
 
@@ -70,10 +69,10 @@ Authenticates the administrator and returns a bearer token.
 
 #### Request Body
 
-| Field | Type | Required | Rules |
-| ----- | ---- | -------- | ----- |
-| `email` | string | Yes | Valid email format |
-| `password` | string | Yes | Length must be 255 characters or fewer; no additional format rule |
+| Field      | Type   | Required | Rules                                                             |
+| ---------- | ------ | -------- | ----------------------------------------------------------------- |
+| `email`    | string | Yes      | Valid email format                                                |
+| `password` | string | Yes      | Length must be 255 characters or fewer; no additional format rule |
 
 #### Success Response
 
@@ -89,14 +88,14 @@ Authenticates the administrator and returns a bearer token.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Validation failure |
-| `401 Unauthorized` | Invalid email or password |
+| Status                      | Condition                      |
+| --------------------------- | ------------------------------ |
+| `400 Bad Request`           | Validation failure             |
+| `401 Unauthorized`          | Invalid email or password      |
 | `500 Internal Server Error` | Unexpected server-side failure |
 
-- The `401 Unauthorized` message must stay generic and must not reveal whether
-  the email address or password was incorrect.
+- The `401 Unauthorized` message must stay generic and must not reveal whether the email address or
+  password was incorrect.
 
 ## Diary APIs
 
@@ -110,11 +109,11 @@ Returns the published diary list ordered by newest first.
 
 #### Query Parameters
 
-| Name | Type | Required | Rules |
-| ---- | ---- | -------- | ----- |
-| `page` | number | No | Integer, minimum `1`, default `1` |
-| `pageSize` | number | No | Integer, minimum `1`, default `10` |
-| `date` | string | No | `YYYY-MM-DD` |
+| Name       | Type   | Required | Rules                              |
+| ---------- | ------ | -------- | ---------------------------------- |
+| `page`     | number | No       | Integer, minimum `1`, default `1`  |
+| `pageSize` | number | No       | Integer, minimum `1`, default `10` |
+| `date`     | string | No       | `YYYY-MM-DD`                       |
 
 #### Success Response
 
@@ -142,20 +141,18 @@ Returns the published diary list ordered by newest first.
 #### Behavior
 
 - Results are sorted by `createdAt` descending.
-- If `date` is provided, only entries created on that calendar date are
-  returned.
+- If `date` is provided, only entries created on that calendar date are returned.
 - Pagination applies to both the default list and date search results.
-- `contentPreview` is generated by replacing line breaks in `content` with
-  spaces and taking the first 100 characters.
-- If the original `content` exceeds 100 characters, append `...` to the end of
-  `contentPreview`.
+- `contentPreview` is generated by replacing line breaks in `content` with spaces and taking the
+  first 100 characters.
+- If the original `content` exceeds 100 characters, append `...` to the end of `contentPreview`.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Invalid query parameter or date format |
-| `500 Internal Server Error` | Unexpected server-side failure |
+| Status                      | Condition                              |
+| --------------------------- | -------------------------------------- |
+| `400 Bad Request`           | Invalid query parameter or date format |
+| `500 Internal Server Error` | Unexpected server-side failure         |
 
 ### GET /api/diaries/{id}
 
@@ -167,9 +164,9 @@ Returns the full content for a single diary entry.
 
 #### Path Parameters
 
-| Name | Type | Required | Rules |
-| ---- | ---- | -------- | ----- |
-| `id` | string | Yes | UUID |
+| Name | Type   | Required | Rules |
+| ---- | ------ | -------- | ----- |
+| `id` | string | Yes      | UUID  |
 
 #### Success Response
 
@@ -189,10 +186,10 @@ Returns the full content for a single diary entry.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Invalid diary identifier |
-| `404 Not Found` | Diary entry does not exist |
+| Status                      | Condition                      |
+| --------------------------- | ------------------------------ |
+| `400 Bad Request`           | Invalid diary identifier       |
+| `404 Not Found`             | Diary entry does not exist     |
 | `500 Internal Server Error` | Unexpected server-side failure |
 
 ### POST /api/diaries
@@ -205,10 +202,10 @@ Creates a new diary entry.
 
 #### Request Body
 
-| Field | Type | Required | Rules |
-| ----- | ---- | -------- | ----- |
-| `title` | string | Yes | Trimmed length 1 to 100 characters |
-| `content` | string | Yes | Trimmed length must be 1 character or more |
+| Field     | Type   | Required | Rules                                      |
+| --------- | ------ | -------- | ------------------------------------------ |
+| `title`   | string | Yes      | Trimmed length 1 to 100 characters         |
+| `content` | string | Yes      | Trimmed length must be 1 character or more |
 
 #### Success Response
 
@@ -229,12 +226,12 @@ Creates a new diary entry.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Validation failure |
-| `401 Unauthorized` | Missing or invalid token |
-| `403 Forbidden` | Authenticated user is not an administrator |
-| `500 Internal Server Error` | Unexpected server-side failure |
+| Status                      | Condition                                  |
+| --------------------------- | ------------------------------------------ |
+| `400 Bad Request`           | Validation failure                         |
+| `401 Unauthorized`          | Missing or invalid token                   |
+| `403 Forbidden`             | Authenticated user is not an administrator |
+| `500 Internal Server Error` | Unexpected server-side failure             |
 
 ### PUT /api/diaries/{id}
 
@@ -246,16 +243,16 @@ Updates an existing diary entry.
 
 #### Path Parameters
 
-| Name | Type | Required | Rules |
-| ---- | ---- | -------- | ----- |
-| `id` | string | Yes | UUID |
+| Name | Type   | Required | Rules |
+| ---- | ------ | -------- | ----- |
+| `id` | string | Yes      | UUID  |
 
 #### Request Body
 
-| Field | Type | Required | Rules |
-| ----- | ---- | -------- | ----- |
-| `title` | string | Yes | Trimmed length 1 to 100 characters |
-| `content` | string | Yes | Trimmed length must be 1 character or more |
+| Field     | Type   | Required | Rules                                      |
+| --------- | ------ | -------- | ------------------------------------------ |
+| `title`   | string | Yes      | Trimmed length 1 to 100 characters         |
+| `content` | string | Yes      | Trimmed length must be 1 character or more |
 
 #### Success Response
 
@@ -269,13 +266,13 @@ Updates an existing diary entry.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Invalid identifier or validation failure |
-| `401 Unauthorized` | Missing or invalid token |
-| `403 Forbidden` | Authenticated user is not an administrator |
-| `404 Not Found` | Diary entry does not exist |
-| `500 Internal Server Error` | Unexpected server-side failure |
+| Status                      | Condition                                  |
+| --------------------------- | ------------------------------------------ |
+| `400 Bad Request`           | Invalid identifier or validation failure   |
+| `401 Unauthorized`          | Missing or invalid token                   |
+| `403 Forbidden`             | Authenticated user is not an administrator |
+| `404 Not Found`             | Diary entry does not exist                 |
+| `500 Internal Server Error` | Unexpected server-side failure             |
 
 ### DELETE /api/diaries/{id}
 
@@ -287,9 +284,9 @@ Permanently deletes a diary entry.
 
 #### Path Parameters
 
-| Name | Type | Required | Rules |
-| ---- | ---- | -------- | ----- |
-| `id` | string | Yes | UUID |
+| Name | Type   | Required | Rules |
+| ---- | ------ | -------- | ----- |
+| `id` | string | Yes      | UUID  |
 
 #### Success Response
 
@@ -303,13 +300,13 @@ Permanently deletes a diary entry.
 
 #### Error Responses
 
-| Status | Condition |
-| ------ | --------- |
-| `400 Bad Request` | Invalid diary identifier |
-| `401 Unauthorized` | Missing or invalid token |
-| `403 Forbidden` | Authenticated user is not an administrator |
-| `404 Not Found` | Diary entry does not exist |
-| `500 Internal Server Error` | Unexpected server-side failure |
+| Status                      | Condition                                  |
+| --------------------------- | ------------------------------------------ |
+| `400 Bad Request`           | Invalid diary identifier                   |
+| `401 Unauthorized`          | Missing or invalid token                   |
+| `403 Forbidden`             | Authenticated user is not an administrator |
+| `404 Not Found`             | Diary entry does not exist                 |
+| `500 Internal Server Error` | Unexpected server-side failure             |
 
 ## Shared Error Responses
 

@@ -4,9 +4,13 @@ Build diary UI with generated API types
 
 ## Summary
 
-This PR connects the frontend diary screens to the runtime backend API contract through Orval-generated React Query hooks, then adds a tested and Storybook-covered UI for browsing, viewing, creating, editing, deleting, and logging in as an admin user.
+This PR connects the frontend diary screens to the runtime backend API contract through
+Orval-generated React Query hooks, then adds a tested and Storybook-covered UI for browsing,
+viewing, creating, editing, deleting, and logging in as an admin user.
 
-The change is needed so the frontend can use the same API shape exposed by the backend instead of relying on handwritten request and response types. It also adds a local safety net around the main diary UI behavior so future changes can be reviewed against tests, stories, and coverage results.
+The change is needed so the frontend can use the same API shape exposed by the backend instead of
+relying on handwritten request and response types. It also adds a local safety net around the main
+diary UI behavior so future changes can be reviewed against tests, stories, and coverage results.
 
 ## Related Tasks
 
@@ -16,15 +20,22 @@ The change is needed so the frontend can use the same API shape exposed by the b
 
 ## What was done
 
-- Added Orval-generated frontend API clients, models, and Zod schemas under `frontend/app/api/generated/`.
-- Added the frontend API mutator, auth token helpers, providers, i18n messages, and Next.js rewrite configuration needed by the diary UI.
-- Implemented diary list, detail, login, admin list, create, and edit pages in the Next.js App Router.
+- Added Orval-generated frontend API clients, models, and Zod schemas under
+  `frontend/app/api/generated/`.
+- Added the frontend API mutator, auth token helpers, providers, i18n messages, and Next.js rewrite
+  configuration needed by the diary UI.
+- Implemented diary list, detail, login, admin list, create, and edit pages in the Next.js App
+  Router.
 - Added reusable diary feature components under `frontend/app/features/diary/`.
 - Narrowed the root `.gitignore` diary rule so `frontend/app/features/diary/` can be tracked.
-- Added nearby small tests for page behavior, auth helpers, providers, API mutator behavior, and diary feature components.
-- Added Storybook stories for the main diary UI components and their loading, empty, error, editing, and deleting states.
-- Added follow-up coverage tests so statements, branches, functions, and lines all exceed the configured 80% threshold.
-- Added article, work diary, code review, and review-response documents for the frontend UI and coverage work.
+- Added nearby small tests for page behavior, auth helpers, providers, API mutator behavior, and
+  diary feature components.
+- Added Storybook stories for the main diary UI components and their loading, empty, error, editing,
+  and deleting states.
+- Added follow-up coverage tests so statements, branches, functions, and lines all exceed the
+  configured 80% threshold.
+- Added article, work diary, code review, and review-response documents for the frontend UI and
+  coverage work.
 
 ## What is not included
 
@@ -36,9 +47,11 @@ The change is needed so the frontend can use the same API shape exposed by the b
 ## Impact
 
 - The frontend now depends on `/openapi.json` as the source for generated API types.
-- Diary users can browse public diary entries and open individual diary detail pages from the frontend.
+- Diary users can browse public diary entries and open individual diary detail pages from the
+  frontend.
 - Admin users can log in and manage diary entries through the frontend UI.
-- Future diary UI changes have nearby small tests, Storybook coverage, and coverage threshold enforcement.
+- Future diary UI changes have nearby small tests, Storybook coverage, and coverage threshold
+  enforcement.
 
 ## Testing
 
@@ -57,5 +70,7 @@ Final coverage summary:
 
 ## Notes
 
-- The PR draft covers the latest frontend diary UI work represented by commits `0a9452e`, `59c28c7`, `e5c7d93`, `a0eb746`, `499a355`, and `67cac82`.
-- Existing PR drafts under `pull-request/` cover earlier setup, backend persistence, and custom agent support separately.
+- The PR draft covers the latest frontend diary UI work represented by commits `0a9452e`, `59c28c7`,
+  `e5c7d93`, `a0eb746`, `499a355`, and `67cac82`.
+- Existing PR drafts under `pull-request/` cover earlier setup, backend persistence, and custom
+  agent support separately.

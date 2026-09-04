@@ -3,7 +3,8 @@
 ## Design Direction
 
 - The service name must be `` in the Japanese locale and `Daybook` in the English locale.
-- The visual design may be defined freely, using common diary services and modern web applications as references while prioritizing readability and a calm tone.
+- The visual design may be defined freely, using common diary services and modern web applications
+  as references while prioritizing readability and a calm tone.
 - The interface must prioritize diary readability over decorative presentation.
 - The experience must remain consistent across desktop and mobile screens.
 
@@ -11,21 +12,23 @@
 
 - Supported locales are `ja` and `en`, with `ja` as the default locale.
 - The frontend must use `next-intl` for internationalization.
-- All visible copy, validation messages, empty states, error messages, and loading text must be translatable.
+- All visible copy, validation messages, empty states, error messages, and loading text must be
+  translatable.
 - The service logo is shared across locales, while the service name changes by locale.
 - Dates must be formatted according to the active locale.
-- Route paths are not translated by locale. For example, the diary creation screen always uses `/admin/create`.
+- Route paths are not translated by locale. For example, the diary creation screen always uses
+  `/admin/create`.
 
 ## Screen Structure
 
-| Screen | Route | Primary Actor | Purpose |
-| ------ | ----- | ------------- | ------- |
-| Diary List | `/` | Visitor, Administrator | Browse published diary entries |
-| Diary Detail | `/diaries/{id}` | Visitor, Administrator | Read one diary entry |
-| Login | `/login` | Administrator | Authenticate administrator access |
-| Admin Dashboard | `/admin` | Administrator | Manage diary entries |
-| Diary Create | `/admin/create` | Administrator | Create a diary entry |
-| Diary Edit | `/admin/edit/{id}` | Administrator | Edit a diary entry |
+| Screen          | Route              | Primary Actor          | Purpose                           |
+| --------------- | ------------------ | ---------------------- | --------------------------------- |
+| Diary List      | `/`                | Visitor, Administrator | Browse published diary entries    |
+| Diary Detail    | `/diaries/{id}`    | Visitor, Administrator | Read one diary entry              |
+| Login           | `/login`           | Administrator          | Authenticate administrator access |
+| Admin Dashboard | `/admin`           | Administrator          | Manage diary entries              |
+| Diary Create    | `/admin/create`    | Administrator          | Create a diary entry              |
+| Diary Edit      | `/admin/edit/{id}` | Administrator          | Edit a diary entry                |
 
 ## Screen Transition Diagram
 
@@ -58,20 +61,24 @@ flowchart TD
 
 ### Loading
 
-- During full-page loading states, show a full-page loading overlay with the service logo centered on the screen.
-- For localized loading states such as list refetches or form submissions, do not block the entire page when a scoped loading indicator is sufficient.
+- During full-page loading states, show a full-page loading overlay with the service logo centered
+  on the screen.
+- For localized loading states such as list refetches or form submissions, do not block the entire
+  page when a scoped loading indicator is sufficient.
 
 ### Feedback
 
 - Validation errors must appear near the relevant field, with a form-level summary when needed.
-- Submission errors that are not field-specific must use plain language and must not expose internal details.
+- Submission errors that are not field-specific must use plain language and must not expose internal
+  details.
 - Success messages should be brief and disappear on the next page transition or after a short delay.
 - Delete actions must use a reusable confirmation dialog.
 
 ### Shared Input Rules
 
 - In the login form, email is required and must use a valid format, and password is required.
-- In the diary editor form, title is required and must be 1 to 100 characters, and content is required and must be at least 1 character.
+- In the diary editor form, title is required and must be 1 to 100 characters, and content is
+  required and must be at least 1 character.
 - The submit button for the active form must be disabled while submission is in progress.
 
 ## Component Design (Atomic Design)
@@ -164,7 +171,8 @@ Show published diary entries and support date-based search.
 #### States
 
 - Initial state: newest diary entries are shown first.
-- Loading state: use full-page loading on initial page load and a scoped loading state for list refetches.
+- Loading state: use full-page loading on initial page load and a scoped loading state for list
+  refetches.
 - Empty state: show that no diary entries match the condition.
 - Error state: show an error message and do not display the diary list or pagination.
 

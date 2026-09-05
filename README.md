@@ -248,10 +248,12 @@ reported so the same violation is never printed twice.
 list in `packages/config/eslint/react.mjs`, or it will be silently exempt from
 `boundaries/dependencies`.
 
-### `docker build` fails on `COPY src ./src`
+### `docker build` fails on `COPY drizzle ./drizzle`
 
-`apps/api/Dockerfile` copies an application source directory that is not present. The frontends have
-no Dockerfile at all; container images and the delivery method are settled in the deployment issue.
+`apps/api/Dockerfile` copies two directories that do not exist yet — `drizzle/` for the migrations
+and `src/` for the application. `drizzle/` is copied first, so that is the line the build stops on.
+The frontends have no Dockerfile at all; container images and the delivery method are settled in the
+deployment issue.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

@@ -111,6 +111,16 @@ jobs:
       matrix:
         workspace: [api, public-web, admin-web]
         size: [Small, Medium]
+        # Only Vitest writes the JSON summary the report job parses. Bun's only
+        # file reporter is JUnit, which that job cannot read, so the API has
+        # nothing to upload and must not pretend otherwise.
+        include:
+          - workspace: api
+            emits_test_report: false
+          - workspace: public-web
+            emits_test_report: true
+          - workspace: admin-web
+            emits_test_report: true
 
     steps:
       - name: Check out repository
@@ -137,13 +147,15 @@ jobs:
         run: bun run test:${{ matrix.size == 'Small' && 'small' || 'medium' }}
         working-directory: apps/${{ matrix.workspace }}
 
+      # `error` rather than `ignore`: a summary that stops being written should
+      # fail here instead of disappearing quietly from the report.
       - name: Upload test results
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.emits_test_report }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.workspace }}-${{ matrix.size }}-test-results
           path: apps/${{ matrix.workspace }}/test-result.json
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
 
   coverage:
@@ -153,7 +165,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workspace: [api, public-web, admin-web]
+        # The two runners take their threshold from different places, so the
+        # script differs per workspace. Vitest only applies one when
+        # COVERAGE_THRESHOLD is set, which is what `test:coverage:pr` does;
+        # Bun reads it from bunfig.toml, so the API uses the plain script.
+        # Calling `test:coverage` everywhere collects numbers and gates nothing.
+        include:
+          - workspace: api
+            coverage_script: test:coverage
+          - workspace: public-web
+            coverage_script: test:coverage:pr
+          - workspace: admin-web
+            coverage_script: test:coverage:pr
 
     steps:
       - name: Check out repository
@@ -177,7 +200,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Collect coverage
-        run: bun run test:coverage
+        run: bun run ${{ matrix.coverage_script }}
         working-directory: apps/${{ matrix.workspace }}
 
       - name: Upload coverage report
@@ -203,7 +226,9 @@ jobs:
           pattern: "*-test-results"
           path: results
 
-      - name: Report Vitest and Bun test results
+      # Covers the Vitest workspaces only. The API's results are visible in its
+      # own job log; Bun cannot emit a summary this script can read.
+      - name: Report Vitest test results
         uses: actions/github-script@v7
         with:
           script: |
@@ -240,7 +265,12 @@ jobs:
             }
 
             const runLink = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            const body = ["# Test Results", ...sections, "", `Full report: ${runLink}`].join("\n\n");
+            const body = [
+              "# Test Results (Vitest workspaces)",
+              ...sections,
+              "",
+              `The API runs under Bun and reports in its own job. Full report: ${runLink}`,
+            ].join("\n\n");
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

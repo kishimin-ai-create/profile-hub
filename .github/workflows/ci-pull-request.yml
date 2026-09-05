@@ -203,18 +203,20 @@ jobs:
         run: bun run ${{ matrix.coverage_script }}
         working-directory: apps/${{ matrix.workspace }}
 
+      # `error` rather than `ignore`: coverage that stops being written should
+      # fail here instead of quietly dropping a row from the report.
       - name: Upload coverage report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.workspace }}-coverage-report
           path: apps/${{ matrix.workspace }}/coverage
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
 
   report:
-    name: Test report
-    needs: tests
+    name: CI report
+    needs: [tests, coverage]
     if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
 
@@ -226,55 +228,130 @@ jobs:
           pattern: "*-test-results"
           path: results
 
-      # Covers the Vitest workspaces only. The API's results are visible in its
-      # own job log; Bun cannot emit a summary this script can read.
-      - name: Report Vitest test results
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: "*-coverage-report"
+          path: coverage
+
+      - name: Build the report
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require("fs");
             const path = require("path");
 
-            const root = "results";
-            if (!fs.existsSync(root)) {
-              console.log("No test result artifacts were produced.");
-              return;
-            }
+            const ratio = (covered, total) =>
+              total === 0 ? "100% (0/0)" : `${Math.round((covered / total) * 1000) / 10}% (${covered}/${total})`;
 
-            const sections = [];
-            for (const dir of fs.readdirSync(root).sort()) {
-              const file = path.join(root, dir, "test-result.json");
+            // Vitest writes a summary keyed by metric. Bun writes lcov, which
+            // carries lines and functions but has no notion of a statement, and
+            // emits no branch records at all — hence the gaps in the table.
+            const readVitestCoverage = (directory) => {
+              const file = path.join(directory, "coverage-summary.json");
+              if (!fs.existsSync(file)) {
+                return null;
+              }
+              const { total } = JSON.parse(fs.readFileSync(file, "utf8"));
+              return {
+                lines: ratio(total.lines.covered, total.lines.total),
+                statements: ratio(total.statements.covered, total.statements.total),
+                functions: ratio(total.functions.covered, total.functions.total),
+                branches: ratio(total.branches.covered, total.branches.total),
+              };
+            };
+
+            const readLcovCoverage = (directory) => {
+              const file = path.join(directory, "lcov.info");
+              if (!fs.existsSync(file)) {
+                return null;
+              }
+              const sums = { LF: 0, LH: 0, FNF: 0, FNH: 0, BRF: 0, BRH: 0 };
+              for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
+                const match = /^(LF|LH|FNF|FNH|BRF|BRH):(\d+)$/.exec(line.trim());
+                if (match) {
+                  sums[match[1]] += Number(match[2]);
+                }
+              }
+              return {
+                lines: ratio(sums.LH, sums.LF),
+                statements: "—",
+                functions: ratio(sums.FNH, sums.FNF),
+                branches: sums.BRF === 0 ? "—" : ratio(sums.BRH, sums.BRF),
+              };
+            };
+
+            const listDirectories = (root) =>
+              fs.existsSync(root) ? fs.readdirSync(root).sort() : [];
+
+            const testRows = [];
+            for (const directory of listDirectories("results")) {
+              const file = path.join("results", directory, "test-result.json");
               if (!fs.existsSync(file)) {
                 continue;
               }
-
               const result = JSON.parse(fs.readFileSync(file, "utf8"));
-              const label = dir.replace(/-test-results$/, "");
-              sections.push([
-                `## ${label}`,
-                `**${result.success ? "All tests passed" : "Some tests failed"}**`,
-                "",
-                `- Suites: ${result.numTotalTestSuites} (passed ${result.numPassedTestSuites}, failed ${result.numFailedTestSuites})`,
-                `- Cases: ${result.numTotalTests} (passed ${result.numPassedTests}, failed ${result.numFailedTests})`,
-              ].join("\n"));
+              testRows.push(
+                `| ${directory.replace(/-test-results$/, "")} | ${result.success ? "✅" : "❌"} | ` +
+                  `${result.numTotalTestSuites} | ${result.numPassedTests} passed, ${result.numFailedTests} failed |`,
+              );
             }
 
-            if (sections.length === 0) {
-              console.log("No workspace emitted a test-result.json yet.");
-              return;
+            const coverageRows = [];
+            for (const directory of listDirectories("coverage")) {
+              const full = path.join("coverage", directory);
+              const summary = readVitestCoverage(full) ?? readLcovCoverage(full);
+              if (!summary) {
+                continue;
+              }
+              coverageRows.push(
+                `| ${directory.replace(/-coverage-report$/, "")} | ${summary.lines} | ` +
+                  `${summary.statements} | ${summary.functions} | ${summary.branches} |`,
+              );
             }
 
             const runLink = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            const body = [
-              "# Test Results (Vitest workspaces)",
-              ...sections,
-              "",
-              `The API runs under Bun and reports in its own job. Full report: ${runLink}`,
-            ].join("\n\n");
+            const sections = ["# CI Report"];
 
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              body,
-            });
+            if (testRows.length > 0) {
+              sections.push(
+                [
+                  "## Tests",
+                  "",
+                  "| Workspace / size | Result | Suites | Cases |",
+                  "| --- | --- | --- | --- |",
+                  ...testRows,
+                  "",
+                  "The API runs under Bun, which emits no summary this job can read; its results are in its own job log.",
+                ].join("\n"),
+              );
+            } else {
+              sections.push("## Tests\n\nNo workspace produced a test summary.");
+            }
+
+            if (coverageRows.length > 0) {
+              sections.push(
+                [
+                  "## Coverage",
+                  "",
+                  "| Workspace | Lines | Statements | Functions | Branches |",
+                  "| --- | --- | --- | --- | --- |",
+                  ...coverageRows,
+                  "",
+                  "`—` means the runner does not report that metric, not that it is zero.",
+                ].join("\n"),
+              );
+            } else {
+              sections.push("## Coverage\n\nNo workspace produced a coverage report.");
+            }
+
+            sections.push(`[Full run](${runLink})`);
+            fs.writeFileSync("ci-report.md", sections.join("\n\n"), "utf8");
+
+      # One comment that updates in place, rather than a new one per run.
+      - name: Post the report
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: ci-report
+          path: ci-report.md

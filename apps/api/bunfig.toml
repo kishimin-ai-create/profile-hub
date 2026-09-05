@@ -16,3 +16,7 @@ coverageDir = "coverage"
 # is parsed without complaint and then ignored, so `{ line = 80, ... }` silently
 # enforced nothing.
 coverageThreshold = 0.8
+# Without this the test files count as covered source, which inflates the figure
+# the pull request report publishes and makes the threshold easier to clear the
+# more tests are written.
+coverageSkipTestFiles = true

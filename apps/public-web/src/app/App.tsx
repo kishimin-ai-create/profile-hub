@@ -1,5 +1,5 @@
-import { LOCALES } from "@profile-hub/types";
-import { isSupportedLocale } from "@profile-hub/utils";
+import { SECTIONS } from "@profile-hub/types";
+import { isSection } from "@profile-hub/utils";
 
 /**
  * Placeholder shell for the public site.
@@ -9,7 +9,7 @@ import { isSupportedLocale } from "@profile-hub/utils";
  * the toolchain and the shared workspace packages resolve end to end.
  */
 export const App = () => {
-  const locales = Object.values(LOCALES).filter(isSupportedLocale);
+  const sections = Object.values(SECTIONS).filter(isSection);
 
-  return <p>{`profile-hub — locales: ${locales.join(", ")}`}</p>;
+  return <p>{`profile-hub — sections: ${sections.join(", ")}`}</p>;
 };

@@ -1,0 +1,14 @@
+# Line endings are LF everywhere, in the repository and in the working tree.
+#
+# Without this file the working tree has no agreed ending, so `core.autocrlf` on
+# a Windows checkout wants CRLF while Prettier, Bun, and CI all write LF. Git
+# then reports files as modified that have no content difference, and the noise
+# comes back every time any tool rewrites anything.
+* text=auto eol=lf
+
+# Binaries must never be normalised.
+*.ico binary
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary

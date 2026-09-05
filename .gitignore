@@ -1,6 +1,14 @@
 /diary/
 /blog/
 
+# dependencies
+node_modules/
+
+# build output
+dist/
+coverage/
+*.tsbuildinfo
+
 # environment variables
 .env
 .env.*

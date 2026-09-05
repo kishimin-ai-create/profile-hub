@@ -12,7 +12,7 @@ console, and an API.
   <img src="https://img.shields.io/badge/-TypeScript-3178C6.svg?logo=typescript&style=for-the-badge&logoColor=white">
   <img src="https://img.shields.io/badge/-Hono-E36002.svg?logo=hono&style=for-the-badge&logoColor=white">
   <img src="https://img.shields.io/badge/-Drizzle%20ORM-C5F74F.svg?logo=drizzle&style=for-the-badge&logoColor=black">
-  <img src="https://img.shields.io/badge/-Next.js-000000.svg?logo=nextdotjs&style=for-the-badge&logoColor=white">
+  <img src="https://img.shields.io/badge/-Vite-646CFF.svg?logo=vite&style=for-the-badge&logoColor=white">
   <img src="https://img.shields.io/badge/-React-61DAFB.svg?logo=react&style=for-the-badge&logoColor=black">
 </p>
 
@@ -29,40 +29,45 @@ console, and an API.
 
 ## About the Project
 
-profile-hub is planned as three applications, so the tools used to edit the site stay out of what a
-visitor downloads:
+profile-hub is three applications, so the tools used to edit the site stay out of what a visitor
+downloads:
 
-- **public site** — self-introduction, hobby articles, and engineering articles. No authentication.
-- **admin console** — article, profile, skill, social link, and announcement management.
-  Administrator only.
+- **public-web** — self-introduction, hobby articles, and engineering articles. No authentication,
+  and no authentication dependencies in the bundle.
+- **admin-web** — article, profile, skill, social link, and announcement management. Administrator
+  only.
 - **api** — the data behind both, keeping draft and published articles separate so a draft cannot
   reach the public site.
 
 Articles are one entity distinguished by a `type` field (`hobby` / `engineering`) rather than one
 table per category, so adding a category later adds neither tables, endpoints, nor screens.
 
-This repository was previously **Daybook**, a diary application. Its application sources have been
+This repository was previously **Daybook**, a diary application. Its application sources were
 removed, and the configuration, CI workflows, and documents are being rewritten around profile-hub.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Project Status
 
-No application source is present. What remains is the toolchain, the CI workflows, and the
-documents. Read this table before following any instruction elsewhere in the repository.
+The monorepo, the shared lint baseline, and the CI workflows are in place. The applications
+themselves are scaffolds: each one builds, lints, type checks, and runs its tests, but none of the
+product features exist yet.
 
-| Area          | State                                                                                                           |
-| ------------- | --------------------------------------------------------------------------------------------------------------- |
-| `backend/`    | Configuration only. Hono, Drizzle, ESLint, and TypeScript settings exist; `src/` does not.                      |
-| `frontend/`   | Configuration only. Next.js, Storybook, Vitest, Playwright, and orval settings exist; `app/` and `src/` do not. |
-| `docs/v1/`    | Describes the predecessor Daybook — diary domain, PostgreSQL, Next.js. Not yet rewritten.                       |
-| `render.yaml` | Targets Render with `diary-*` service names. The planned host is Sakura Cloud AppRun.                           |
-| Workspaces    | There is no root `package.json`. `backend/` and `frontend/` are installed separately.                           |
+| Area              | State                                                                      |
+| ----------------- | -------------------------------------------------------------------------- |
+| `apps/api`        | Configuration and the Drizzle config factory. No routes, no schema         |
+| `apps/public-web` | Vite scaffold that renders a placeholder. No routing, no pages             |
+| `apps/admin-web`  | Vite scaffold that renders a placeholder. No auth guard, no screens        |
+| `packages/config` | Complete. Shared ESLint, oxlint, markuplint, Prettier, and TypeScript base |
+| `packages/ui`     | Empty on purpose until the design token set is settled                     |
+| Requirements      | None. The predecessor's documents were removed and have no replacement yet |
+| Deployment        | Nothing configured. `infra/` is a placeholder                              |
+| Container images  | Only `apps/api` has a Dockerfile, and it expects sources that do not exist |
 
-The target architecture — a Bun workspace monorepo of `apps/public-web`, `apps/admin-web`, and
-`apps/api` on MySQL — is tracked in the issue tracker. The epic issue holds the v1 scope, the
-technology choices, and the ordering of its child issues:
-<https://github.com/kishimin-ai-create/profile-hub/issues/1>
+The lint baseline is ported from [mojica](https://github.com/kishimin/mojica); see
+`packages/config/README.md` for what is enforced and what was deliberately left out. The remaining
+work — the data model, the endpoints, the screens, i18n, SEO, and deployment — is tracked in the
+issue tracker: <https://github.com/kishimin-ai-create/profile-hub/issues/1>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -70,16 +75,15 @@ technology choices, and the ordering of its child issues:
 
 | Language / Framework | Version |
 | -------------------- | ------- |
-| Bun                  | 1.3.14  |
+| Bun                  | 1.3.13  |
 | TypeScript           | 5.9.3   |
-| Hono                 | 4.12.23 |
+| Hono                 | 4.13.5  |
 | Drizzle ORM          | 0.45.2  |
-| Next.js              | 16.2.6  |
-| React                | 19.2.4  |
+| Vite                 | 7.3.6   |
+| React                | 19.2.8  |
 
-Versions are the ones resolved in `backend/bun.lock` and `frontend/bun.lock`. Bun is pinned to
-1.3.14 in the Dockerfiles, while CI installs the latest release. See `backend/package.json` and
-`frontend/package.json` for the full dependency lists.
+Versions are the ones resolved in `bun.lock`. See each workspace's `package.json` for its full
+dependency list.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -89,56 +93,50 @@ Versions are the ones resolved in `backend/bun.lock` and `frontend/bun.lock`. Bu
 .
 ├── .github
 │   └── workflows
-├── backend
-│   ├── AGENTS.md
-│   ├── Dockerfile
-│   ├── drizzle.config.ts
-│   ├── eslint.config.mts
-│   └── package.json
-├── docs
-│   └── v1
-│       ├── requirements
-│       └── specification
-├── frontend
-│   ├── .storybook
-│   ├── public
-│   ├── AGENTS.md
-│   ├── Dockerfile
-│   ├── next.config.ts
-│   ├── orval.config.ts
-│   ├── playwright.config.ts
-│   └── package.json
-├── pull-request
-├── review
-│   └── responses
-├── .prettierrc
-├── README.md
-└── render.yaml
+├── apps
+│   ├── admin-web
+│   │   ├── .storybook
+│   │   ├── public
+│   │   └── src
+│   ├── api
+│   └── public-web
+│       ├── .storybook
+│       ├── public
+│       └── src
+├── infra
+├── packages
+│   ├── config
+│   │   ├── eslint
+│   │   └── tsconfig
+│   ├── types
+│   ├── ui
+│   └── utils
+├── bun.lock
+├── package.json
+└── README.md
 ```
 
 ### Main Directories
 
-| Directory           | Description                                                                 |
-| ------------------- | --------------------------------------------------------------------------- |
-| `.github/workflows` | Push, pull request, nightly, and coverage workflows                         |
-| `backend`           | Hono API workspace. Configuration only; `src/` is absent                    |
-| `docs/v1`           | Requirements and specifications, currently describing Daybook               |
-| `frontend`          | Web application workspace. Configuration only; `app/` and `src/` are absent |
-| `pull-request`      | Pull request drafts written before a pull request is opened                 |
-| `review`            | Code review findings, and the replies written against them in `responses`   |
-
-Each workspace and document directory carries an `AGENTS.md` stating the rules that apply inside it.
+| Directory           | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `.github/workflows` | Pull request, push, and nightly workflows                       |
+| `apps/admin-web`    | Administrator console (Vite + React)                            |
+| `apps/api`          | Hono API                                                        |
+| `apps/public-web`   | Public site (Vite + React)                                      |
+| `infra`             | Sakura Cloud configuration, not yet written                     |
+| `packages/config`   | Shared lint, formatting, and TypeScript baselines               |
+| `packages/types`    | Types shared between the applications and the API               |
+| `packages/ui`       | Shared UI components, empty until the design tokens are settled |
+| `packages/utils`    | Utilities shared between the applications and the API           |
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Getting Started
 
-There is no application to start yet. These steps install the toolchain and run the checks that CI
-runs, which is what the repository currently supports.
-
 ### Prerequisites
 
-Install Bun. The Dockerfiles pin 1.3.14.
+Install Bun 1.3.13 or newer.
 
 ### Clone the Repository
 
@@ -149,95 +147,111 @@ cd profile-hub
 
 ### Install Dependencies
 
-Each workspace installs on its own, because no root workspace definition exists yet.
+One install at the root resolves every workspace under `apps/` and `packages/`.
 
 ```bash
-cd backend
-bun install --frozen-lockfile
+bun install
 ```
 
+### Start an Application
+
 ```bash
-cd frontend
-bun install --frozen-lockfile
+cd apps/public-web
+bun run dev
 ```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+The administrator console runs on port 3002. The API has no entry point yet, so `bun run dev` in
+`apps/api` has nothing to start.
 
 ### Run the Checks
+
+From any workspace:
 
 ```bash
 bun run lint
 bun run typecheck
+bun run test
+bun run build
 ```
 
-Tests report nothing: no test files exist. CI detects this and skips the test, build, Storybook, and
-E2E steps rather than failing, which is why a green pipeline does not currently mean the
-applications work.
+From the repository root, across every workspace at once:
+
+```bash
+bun run format:check
+bun run lint
+bun run typecheck
+bun run test
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Available Commands
 
-Run these from `backend/` or `frontend/`.
+Run these from a workspace directory unless stated otherwise.
 
-### backend
+| Command                 | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| `bun install`           | Install every workspace's dependencies (repository root) |
+| `bun run dev`           | Start the development server                             |
+| `bun run build`         | Build the application                                    |
+| `bun run test`          | Run the tests                                            |
+| `bun run test:coverage` | Run the tests and collect coverage                       |
+| `bun run e2e`           | Run the Playwright end-to-end tests (frontends)          |
+| `bun run lint`          | Run `oxlint`, then `eslint`                              |
+| `bun run lint:markup`   | Run markuplint over the JSX (frontends)                  |
+| `bun run typecheck`     | Type check without emitting                              |
+| `bun run format:check`  | Check formatting with Prettier (repository root)         |
+| `bun run storybook`     | Start Storybook (frontends)                              |
+| `bun run vrt`           | Compare visual regression snapshots (frontends)          |
+| `bun run api:generate`  | Generate the API client with orval (frontends)           |
 
-| Command                 | Description                     |
-| ----------------------- | ------------------------------- |
-| `bun install`           | Install dependencies            |
-| `bun run test`          | Run tests                       |
-| `bun run test:coverage` | Run tests and collect coverage  |
-| `bun run lint`          | Run ESLint                      |
-| `bun run typecheck`     | Type check with `tsgo --noEmit` |
-| `bun run format:check`  | Check formatting with Prettier  |
-| `bun run db:generate`   | Generate Drizzle migrations     |
-| `bun run db:migrate`    | Apply Drizzle migrations        |
-| `bun run dev`           | Start the API with hot reload   |
+Tests are split by size. `test:small`, `test:medium`, and `test:large` exist in every workspace and
+select files by the `*.small.test.*`, `*.medium.test.*`, and `*.large.test.*` naming that CI relies
+on.
 
-### frontend
+The custom ESLint rules have their own regression suite:
 
-| Command                 | Description                        |
-| ----------------------- | ---------------------------------- |
-| `bun install`           | Install dependencies               |
-| `bun run test`          | Run Vitest                         |
-| `bun run test:coverage` | Run Vitest and collect coverage    |
-| `bun run e2e`           | Run Playwright end-to-end tests    |
-| `bun run lint`          | Run ESLint                         |
-| `bun run typecheck`     | Type check with `tsc --noEmit`     |
-| `bun run format:check`  | Check formatting with Prettier     |
-| `bun run api:generate`  | Generate the API client with orval |
-| `bun run storybook`     | Start Storybook                    |
-| `bun run dev`           | Start the development server       |
-| `bun run build`         | Build the application              |
-
-Tests are split by size. `test:small`, `test:medium`, and `test:large` exist in both workspaces and
-select files by the `*.small.test.*`, `*.medium.test.*`, and `*.large.test.*` naming CI relies on.
+```bash
+cd packages/config
+bun run test
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Troubleshooting
 
-Every entry here follows from the missing application sources described in
-[Project Status](#project-status).
+### `bun run dev` exits immediately in `apps/api`
 
-### `bun run dev` exits immediately in `backend/`
+The script runs `src/index.ts`, and `apps/api/src/` does not exist yet. The API entry point and its
+routes arrive with their own issues.
 
-The script runs `src/index.ts`, and `backend/src/` does not exist in this repository. There is
-nothing to start yet.
+### `Cannot find type definition file for 'bun-types'`
 
-### `bun run build` fails in `frontend/`
+The installed package is `@types/bun`, which registers the type name `bun`. Use `"types": ["bun"]`
+in `tsconfig.json`; `bun-types` is not resolvable on its own under Bun's isolated workspace linking.
 
-Next.js needs an `app/` or `pages/` directory, and neither exists. CI works around this by checking
-for those directories and skipping the build step, so this failure does not appear in the pipeline.
+### ESLint reports errors that `oxlint` did not
+
+That is the intended split. `bun run lint` runs `oxlint` first for the rules it covers, then ESLint
+for everything else, and `eslint-plugin-oxlint` switches off the ESLint rules oxlint already
+reported so the same violation is never printed twice.
+
+### A new directory under `src/` is not covered by the boundary rules
+
+`eslint-plugin-boundaries` only checks directories it can classify. Add the directory to the shared
+list in `packages/config/eslint/react.mjs`, or it will be silently exempt from
+`boundaries/dependencies`.
 
 ### `docker build` fails on `COPY src ./src`
 
-Both Dockerfiles copy an application source directory that is not present. The images cannot be
-built until the sources are restored.
-
-### `backend/.env.example` describes PostgreSQL, but CI starts MySQL
-
-`.env.example` still carries Daybook's `postgresql://` DSN and `diary_db` database name, while
-`.github/workflows/test-coverage.yml` provisions `mysql:8.0`. MySQL is the target; treat
-`.env.example` as outdated rather than authoritative.
+`apps/api/Dockerfile` copies an application source directory that is not present. The frontends have
+no Dockerfile at all; container images and the delivery method are settled in the deployment issue.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

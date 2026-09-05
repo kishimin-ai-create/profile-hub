@@ -1,0 +1,27 @@
+{
+  "name": "@profile-hub/utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"linted by its consumers\"",
+    "test": "echo \"no tests\"",
+    "test:small": "echo \"no small tests\"",
+    "test:medium": "echo \"no medium tests\"",
+    "test:large": "echo \"no large tests\"",
+    "build": "echo \"consumed as TypeScript source\""
+  },
+  "dependencies": {
+    "@profile-hub/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@profile-hub/config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

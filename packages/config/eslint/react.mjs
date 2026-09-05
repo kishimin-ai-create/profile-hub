@@ -32,7 +32,6 @@ const sharedDirectories = [
   "assets",
   "components",
   "hooks",
-  "i18n",
   "images",
   "lib",
   "models",

@@ -12,4 +12,7 @@ include = [
 
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage"
-coverageThreshold = { line = 80, function = 80, statement = 80 }
+# Bun expects a fraction, and only honours the scalar form: the per-metric table
+# is parsed without complaint and then ignored, so `{ line = 80, ... }` silently
+# enforced nothing.
+coverageThreshold = 0.8

@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const localFrontendUrl = process.env.LOCAL_FRONTEND_URL ?? "http://localhost:3000";
+// Must match `server.port` in vite.config.ts, or the webServer readiness check
+// waits on a port the dev server never binds.
+const localFrontendUrl = process.env.LOCAL_FRONTEND_URL ?? "http://localhost:3002";
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localFrontendUrl;
 
 export default defineConfig({

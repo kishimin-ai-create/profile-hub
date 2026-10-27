@@ -60,3 +60,21 @@ export const socialLinks = pgTable(
     ),
   ],
 );
+
+export const portfolios = pgTable(
+  "portfolios",
+  {
+    id: bigint("id", { mode: "bigint" }).primaryKey().generatedByDefaultAsIdentity(),
+    section: section("section").notNull(),
+    name: text("name").notNull(),
+    summary: text("summary").notNull(),
+    technologies: text("technologies").array().notNull(),
+    repositoryUrl: text("repository_url"),
+    demoUrl: text("demo_url"),
+    imageUrl: text("image_url"),
+    displayOrder: integer("display_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("portfolios_section_display_order_idx").on(table.section, table.displayOrder)],
+);

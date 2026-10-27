@@ -1,15 +1,6 @@
-import { SECTIONS } from "@profile-hub/types";
-import { isSection } from "@profile-hub/utils";
+import { RouterProvider } from "@tanstack/react-router";
+import { createAppRouter } from "./router/router";
 
-/**
- * Placeholder shell for the public site.
- *
- * Routing, the shared layout, and the pages themselves arrive with the
- * public-web foundation issue. What this renders today only demonstrates that
- * the toolchain and the shared workspace packages resolve end to end.
- */
-export const App = () => {
-  const sections = Object.values(SECTIONS).filter(isSection);
+const router = createAppRouter();
 
-  return <p>{`profile-hub — sections: ${sections.join(", ")}`}</p>;
-};
+export const App = () => <RouterProvider router={router} />;

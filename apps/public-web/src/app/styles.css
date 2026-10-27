@@ -1,0 +1,124 @@
+:root {
+  font-family: Inter, "Noto Sans JP", system-ui, sans-serif;
+  color: #0e1117;
+  background: #fbfaf5;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: #2e59ad;
+}
+a,
+button {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 2px solid #2e59ad;
+  outline-offset: 4px;
+}
+.site-shell {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.site-header,
+#main-content {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 64px;
+  min-width: 0;
+}
+.site-header {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+.site-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+}
+.site-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+}
+.site-header a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+.site-header nav a {
+  font-size: 15px;
+  font-weight: 600;
+  color: #5c6375;
+  text-decoration: none;
+}
+.site-header nav a[aria-current="page"] {
+  color: #2e59ad;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+#main-content {
+  flex: 1;
+  padding-block: 96px 72px;
+}
+h1 {
+  font-size: clamp(2rem, 8vw, 3.375rem);
+  line-height: 1.2;
+  margin: 0 0 28px;
+}
+p {
+  margin: 0;
+}
+.site-footer {
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  padding: 24px 20px;
+  color: #5c6375;
+  font-size: 13px;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  padding: 8px 16px;
+  background: #fbfaf5;
+  z-index: 1;
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+  .site-header,
+  #main-content {
+    padding-inline: 40px;
+  }
+  #main-content {
+    padding-top: 80px;
+  }
+}
+@media (max-width: 600px) {
+  .site-header,
+  #main-content {
+    padding-inline: 20px;
+  }
+  #main-content {
+    padding-top: 64px;
+  }
+}

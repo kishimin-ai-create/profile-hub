@@ -11,6 +11,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
     if (!databaseUrl) {
       throw new Error("TEST_DATABASE_URL is required");
     }
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- The fixture URL is fixed relative to this test, not supplied by a user.
     const fixture = await readFile(new URL("./seed-fixture.sql", import.meta.url), "utf8");
     const client = new Client({ connectionString: databaseUrl });
     await client.connect();

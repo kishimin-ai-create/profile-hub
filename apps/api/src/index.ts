@@ -5,6 +5,7 @@ import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
 import { getDatabase } from "./infrastructures/db/database";
+import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
 import { listPortfolios, type PortfolioSection } from "./public/portfolios";
 import { getPublicProfile } from "./public/profile";
@@ -14,6 +15,7 @@ type Dependencies = {
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
   allowedOrigins?: readonly string[];
+  logRequest?: (event: RequestLog) => void;
 };
 
 const linkSchema: OpenApi.SchemaObject = {
@@ -30,6 +32,13 @@ const linkSchema: OpenApi.SchemaObject = {
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
   const app = new Hono();
+
+  app.use(
+    "*",
+    requestLogger(
+      dependencies.logRequest ?? ((event) => process.stdout.write(`${JSON.stringify(event)}\n`)),
+    ),
+  );
 
   app.use(
     "*",

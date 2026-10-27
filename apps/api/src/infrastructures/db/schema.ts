@@ -1,4 +1,5 @@
-import { bigint, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { bigint, check, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const skills = pgTable(
   "skills",
@@ -10,4 +11,21 @@ export const skills = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("skills_display_order_idx").on(table.displayOrder)],
+);
+
+export const favourites = pgTable(
+  "favourites",
+  {
+    id: bigint("id", { mode: "bigint" }).primaryKey().generatedByDefaultAsIdentity(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    link: text("link").notNull(),
+    displayOrder: integer("display_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("favourites_display_order_idx").on(table.displayOrder),
+    check("favourites_link_scheme_check", sql`${table.link} ~* '^https?://'`),
+  ],
 );

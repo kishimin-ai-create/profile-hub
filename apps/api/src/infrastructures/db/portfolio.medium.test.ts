@@ -3,7 +3,7 @@ import { Client } from "pg";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 
-test.skipIf(!databaseUrl)(
+test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
   "portfolio entries retain their section and allow shared order values",
   async () => {
     if (!databaseUrl) {

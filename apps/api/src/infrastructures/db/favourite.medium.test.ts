@@ -3,7 +3,7 @@ import { Client } from "pg";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 
-test.skipIf(!databaseUrl)(
+test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
   "favourites require a web link and allow duplicate display orders",
   async () => {
     if (!databaseUrl) {

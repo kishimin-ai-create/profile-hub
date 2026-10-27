@@ -3,7 +3,7 @@ import { Client } from "pg";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 
-test.skipIf(!databaseUrl)(
+test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
   "social links separate sections and restrict mailto to email",
   async () => {
     if (!databaseUrl) {

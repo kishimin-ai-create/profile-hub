@@ -1,5 +1,16 @@
 import { sql } from "drizzle-orm";
-import { bigint, check, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  check,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
+
+export const section = pgEnum("section", ["engineering", "hobby"]);
 
 export const skills = pgTable(
   "skills",
@@ -27,5 +38,25 @@ export const favourites = pgTable(
   (table) => [
     index("favourites_display_order_idx").on(table.displayOrder),
     check("favourites_link_scheme_check", sql`${table.link} ~* '^https?://'`),
+  ],
+);
+
+export const socialLinks = pgTable(
+  "social_links",
+  {
+    id: bigint("id", { mode: "bigint" }).primaryKey().generatedByDefaultAsIdentity(),
+    section: section("section").notNull(),
+    kind: text("kind").notNull(),
+    url: text("url").notNull(),
+    displayOrder: integer("display_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("social_links_section_display_order_idx").on(table.section, table.displayOrder),
+    check(
+      "social_links_url_scheme_check",
+      sql`${table.url} ~* '^https?://' OR (${table.kind} = 'email' AND ${table.url} ~* '^mailto:')`,
+    ),
   ],
 );

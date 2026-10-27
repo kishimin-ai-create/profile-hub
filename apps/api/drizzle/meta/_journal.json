@@ -15,6 +15,13 @@
       "when": 1793138337521,
       "tag": "0001_mixed_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793138418315,
+      "tag": "0002_square_ken_ellis",
+      "breakpoints": true
     }
   ]
 }

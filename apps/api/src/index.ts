@@ -29,6 +29,47 @@ const linkSchema: OpenApi.SchemaObject = {
   },
 };
 
+const errorResponse = (
+  description: string,
+  code: string,
+  message: string,
+): OpenApi.ResponseObject => ({
+  description,
+  content: {
+    "application/json": {
+      schema: {
+        type: "object",
+        required: ["error"],
+        properties: {
+          error: {
+            type: "object",
+            required: ["code", "message"],
+            properties: {
+              code: { type: "string", const: code },
+              message: { type: "string", const: message },
+            },
+          },
+        },
+      },
+    },
+  },
+});
+const forbiddenResponse = errorResponse(
+  "Origin not allowed",
+  "FORBIDDEN",
+  "Origin or method not allowed",
+);
+const serverErrorResponse = errorResponse(
+  "Unexpected server error",
+  "INTERNAL_ERROR",
+  "Internal server error",
+);
+const clientErrorResponse = errorResponse(
+  "Missing or invalid section",
+  "CLIENT_ERROR",
+  "Invalid request",
+);
+
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
   const app = new Hono();
@@ -92,6 +133,8 @@ export const createApp = (dependencies: Dependencies) => {
       operationId: "listFavourites",
       tags: ["Public"],
       responses: {
+        403: forbiddenResponse,
+        500: serverErrorResponse,
         200: {
           description: "Favourites in display order",
           content: {
@@ -129,6 +172,8 @@ export const createApp = (dependencies: Dependencies) => {
       operationId: "getPublicProfile",
       tags: ["Public"],
       responses: {
+        403: forbiddenResponse,
+        500: serverErrorResponse,
         200: {
           description: "Profile, ordered skills, and section-specific links",
           content: {
@@ -243,7 +288,9 @@ export const createApp = (dependencies: Dependencies) => {
             },
           },
         },
-        400: { description: "Missing or invalid section" },
+        400: clientErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
       },
     }),
     async (context) => {

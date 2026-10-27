@@ -17,5 +17,5 @@ bun run typecheck
 bun run test
 ```
 
-The application source is not present yet; the endpoints, the data model, and the Drizzle schema
-arrive with their own issues. `bun run dev` therefore has nothing to start.
+Start the API with `bun run dev`. The `GET /health` endpoint returns `{"status":"ok"}` when the
+process is running. Resource endpoints, the data model, and the Drizzle schema arrive separately.

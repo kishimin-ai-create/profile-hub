@@ -9,6 +9,8 @@ for (const width of [375, 768, 1280]) {
     const footer = page.getByRole("contentinfo");
     await expect(footer).toBeVisible();
     await expect.poll(async () => (await footer.boundingBox())?.y).toBeGreaterThan(800);
-    expect(await page.locator("html").evaluate((element) => element.scrollWidth)).toBeLessThanOrEqual(width);
+    expect(
+      await page.locator("html").evaluate((element) => element.scrollWidth),
+    ).toBeLessThanOrEqual(width);
   });
 }

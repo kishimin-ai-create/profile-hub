@@ -2,7 +2,8 @@ import { expect, test } from "bun:test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
-import { createApp } from "../index";
+import app, { createApp } from "../index";
+import { getDatabase } from "../infrastructures/db/database";
 import { listFavourites } from "./favourites";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
@@ -43,6 +44,29 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
     } finally {
       await client.query("ROLLBACK");
       await client.end();
+    }
+  },
+);
+
+test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
+  "the configured API returns a successful favourites response",
+  async () => {
+    if (!databaseUrl) {
+      throw new Error("TEST_DATABASE_URL is required");
+    }
+    const previousUrl = process.env["DATABASE_URL"];
+    process.env["DATABASE_URL"] = databaseUrl;
+    try {
+      const response = await app.request("/api/public/favourites");
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ data: [] });
+    } finally {
+      await getDatabase().$client.end();
+      if (previousUrl === undefined) {
+        delete process.env["DATABASE_URL"];
+      } else {
+        process.env["DATABASE_URL"] = previousUrl;
+      }
     }
   },
 );

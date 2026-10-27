@@ -18,8 +18,12 @@ bun run test
 ```
 
 Start the API with `bun run dev`. The `GET /health` endpoint returns `{"status":"ok"}` when the
-process is running. The PostgreSQL schema contains the six v1 entities; resource endpoints arrive
-separately.
+process is running. The PostgreSQL schema contains the six v1 entities; additional resource and
+administrator endpoints arrive separately.
+
+Set `PUBLIC_ORIGIN` and `ADMIN_ORIGIN` to the exact browser origins permitted to call the API. If an
+origin is not configured it is not allowed; requests without an Origin header remain available to
+non-browser clients. Credentialed browser requests are not enabled by this configuration.
 
 To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database
 with `bun run db:migrate`, set `TEST_DATABASE_URL` to its connection URL, and run

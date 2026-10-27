@@ -13,18 +13,25 @@ test("request logs contain status and timing without URLs or credentials", async
     allowedOrigins: ["https://public.example.com"],
     logRequest: (event) => events.push(event),
   });
+  app.get("/test-error", () => {
+    throw new Error("private-error-detail");
+  });
   const response = await app.request("/health?token=private-query-value", {
     headers: { Authorization: "Bearer private-token", Origin: "https://public.example.com" },
   });
   const denied = await app.request("/health", {
     headers: { Origin: "https://unapproved.example.com" },
   });
+  const failed = await app.request("/test-error");
 
   expect(response.status).toBe(200);
   expect(denied.status).toBe(403);
-  expect(events).toHaveLength(2);
+  expect(failed.status).toBe(500);
+  expect(events).toHaveLength(3);
   expect(events[0]).toEqual({ method: "GET", status: 200, durationMs: expect.any(Number) });
   expect(events[1]).toEqual({ method: "GET", status: 403, durationMs: expect.any(Number) });
+  expect(events[2]).toEqual({ method: "GET", status: 500, durationMs: expect.any(Number) });
   expect(JSON.stringify(events)).not.toContain("private-query-value");
   expect(JSON.stringify(events)).not.toContain("private-token");
+  expect(JSON.stringify(events)).not.toContain("private-error-detail");
 });

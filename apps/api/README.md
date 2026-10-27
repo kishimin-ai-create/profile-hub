@@ -18,7 +18,7 @@ bun run test
 ```
 
 The application source is not present yet, so `bun run dev` has nothing to start. The PostgreSQL
-schema currently contains the skills, favourites, and social links tables; other entities and API
+schema currently contains skills, favourites, social links, and portfolios; other entities and API
 endpoints arrive separately.
 
 To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database

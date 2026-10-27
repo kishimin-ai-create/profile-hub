@@ -11,10 +11,18 @@ describe("PublicQueryProvider", () => {
       return <p>{query.data}</p>;
     };
 
-    const { rerender } = render(<PublicQueryProvider><Probe /></PublicQueryProvider>);
+    const { rerender } = render(
+      <PublicQueryProvider>
+        <Probe />
+      </PublicQueryProvider>,
+    );
     expect(await screen.findByText("公開データ")).toBeInTheDocument();
     rerender(<PublicQueryProvider>{null}</PublicQueryProvider>);
-    rerender(<PublicQueryProvider><Probe /></PublicQueryProvider>);
+    rerender(
+      <PublicQueryProvider>
+        <Probe />
+      </PublicQueryProvider>,
+    );
 
     expect(await screen.findByText("公開データ")).toBeInTheDocument();
     expect(load).toHaveBeenCalledTimes(1);

@@ -3,8 +3,12 @@ import { HTTPException } from "hono/http-exception";
 
 import { getDatabase } from "./infrastructures/db/database";
 import { listFavourites } from "./public/favourites";
+import { listPortfolios, type PortfolioSection } from "./public/portfolios";
 
-type Dependencies = { listFavourites: () => ReturnType<typeof listFavourites> };
+type Dependencies = {
+  listFavourites: () => ReturnType<typeof listFavourites>;
+  listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
+};
 
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
@@ -14,6 +18,13 @@ export const createApp = (dependencies: Dependencies) => {
   app.get("/api/public/favourites", async (context) =>
     context.json({ data: await dependencies.listFavourites() }),
   );
+  app.get("/api/public/portfolio", async (context) => {
+    const section = context.req.query("section");
+    if (section !== "engineering" && section !== "hobby") {
+      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+    }
+    return context.json({ data: await dependencies.listPortfolios(section) });
+  });
   app.notFound((context) =>
     context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404),
   );
@@ -34,6 +45,9 @@ export const createApp = (dependencies: Dependencies) => {
   return app;
 };
 
-const app = createApp({ listFavourites: () => listFavourites(getDatabase()) });
+const app = createApp({
+  listFavourites: () => listFavourites(getDatabase()),
+  listPortfolios: (section) => listPortfolios(getDatabase(), section),
+});
 
 export default app;

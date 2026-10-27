@@ -1,10 +1,7 @@
 import type { Preview } from "@storybook/react-vite";
-import { initialize, mswLoader } from "msw-storybook-addon";
-
-initialize();
+import "../src/app/styles.css";
 
 const preview: Preview = {
-  loaders: [mswLoader],
   parameters: {
     controls: {
       matchers: {

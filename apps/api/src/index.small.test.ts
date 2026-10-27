@@ -1,9 +1,13 @@
 import { expect, test } from "bun:test";
+import { HTTPException } from "hono/http-exception";
 
 import app from "./index";
 
 app.get("/test-unexpected-error", () => {
   throw new Error("private diagnostic details");
+});
+app.get("/test-client-error", () => {
+  throw new HTTPException(400, { message: "private validation details" });
 });
 
 test("GET /health reports that the API is running", async () => {
@@ -28,5 +32,14 @@ test("unexpected errors do not disclose internal details", async () => {
   expect(response.status).toBe(500);
   expect(await response.json()).toEqual({
     error: { code: "INTERNAL_ERROR", message: "Internal server error" },
+  });
+});
+
+test("client HTTP errors keep their status without exposing internal details", async () => {
+  const response = await app.request("/test-client-error");
+
+  expect(response.status).toBe(400);
+  expect(await response.json()).toEqual({
+    error: { code: "CLIENT_ERROR", message: "Invalid request" },
   });
 });

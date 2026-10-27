@@ -32,8 +32,8 @@ console, and an API.
 profile-hub is three applications, so the tools used to edit the site stay out of what a visitor
 downloads:
 
-- **public-web** — self-introduction, hobby articles, and engineering articles. No authentication,
-  and no authentication dependencies in the bundle.
+- **public-web** — separate Engineering and Hobby entry points with section-scoped contact routes.
+  No authentication or authentication dependencies in the bundle.
 - **admin-web** — article, profile, skill, social link, and announcement management. Administrator
   only.
 - **api** — the data behind both, keeping draft and published articles separate so a draft cannot
@@ -49,20 +49,20 @@ removed, and the configuration, CI workflows, and documents are being rewritten 
 
 ## Project Status
 
-The monorepo, the shared lint baseline, and the CI workflows are in place. The applications
-themselves are scaffolds: each one builds, lints, type checks, and runs its tests, but none of the
-product features exist yet.
+The monorepo, shared lint baseline, and CI workflows are in place. Public-web provides the routing,
+layout, query, feedback and metadata foundation. Its data-driven page content, the API, and the
+administrator console remain separate work.
 
-| Area              | State                                                                      |
-| ----------------- | -------------------------------------------------------------------------- |
-| `apps/api`        | Configuration and the Drizzle config factory. No routes, no schema         |
-| `apps/public-web` | Vite scaffold that renders a placeholder. No routing, no pages             |
-| `apps/admin-web`  | Vite scaffold that renders a placeholder. No auth guard, no screens        |
-| `packages/config` | Complete. Shared ESLint, oxlint, markuplint, Prettier, and TypeScript base |
-| `packages/ui`     | Empty on purpose until the design token set is settled                     |
-| Requirements      | None. The predecessor's documents were removed and have no replacement yet |
-| Deployment        | Nothing configured. `infra/` is a placeholder                              |
-| Container images  | Only `apps/api` has a Dockerfile, and it expects sources that do not exist |
+| Area              | State                                                                          |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `apps/api`        | Configuration and the Drizzle config factory. No routes, no schema             |
+| `apps/public-web` | Five routes, section heroes, shared shell, Query/Orval foundation and metadata |
+| `apps/admin-web`  | Vite scaffold that renders a placeholder. No auth guard, no screens            |
+| `packages/config` | Complete. Shared ESLint, oxlint, markuplint, Prettier, and TypeScript base     |
+| `packages/ui`     | Empty on purpose until the design token set is settled                         |
+| Requirements      | None. The predecessor's documents were removed and have no replacement yet     |
+| Deployment        | Nothing configured. `infra/` is a placeholder                                  |
+| Container images  | Only `apps/api` has a Dockerfile, and it expects sources that do not exist     |
 
 The lint baseline is ported from [mojica](https://github.com/kishimin/mojica); see
 `packages/config/README.md` for what is enforced and what was deliberately left out. The remaining

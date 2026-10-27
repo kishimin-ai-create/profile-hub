@@ -28,12 +28,16 @@ test.skipIf(!databaseUrl)(
       );
       expect(result.rows).toHaveLength(2);
       expect(result.rows[0].id).not.toBe(result.rows[1].id);
-      await expect(
-        client.query(
+      let rejection: unknown;
+      try {
+        await client.query(
           "INSERT INTO favourites (name, description, link, display_order) VALUES ($1, $2, $3, $4)",
           ["Unsafe", "Description", "javascript:alert(1)", 2],
-        ),
-      ).rejects.toMatchObject({ code: "23514" });
+        );
+      } catch (error) {
+        rejection = error;
+      }
+      expect(rejection).toMatchObject({ code: "23514" });
     } finally {
       await client.query("ROLLBACK");
       await client.end();

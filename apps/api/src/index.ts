@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 
 import { getDatabase } from "./infrastructures/db/database";
 import { listFavourites } from "./public/favourites";
@@ -17,8 +18,42 @@ export const createApp = (dependencies: Dependencies) => {
   const app = new Hono();
 
   app.get("/health", (context) => context.json({ status: "ok" }));
-  app.get("/api/public/favourites", async (context) =>
-    context.json({ data: await dependencies.listFavourites() }),
+  app.get(
+    "/api/public/favourites",
+    describeRoute({
+      operationId: "listFavourites",
+      tags: ["Public"],
+      responses: {
+        200: {
+          description: "Favourites in display order",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: ["id", "name", "description", "link", "displayOrder"],
+                      properties: {
+                        id: { type: "string" },
+                        name: { type: "string" },
+                        description: { type: "string" },
+                        link: { type: "string" },
+                        displayOrder: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    async (context) => context.json({ data: await dependencies.listFavourites() }),
   );
   app.get("/api/public/profile", async (context) =>
     context.json({ data: await dependencies.getPublicProfile() }),
@@ -30,6 +65,12 @@ export const createApp = (dependencies: Dependencies) => {
     }
     return context.json({ data: await dependencies.listPortfolios(section) });
   });
+  app.get(
+    "/docs/json",
+    openAPIRouteHandler(app, {
+      documentation: { info: { title: "profile-hub API", version: "0.0.0" } },
+    }),
+  );
   app.notFound((context) =>
     context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404),
   );

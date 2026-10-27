@@ -58,13 +58,72 @@ export const createApp = (dependencies: Dependencies) => {
   app.get("/api/public/profile", async (context) =>
     context.json({ data: await dependencies.getPublicProfile() }),
   );
-  app.get("/api/public/portfolio", async (context) => {
-    const section = context.req.query("section");
-    if (section !== "engineering" && section !== "hobby") {
-      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
-    }
-    return context.json({ data: await dependencies.listPortfolios(section) });
-  });
+  app.get(
+    "/api/public/portfolio",
+    describeRoute({
+      operationId: "listPortfolios",
+      tags: ["Public"],
+      parameters: [
+        {
+          name: "section",
+          in: "query",
+          required: true,
+          schema: { type: "string", enum: ["engineering", "hobby"] },
+        },
+      ],
+      responses: {
+        200: {
+          description: "Portfolios in display order for the requested section",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: [
+                        "id",
+                        "section",
+                        "name",
+                        "summary",
+                        "technologies",
+                        "repositoryUrl",
+                        "demoUrl",
+                        "imageUrl",
+                        "displayOrder",
+                      ],
+                      properties: {
+                        id: { type: "string" },
+                        section: { type: "string", enum: ["engineering", "hobby"] },
+                        name: { type: "string" },
+                        summary: { type: "string" },
+                        technologies: { type: "array", items: { type: "string" } },
+                        repositoryUrl: { type: ["string", "null"] },
+                        demoUrl: { type: ["string", "null"] },
+                        imageUrl: { type: ["string", "null"] },
+                        displayOrder: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: { description: "Missing or invalid section" },
+      },
+    }),
+    async (context) => {
+      const section = context.req.query("section");
+      if (section !== "engineering" && section !== "hobby") {
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      }
+      return context.json({ data: await dependencies.listPortfolios(section) });
+    },
+  );
   app.get(
     "/docs/json",
     openAPIRouteHandler(app, {

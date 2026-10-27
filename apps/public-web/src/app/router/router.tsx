@@ -1,5 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Link } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
+import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { SiteLayout } from "./SiteLayout";
 
 const rootRoute = createRootRoute({
@@ -30,7 +32,7 @@ const homeRoute = createRoute({
 const engineeringRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/engineering",
-  component: () => <h1>{"Engineering"}</h1>,
+  component: EngineeringHero,
 });
 
 const engineeringContactRoute = createRoute({
@@ -42,7 +44,7 @@ const engineeringContactRoute = createRoute({
 const hobbyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/hobby",
-  component: () => <h1>{"Hobby"}</h1>,
+  component: HobbyHero,
 });
 
 const hobbyContactRoute = createRoute({

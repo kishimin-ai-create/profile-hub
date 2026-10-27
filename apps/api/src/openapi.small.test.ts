@@ -25,6 +25,13 @@ test("OpenAPI describes the public favourites response for client generation", a
                         items: {
                           type: "object",
                           required: ["id", "name", "description", "link", "displayOrder"],
+                          properties: {
+                            id: { type: "string" },
+                            name: { type: "string" },
+                            description: { type: "string" },
+                            link: { type: "string" },
+                            displayOrder: { type: "integer" },
+                          },
                         },
                       },
                     },

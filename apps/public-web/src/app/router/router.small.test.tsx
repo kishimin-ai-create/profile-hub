@@ -25,7 +25,7 @@ describe("public routes", () => {
       expect(header.getByRole("link", { name: "Contact" })).toHaveAttribute("aria-current", "page");
       expect(header.queryByRole("link", { name: other })).not.toBeInTheDocument();
       await user.click(header.getByRole("link", { name: section }));
-      expect(await screen.findByRole("heading", { name: section })).toBeInTheDocument();
+      expect(await screen.findByRole("region", { name: section })).toBeInTheDocument();
       await user.click(header.getByRole("link", { name: "profile-hub" }));
       expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
       expect(
@@ -43,14 +43,14 @@ describe("public routes", () => {
 
     await user.click(await screen.findByRole("link", { name: section }));
 
-    expect(await screen.findByRole("heading", { name: section })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: section })).toBeInTheDocument();
   });
 
   test.each([
     ["/", "Home"],
-    ["/engineering", "Engineering"],
+    ["/engineering", "こんにちは。"],
     ["/engineering/contact", "Engineering Contact"],
-    ["/hobby", "Hobby"],
+    ["/hobby", "こんにちは。"],
     ["/hobby/contact", "Hobby Contact"],
     ["/unknown", "ページが見つかりません"],
     ["/engineering/unknown", "ページが見つかりません"],

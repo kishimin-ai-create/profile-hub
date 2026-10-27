@@ -18,9 +18,13 @@ bun run test
 ```
 
 The application source is not present yet, so `bun run dev` has nothing to start. The PostgreSQL
-schema currently contains the six v1 entities; API endpoints and seed data arrive separately.
+schema currently contains the six v1 entities; API endpoints arrive separately.
 
 To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database
 with `bun run db:migrate`, set `TEST_DATABASE_URL` to its connection URL, and run
 `bun run test:medium`. Without `TEST_DATABASE_URL`, the database test is skipped. The test uses a
 transaction and rolls back its inserts.
+
+`src/infrastructures/db/seed-fixture.sql` contains fictional development data for both sections.
+Apply it only to a disposable development database after the migrations. It does not create an
+administrator account and is not idempotent; repeated application creates duplicate rows.

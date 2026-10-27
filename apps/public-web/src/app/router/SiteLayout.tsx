@@ -1,4 +1,6 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { PageMetadata } from "../../components/PageMetadata";
+import { metadataForPath } from "./page-metadata";
 
 export const SiteLayout = () => {
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -7,6 +9,7 @@ export const SiteLayout = () => {
 
   return (
     <div className={"site-shell"}>
+      <PageMetadata {...metadataForPath(pathname)} />
       <a className={"skip-link"} href={"#main-content"}>
         {"本文へ移動"}
       </a>

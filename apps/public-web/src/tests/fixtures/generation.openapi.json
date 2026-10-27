@@ -1,0 +1,41 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Public generator smoke fixture",
+    "version": "0.0.0",
+    "description": "Test fixture only; this is not the profile-hub API contract."
+  },
+  "paths": {
+    "/__generation_smoke__": {
+      "get": {
+        "operationId": "getGenerationSmoke",
+        "tags": ["generation-smoke"],
+        "responses": {
+          "200": {
+            "description": "Fixture response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationSmoke"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GenerationSmoke": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

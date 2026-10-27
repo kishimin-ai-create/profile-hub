@@ -133,3 +133,45 @@ test("OpenAPI describes nullable profile data and section-grouped links", async 
     },
   });
 });
+
+test("OpenAPI describes public API error envelopes", async () => {
+  const response = await app.request("/docs/json");
+  const document: unknown = await response.json();
+  const serverError = {
+    content: {
+      "application/json": {
+        schema: { properties: { error: { properties: { code: { const: "INTERNAL_ERROR" } } } } },
+      },
+    },
+  };
+  const forbidden = {
+    content: {
+      "application/json": {
+        schema: { properties: { error: { properties: { code: { const: "FORBIDDEN" } } } } },
+      },
+    },
+  };
+  expect(document).toMatchObject({
+    paths: {
+      "/api/public/favourites": { get: { responses: { "403": forbidden, "500": serverError } } },
+      "/api/public/profile": { get: { responses: { "403": forbidden, "500": serverError } } },
+      "/api/public/portfolio": {
+        get: {
+          responses: {
+            "400": {
+              content: {
+                "application/json": {
+                  schema: {
+                    properties: { error: { properties: { code: { const: "CLIENT_ERROR" } } } },
+                  },
+                },
+              },
+            },
+            "403": forbidden,
+            "500": serverError,
+          },
+        },
+      },
+    },
+  });
+});

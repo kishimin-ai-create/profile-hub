@@ -13,7 +13,7 @@ test.skipIf(!databaseUrl)(
     await client.connect();
     try {
       await client.query("BEGIN");
-      const result = await client.query(
+      const result = await client.query<{ section: string }>(
         "INSERT INTO social_links (section, kind, url, display_order) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8) RETURNING section",
         [
           "engineering",

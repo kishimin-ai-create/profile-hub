@@ -97,3 +97,39 @@ test("OpenAPI requires a section and describes portfolio response fields", async
     },
   });
 });
+
+test("OpenAPI describes nullable profile data and section-grouped links", async () => {
+  const response = await app.request("/docs/json");
+  const document: unknown = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(document).toMatchObject({
+    paths: {
+      "/api/public/profile": {
+        get: {
+          operationId: "getPublicProfile",
+          responses: {
+            "200": {
+              content: {
+                "application/json": {
+                  schema: {
+                    properties: {
+                      data: {
+                        required: ["profile", "skills", "links"],
+                        properties: {
+                          profile: { anyOf: [{ type: "null" }, { type: "object" }] },
+                          skills: { type: "array" },
+                          links: { required: ["engineering", "hobby"] },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+});

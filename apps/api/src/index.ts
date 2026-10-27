@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
+import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
 import { getDatabase } from "./infrastructures/db/database";
 import { listFavourites } from "./public/favourites";
@@ -11,6 +12,17 @@ type Dependencies = {
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
+};
+
+const linkSchema: OpenApi.SchemaObject = {
+  type: "object",
+  required: ["id", "kind", "url", "displayOrder"],
+  properties: {
+    id: { type: "string" },
+    kind: { type: "string" },
+    url: { type: "string" },
+    displayOrder: { type: "integer" },
+  },
 };
 
 /** Builds the API around its resource dependencies. */
@@ -55,8 +67,70 @@ export const createApp = (dependencies: Dependencies) => {
     }),
     async (context) => context.json({ data: await dependencies.listFavourites() }),
   );
-  app.get("/api/public/profile", async (context) =>
-    context.json({ data: await dependencies.getPublicProfile() }),
+  app.get(
+    "/api/public/profile",
+    describeRoute({
+      operationId: "getPublicProfile",
+      tags: ["Public"],
+      responses: {
+        200: {
+          description: "Profile, ordered skills, and section-specific links",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["profile", "skills", "links"],
+                    properties: {
+                      profile: {
+                        anyOf: [
+                          { type: "null" },
+                          {
+                            type: "object",
+                            required: ["id", "name", "title", "bio", "avatarUrl"],
+                            properties: {
+                              id: { type: "string" },
+                              name: { type: "string" },
+                              title: { type: ["string", "null"] },
+                              bio: { type: ["string", "null"] },
+                              avatarUrl: { type: ["string", "null"] },
+                            },
+                          },
+                        ],
+                      },
+                      skills: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          required: ["id", "name", "displayOrder"],
+                          properties: {
+                            id: { type: "string" },
+                            name: { type: "string" },
+                            displayOrder: { type: "integer" },
+                          },
+                        },
+                      },
+                      links: {
+                        type: "object",
+                        required: ["engineering", "hobby"],
+                        properties: {
+                          engineering: { type: "array", items: linkSchema },
+                          hobby: { type: "array", items: linkSchema },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    async (context) => context.json({ data: await dependencies.getPublicProfile() }),
   );
   app.get(
     "/api/public/portfolio",

@@ -1,4 +1,4 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, Link, Outlet } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
 
 const rootRoute = createRootRoute({
@@ -13,7 +13,21 @@ const rootRoute = createRootRoute({
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: () => <h1>{"Home"}</h1>,
+  component: () => (
+    <>
+      <h1>{"Home"}</h1>
+      <nav aria-label={"セクション"}>
+        <ul>
+          <li>
+            <Link to={"/engineering"}>{"Engineering"}</Link>
+          </li>
+          <li>
+            <Link to={"/hobby"}>{"Hobby"}</Link>
+          </li>
+        </ul>
+      </nav>
+    </>
+  ),
 });
 
 const engineeringRoute = createRoute({

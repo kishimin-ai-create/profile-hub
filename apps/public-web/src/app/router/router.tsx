@@ -1,12 +1,9 @@
-import { createRootRoute, createRoute, createRouter, Link, Outlet } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, Link } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { SiteLayout } from "./SiteLayout";
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <main>
-      <Outlet />
-    </main>
-  ),
+  component: SiteLayout,
   notFoundComponent: () => <h1>{"ページが見つかりません"}</h1>,
 });
 

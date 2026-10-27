@@ -1,9 +1,19 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { PageMetadata } from "../../components/PageMetadata";
 import { metadataForPath } from "./page-metadata";
 
 export const SiteLayout = () => {
   const pathname = useLocation({ select: (location) => location.pathname });
+  const previousPath = useRef(pathname);
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Initial loads keep native focus so the skip link remains the first keyboard stop.
+    if (previousPath.current !== pathname) {
+      mainRef.current?.focus({ preventScroll: true });
+      previousPath.current = pathname;
+    }
+  }, [pathname]);
   const isEngineering = pathname === "/engineering" || pathname.startsWith("/engineering/");
   const isHobby = pathname === "/hobby" || pathname.startsWith("/hobby/");
 
@@ -34,7 +44,7 @@ export const SiteLayout = () => {
           </nav>
         )}
       </header>
-      <main id={"main-content"} tabIndex={-1}>
+      <main id={"main-content"} tabIndex={-1} ref={mainRef}>
         <Outlet />
       </main>
       <footer className={"site-footer"}>

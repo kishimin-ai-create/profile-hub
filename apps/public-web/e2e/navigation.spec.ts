@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+test("activates the skip link by keyboard", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+  // WebKit's native Tab-to-links preference differs from Chromium in the test runner.
+  await page.getByRole("link", { name: "本文へ移動" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("main")).toBeFocused();
+});
+
 for (const [path, heading] of [
   ["/", "Home"],
   ["/engineering", "こんにちは。"],
@@ -16,7 +25,10 @@ for (const [path, heading] of [
   });
 }
 
-for (const [section, other] of [["Engineering", "Hobby"], ["Hobby", "Engineering"]]) {
+for (const [section, other] of [
+  ["Engineering", "Hobby"],
+  ["Hobby", "Engineering"],
+]) {
   test(`navigates ${section} by keyboard without cross-section links`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");

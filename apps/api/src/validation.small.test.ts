@@ -16,6 +16,11 @@ app.post(
   validateJson(z.object({ name: z.string().min(1) }), ["name"]),
   (context) => context.json(context.req.valid("json")),
 );
+app.post(
+  "/test-private-field",
+  validateJson(z.object({ privateKey: z.string().min(1) }), []),
+  (context) => context.json(context.req.valid("json")),
+);
 
 test("valid JSON reaches the handler as validated data", async () => {
   const response = await app.request("/test-validation", {
@@ -54,5 +59,17 @@ test("malformed JSON returns a safe client error", async () => {
   expect(response.status).toBe(400);
   expect(await response.json()).toEqual({
     error: { code: "CLIENT_ERROR", message: "Invalid request" },
+  });
+});
+
+test("validation does not disclose fields outside the allowlist", async () => {
+  const response = await app.request("/test-private-field", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ privateKey: "" }),
+  });
+  expect(response.status).toBe(400);
+  expect(await response.json()).toEqual({
+    error: { code: "VALIDATION_ERROR", message: "Invalid request", fields: [] },
   });
 });

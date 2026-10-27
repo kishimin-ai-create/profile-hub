@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Link } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { ErrorState, LoadingState } from "../../components/QueryState";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { SiteLayout } from "./SiteLayout";
@@ -61,7 +62,13 @@ const routeTree = rootRoute.addChildren([
   hobbyContactRoute,
 ]);
 
-export const createAppRouter = (history?: RouterHistory) => createRouter({ routeTree, history });
+export const createAppRouter = (history?: RouterHistory) =>
+  createRouter({
+    routeTree,
+    history,
+    defaultPendingComponent: LoadingState,
+    defaultErrorComponent: ({ reset }) => <ErrorState onRetry={reset} />,
+  });
 
 declare module "@tanstack/react-router" {
   interface Register {

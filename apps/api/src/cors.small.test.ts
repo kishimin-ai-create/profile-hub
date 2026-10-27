@@ -24,11 +24,15 @@ test("allowed browser origins receive their exact CORS origin", async () => {
 });
 
 test("unapproved browser origins are rejected", async () => {
-  const response = await app.request("/health", {
-    headers: { Origin: "https://unapproved.example.com" },
-  });
-  expect(response.status).toBe(403);
-  expect(response.headers.get("access-control-allow-origin")).toBeNull();
+  for (const origin of [
+    "https://unapproved.example.com",
+    "https://public.example.com.attacker.test",
+    "null",
+  ]) {
+    const response = await app.request("/health", { headers: { Origin: origin } });
+    expect(response.status).toBe(403);
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+  }
 });
 
 test("allowed preflight requests receive the configured method and header policy", async () => {

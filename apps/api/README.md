@@ -17,5 +17,10 @@ bun run typecheck
 bun run test
 ```
 
-The application source is not present yet; the endpoints, the data model, and the Drizzle schema
-arrive with their own issues. `bun run dev` therefore has nothing to start.
+The application source is not present yet, so `bun run dev` has nothing to start. The PostgreSQL
+schema currently contains the skills table; other entities and API endpoints arrive separately.
+
+To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database
+with `bun run db:migrate`, set `TEST_DATABASE_URL` to its connection URL, and run
+`bun run test:medium`. Without `TEST_DATABASE_URL`, the database test is skipped. The test uses a
+transaction and rolls back its inserts.

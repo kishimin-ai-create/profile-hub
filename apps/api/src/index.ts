@@ -12,6 +12,7 @@ type Dependencies = {
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
+  allowedOrigins?: readonly string[];
 };
 
 const linkSchema: OpenApi.SchemaObject = {
@@ -28,6 +29,36 @@ const linkSchema: OpenApi.SchemaObject = {
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
   const app = new Hono();
+
+  app.use("*", async (context, next) => {
+    context.header("Vary", "Origin", { append: true });
+    const origin = context.req.header("Origin");
+    if (!origin) {
+      return next();
+    }
+    const requestedMethod = context.req.header("Access-Control-Request-Method");
+    const isPreflight = context.req.method === "OPTIONS" && requestedMethod !== undefined;
+    const allowedMethods = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"];
+    if (isPreflight) {
+      context.header("Vary", "Access-Control-Request-Method", { append: true });
+    }
+    if (
+      !dependencies.allowedOrigins?.includes(origin) ||
+      (isPreflight && !allowedMethods.includes(requestedMethod))
+    ) {
+      return context.json(
+        { error: { code: "FORBIDDEN", message: "Origin or method not allowed" } },
+        403,
+      );
+    }
+    context.header("Access-Control-Allow-Origin", origin);
+    if (isPreflight) {
+      context.header("Access-Control-Allow-Methods", allowedMethods.join(", "));
+      context.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      return context.body(null, 204);
+    }
+    return next();
+  });
 
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get(
@@ -228,6 +259,9 @@ const app = createApp({
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   getPublicProfile: () => getPublicProfile(getDatabase()),
+  allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
+    (origin): origin is string => Boolean(origin),
+  ),
 });
 
 export default app;

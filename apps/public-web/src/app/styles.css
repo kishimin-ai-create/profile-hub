@@ -19,6 +19,24 @@ a,
 button {
   touch-action: manipulation;
 }
+button {
+  min-height: 44px;
+  padding: 8px 20px;
+  font: inherit;
+  color: #2e59ad;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: wait;
+}
+.error-state {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+}
 :focus-visible {
   outline: 2px solid #2e59ad;
   outline-offset: 4px;

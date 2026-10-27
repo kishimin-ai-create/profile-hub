@@ -34,6 +34,8 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       const app = createApp({
         listFavourites: () => listFavourites(drizzle(client)),
         listPortfolios: () => Promise.resolve([]),
+        getPublicProfile: () =>
+          Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
       });
       const response = await app.request("/api/public/favourites");
       expect(response.status).toBe(200);

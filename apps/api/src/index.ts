@@ -4,10 +4,12 @@ import { HTTPException } from "hono/http-exception";
 import { getDatabase } from "./infrastructures/db/database";
 import { listFavourites } from "./public/favourites";
 import { listPortfolios, type PortfolioSection } from "./public/portfolios";
+import { getPublicProfile } from "./public/profile";
 
 type Dependencies = {
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
+  getPublicProfile: () => ReturnType<typeof getPublicProfile>;
 };
 
 /** Builds the API around its resource dependencies. */
@@ -17,6 +19,9 @@ export const createApp = (dependencies: Dependencies) => {
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get("/api/public/favourites", async (context) =>
     context.json({ data: await dependencies.listFavourites() }),
+  );
+  app.get("/api/public/profile", async (context) =>
+    context.json({ data: await dependencies.getPublicProfile() }),
   );
   app.get("/api/public/portfolio", async (context) => {
     const section = context.req.query("section");
@@ -48,6 +53,7 @@ export const createApp = (dependencies: Dependencies) => {
 const app = createApp({
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
+  getPublicProfile: () => getPublicProfile(getDatabase()),
 });
 
 export default app;

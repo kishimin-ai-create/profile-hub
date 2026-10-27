@@ -40,6 +40,8 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       const app = createApp({
         listFavourites: () => Promise.resolve([]),
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
+        getPublicProfile: () =>
+          Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
       });
       const engineering = await app.request("/api/public/portfolio?section=engineering");
       expect(engineering.status).toBe(200);

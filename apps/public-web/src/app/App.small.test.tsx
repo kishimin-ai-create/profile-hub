@@ -3,9 +3,9 @@ import { describe, expect, test } from "vitest";
 import { App } from "./App";
 
 describe("App", () => {
-  test("names every section the public site is expected to serve", () => {
+  test("opens the home route without authentication", async () => {
     render(<App />);
 
-    expect(screen.getByText(/engineering, hobby/)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
   });
 });

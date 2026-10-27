@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { secureHeaders } from "hono/secure-headers";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
@@ -29,6 +30,21 @@ const linkSchema: OpenApi.SchemaObject = {
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
   const app = new Hono();
+
+  app.use(
+    "*",
+    secureHeaders({
+      strictTransportSecurity: false,
+      crossOriginResourcePolicy: "cross-origin",
+      xFrameOptions: false,
+      contentSecurityPolicy: {
+        defaultSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    }),
+  );
 
   app.use("*", async (context, next) => {
     context.header("Vary", "Origin", { append: true });

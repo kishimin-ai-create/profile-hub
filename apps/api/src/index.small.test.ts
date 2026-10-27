@@ -2,6 +2,10 @@ import { expect, test } from "bun:test";
 
 import app from "./index";
 
+app.get("/test-unexpected-error", () => {
+  throw new Error("private diagnostic details");
+});
+
 test("GET /health reports that the API is running", async () => {
   const response = await app.request("/health");
 
@@ -16,4 +20,13 @@ test("unknown API routes return a consistent JSON not found response", async () 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: { code: "NOT_FOUND", message: "Not found" } });
   }
+});
+
+test("unexpected errors do not disclose internal details", async () => {
+  const response = await app.request("/test-unexpected-error");
+
+  expect(response.status).toBe(500);
+  expect(await response.json()).toEqual({
+    error: { code: "INTERNAL_ERROR", message: "Internal server error" },
+  });
 });

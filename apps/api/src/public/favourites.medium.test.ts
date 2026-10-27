@@ -31,7 +31,10 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           1,
         ],
       );
-      const app = createApp({ listFavourites: () => listFavourites(drizzle(client)) });
+      const app = createApp({
+        listFavourites: () => listFavourites(drizzle(client)),
+        listPortfolios: () => Promise.resolve([]),
+      });
       const response = await app.request("/api/public/favourites");
       expect(response.status).toBe(200);
       const body: unknown = await response.json();

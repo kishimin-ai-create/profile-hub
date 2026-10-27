@@ -38,7 +38,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         ],
       );
       const app = createApp({
-        listFavourites: async () => [],
+        listFavourites: () => Promise.resolve([]),
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
       });
       const engineering = await app.request("/api/public/portfolio?section=engineering");

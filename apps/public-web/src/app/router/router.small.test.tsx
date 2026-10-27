@@ -1,10 +1,39 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { createAppRouter } from "./router";
 
 describe("public routes", () => {
+  test.each([
+    ["/engineering", "Engineering", "Hobby"],
+    ["/hobby", "Hobby", "Engineering"],
+  ])(
+    "keeps navigation within %s and returns home through the logo",
+    async (path, section, other) => {
+      const user = userEvent.setup();
+      const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
+
+      render(<RouterProvider router={router} />);
+
+      const header = within(await screen.findByRole("banner"));
+      expect(header.queryByRole("link", { name: other })).not.toBeInTheDocument();
+      await user.click(header.getByRole("link", { name: "Contact" }));
+      expect(
+        await screen.findByRole("heading", { name: `${section} Contact` }),
+      ).toBeInTheDocument();
+      expect(header.getByRole("link", { name: "Contact" })).toHaveAttribute("aria-current", "page");
+      expect(header.queryByRole("link", { name: other })).not.toBeInTheDocument();
+      await user.click(header.getByRole("link", { name: section }));
+      expect(await screen.findByRole("heading", { name: section })).toBeInTheDocument();
+      await user.click(header.getByRole("link", { name: "profile-hub" }));
+      expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
+      expect(
+        within(screen.getByRole("contentinfo")).getByText("© kishimin 2026"),
+      ).toBeInTheDocument();
+    },
+  );
+
   test.each(["Engineering", "Hobby"])("enters %s from home", async (section) => {
     const user = userEvent.setup();
     const history = createMemoryHistory({ initialEntries: ["/"] });

@@ -78,3 +78,13 @@ export const portfolios = pgTable(
   },
   (table) => [index("portfolios_section_display_order_idx").on(table.section, table.displayOrder)],
 );
+
+export const profiles = pgTable("profiles", {
+  id: bigint("id", { mode: "bigint" }).primaryKey().generatedByDefaultAsIdentity(),
+  name: text("name").notNull(),
+  title: text("title"),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

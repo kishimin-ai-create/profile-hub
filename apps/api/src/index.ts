@@ -82,6 +82,32 @@ const clientErrorResponse = errorResponse(
   "CLIENT_ERROR",
   "Invalid request",
 );
+const authErrorResponse = errorResponse(
+  "Authentication required",
+  "UNAUTHORIZED",
+  "Authentication required",
+);
+const tokenResponse: OpenApi.ResponseObject = {
+  description: "Replacement administrator tokens",
+  content: {
+    "application/json": {
+      schema: {
+        type: "object",
+        required: ["data"],
+        properties: {
+          data: {
+            type: "object",
+            required: ["accessToken", "refreshToken"],
+            properties: {
+              accessToken: { type: "string" },
+              refreshToken: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
@@ -139,65 +165,113 @@ export const createApp = (dependencies: Dependencies) => {
     return next();
   });
 
-  app.post("/api/admin/auth/login", bodyLimit({ maxSize: 4096 }), async (context) => {
-    context.header("Cache-Control", "no-store");
-    let input: unknown;
-    try {
-      input = await context.req.json();
-    } catch {
-      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
-    }
-    const parsed = z
-      .object({ email: z.string().email().max(320), password: z.string().min(1).max(1024) })
-      .strict()
-      .safeParse(input);
-    if (!parsed.success) {
-      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
-    }
-    if (!dependencies.loginAdmin) {
-      return context.json(
-        { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
-        401,
-      );
-    }
-    const result = await dependencies.loginAdmin(parsed.data.email, parsed.data.password);
-    if (result.status === "limited") {
-      context.header("Retry-After", "60");
-      return context.json({ error: { code: "RATE_LIMITED", message: "Too many attempts" } }, 429);
-    }
-    if (result.status === "invalid") {
-      return context.json(
-        { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
-        401,
-      );
-    }
-    return context.json({ data: result.tokens });
-  });
+  app.post(
+    "/api/admin/auth/login",
+    describeRoute({
+      operationId: "loginAdmin",
+      tags: ["Admin authentication"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["email", "password"],
+              additionalProperties: false,
+              properties: {
+                email: { type: "string", format: "email", maxLength: 320 },
+                password: { type: "string", minLength: 1, maxLength: 1024 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: tokenResponse,
+        400: errorResponse("Invalid request", "CLIENT_ERROR", "Invalid request"),
+        401: errorResponse("Invalid credentials", "UNAUTHORIZED", "Invalid email or password"),
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        429: errorResponse("Too many attempts", "RATE_LIMITED", "Too many attempts"),
+        500: serverErrorResponse,
+      },
+    }),
+    bodyLimit({ maxSize: 4096 }),
+    async (context) => {
+      context.header("Cache-Control", "no-store");
+      let input: unknown;
+      try {
+        input = await context.req.json();
+      } catch {
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      }
+      const parsed = z
+        .object({ email: z.string().email().max(320), password: z.string().min(1).max(1024) })
+        .strict()
+        .safeParse(input);
+      if (!parsed.success) {
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      }
+      if (!dependencies.loginAdmin) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
+          401,
+        );
+      }
+      const result = await dependencies.loginAdmin(parsed.data.email, parsed.data.password);
+      if (result.status === "limited") {
+        context.header("Retry-After", "60");
+        return context.json({ error: { code: "RATE_LIMITED", message: "Too many attempts" } }, 429);
+      }
+      if (result.status === "invalid") {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
+          401,
+        );
+      }
+      return context.json({ data: result.tokens });
+    },
+  );
 
-  app.post("/api/admin/auth/refresh", async (context) => {
-    context.header("Cache-Control", "no-store");
-    const match = context.req.header("Authorization")?.match(/^Bearer ([^\s]+)$/i);
-    const { adminSecret, findAdminSessionVersion, revokeAdminSession } = dependencies;
-    if (!match || !adminSecret || !findAdminSessionVersion || !revokeAdminSession) {
-      return context.json(
-        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        401,
+  app.post(
+    "/api/admin/auth/refresh",
+    describeRoute({
+      operationId: "refreshAdminSession",
+      tags: ["Admin authentication"],
+      security: [{ adminBearer: [] }],
+      description: "Requires a refresh token.",
+      responses: {
+        200: tokenResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      context.header("Cache-Control", "no-store");
+      const match = context.req.header("Authorization")?.match(/^Bearer ([^\s]+)$/i);
+      const { adminSecret, findAdminSessionVersion, revokeAdminSession } = dependencies;
+      if (!match || !adminSecret || !findAdminSessionVersion || !revokeAdminSession) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      const tokens = await refreshSession(
+        match[1],
+        adminSecret,
+        findAdminSessionVersion,
+        revokeAdminSession,
       );
-    }
-    const tokens = await refreshSession(
-      match[1],
-      adminSecret,
-      findAdminSessionVersion,
-      revokeAdminSession,
-    );
-    if (!tokens) {
-      return context.json(
-        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        401,
-      );
-    }
-    return context.json({ data: tokens });
-  });
+      if (!tokens) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      return context.json({ data: tokens });
+    },
+  );
 
   app.use(
     "/api/admin/*",
@@ -206,22 +280,67 @@ export const createApp = (dependencies: Dependencies) => {
       dependencies.findAdminSessionVersion ?? (() => Promise.resolve(null)),
     ),
   );
-  app.get("/api/admin/auth/me", (context) => {
-    context.header("Cache-Control", "no-store");
-    return context.json({ data: { id: context.get("adminSession").sub } });
-  });
-  app.post("/api/admin/auth/logout", async (context) => {
-    const session = context.get("adminSession");
-    const revoked = await dependencies.revokeAdminSession?.(session.sub, session.version);
-    context.header("Cache-Control", "no-store");
-    if (!revoked) {
-      return context.json(
-        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        401,
-      );
-    }
-    return context.body(null, 204);
-  });
+  app.get(
+    "/api/admin/auth/me",
+    describeRoute({
+      operationId: "getAdminSession",
+      tags: ["Admin authentication"],
+      security: [{ adminBearer: [] }],
+      responses: {
+        200: {
+          description: "Current administrator",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id"],
+                    properties: { id: { type: "string" } },
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    (context) => {
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: { id: context.get("adminSession").sub } });
+    },
+  );
+  app.post(
+    "/api/admin/auth/logout",
+    describeRoute({
+      operationId: "logoutAdmin",
+      tags: ["Admin authentication"],
+      security: [{ adminBearer: [] }],
+      responses: {
+        204: { description: "Session revoked" },
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const session = context.get("adminSession");
+      const revoked = await dependencies.revokeAdminSession?.(session.sub, session.version);
+      context.header("Cache-Control", "no-store");
+      if (!revoked) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      return context.body(null, 204);
+    },
+  );
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get(
     "/api/public/favourites",
@@ -400,7 +519,12 @@ export const createApp = (dependencies: Dependencies) => {
   app.get(
     "/docs/json",
     openAPIRouteHandler(app, {
-      documentation: { info: { title: "profile-hub API", version: "0.0.0" } },
+      documentation: {
+        info: { title: "profile-hub API", version: "0.0.0" },
+        components: {
+          securitySchemes: { adminBearer: { type: "http", scheme: "bearer", bearerFormat: "JWT" } },
+        },
+      },
     }),
   );
   app.notFound((context) =>

@@ -1,5 +1,6 @@
 import { authenticateCredentials } from "./credentials";
 import { issueSessionTokens } from "./session-tokens";
+import { requireSecret } from "./token";
 
 type LoginDependencies = {
   consumeAttempt: () => Promise<boolean>;
@@ -12,6 +13,7 @@ type LoginDependencies = {
 
 /** Authenticates after throttling and rotates any existing administrator session. */
 export async function loginAdmin(email: string, password: string, dependencies: LoginDependencies) {
+  requireSecret(dependencies.secret);
   if (!(await dependencies.consumeAttempt())) return { status: "limited" } as const;
   const identity = await authenticateCredentials(
     email,

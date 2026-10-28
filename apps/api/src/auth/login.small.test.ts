@@ -55,13 +55,18 @@ test("login rotates the session before returning credentials", async () => {
 
 test("invalid signing configuration does not revoke an existing session", async () => {
   let advanced = false;
-  await expect(loginAdmin(account.email, "correct", {
-    consumeAttempt: () => Promise.resolve(true),
-    findAccount: () => Promise.resolve(account),
-    verifyPassword: () => Promise.resolve(true),
-    advanceSession: () => { advanced = true; return Promise.resolve(true); },
-    dummyHash: "dummy",
-    secret: "short",
-  })).rejects.toThrow();
+  await expect(
+    loginAdmin(account.email, "correct", {
+      consumeAttempt: () => Promise.resolve(true),
+      findAccount: () => Promise.resolve(account),
+      verifyPassword: () => Promise.resolve(true),
+      advanceSession: () => {
+        advanced = true;
+        return Promise.resolve(true);
+      },
+      dummyHash: "dummy",
+      secret: "short",
+    }),
+  ).rejects.toThrow();
   expect(advanced).toBe(false);
 });

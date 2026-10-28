@@ -1,10 +1,13 @@
 import { createMiddleware } from "hono/factory";
 
 import { authenticateSession } from "../auth/session";
+import type { SessionClaims } from "../auth/token";
+
+export type AdminEnvironment = { Variables: { adminSession: SessionClaims } };
 
 /** Requires a current administrator access token. */
 export function adminGuard(secret: string, findVersion: (id: string) => Promise<number | null>) {
-  return createMiddleware(async (context, next) => {
+  return createMiddleware<AdminEnvironment>(async (context, next) => {
     const authorization = context.req.header("Authorization");
     const match = authorization?.match(/^Bearer ([^\s]+)$/i);
     const session = match && (await authenticateSession(match[1], "access", secret, findVersion));
@@ -14,6 +17,7 @@ export function adminGuard(secret: string, findVersion: (id: string) => Promise<
         401,
       );
     }
+    context.set("adminSession", session);
     await next();
   });
 }

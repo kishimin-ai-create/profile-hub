@@ -112,6 +112,35 @@ const tokenResponse: OpenApi.ResponseObject = {
     },
   },
 };
+const browserHeader: OpenApi.ParameterObject = {
+  name: "X-Admin-Request",
+  in: "header",
+  required: true,
+  schema: { type: "string", enum: ["1"] },
+  description: "Requires the configured administrator Origin.",
+};
+const browserAccessResponse: OpenApi.ResponseObject = {
+  description: "Access token and HttpOnly refresh cookie",
+  headers: {
+    "Set-Cookie": { schema: { type: "string" }, description: "Host-only refresh cookie." },
+  },
+  content: {
+    "application/json": {
+      schema: {
+        type: "object",
+        required: ["data"],
+        properties: {
+          data: {
+            type: "object",
+            additionalProperties: false,
+            required: ["accessToken"],
+            properties: { accessToken: { type: "string" } },
+          },
+        },
+      },
+    },
+  },
+};
 
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
@@ -180,6 +209,18 @@ export const createApp = (dependencies: Dependencies) => {
 
   app.post(
     "/api/admin/auth/browser/logout",
+    describeRoute({
+      operationId: "logoutAdminBrowser",
+      tags: ["Admin authentication"],
+      parameters: [browserHeader],
+      security: [{ adminRefreshCookie: [] }],
+      responses: {
+        204: { description: "Session revoked and cookie expired" },
+        401: authErrorResponse,
+        403: { description: "Administrator origin or header rejected" },
+        500: serverErrorResponse,
+      },
+    }),
     requireAdminBrowser(dependencies.adminOrigin),
     async (context) => {
       context.header("Cache-Control", "no-store");
@@ -216,6 +257,18 @@ export const createApp = (dependencies: Dependencies) => {
 
   app.post(
     "/api/admin/auth/browser/refresh",
+    describeRoute({
+      operationId: "refreshAdminBrowser",
+      tags: ["Admin authentication"],
+      parameters: [browserHeader],
+      security: [{ adminRefreshCookie: [] }],
+      responses: {
+        200: browserAccessResponse,
+        401: authErrorResponse,
+        403: { description: "Administrator origin or header rejected" },
+        500: serverErrorResponse,
+      },
+    }),
     requireAdminBrowser(dependencies.adminOrigin),
     async (context) => {
       context.header("Cache-Control", "no-store");
@@ -251,6 +304,36 @@ export const createApp = (dependencies: Dependencies) => {
 
   app.post(
     "/api/admin/auth/browser/login",
+    describeRoute({
+      operationId: "loginAdminBrowser",
+      tags: ["Admin authentication"],
+      parameters: [browserHeader],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["email", "password"],
+              additionalProperties: false,
+              properties: {
+                email: { type: "string", format: "email", maxLength: 320 },
+                password: { type: "string", minLength: 1, maxLength: 1024 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: browserAccessResponse,
+        400: errorResponse("Invalid request", "CLIENT_ERROR", "Invalid request"),
+        401: errorResponse("Invalid credentials", "UNAUTHORIZED", "Invalid email or password"),
+        403: { description: "Administrator origin or header rejected" },
+        413: { description: "Request body too large" },
+        429: errorResponse("Too many attempts", "RATE_LIMITED", "Too many attempts"),
+        500: serverErrorResponse,
+      },
+    }),
     requireAdminBrowser(dependencies.adminOrigin),
     bodyLimit({ maxSize: 4096 }),
     async (context) => {
@@ -645,7 +728,10 @@ export const createApp = (dependencies: Dependencies) => {
       documentation: {
         info: { title: "profile-hub API", version: "0.0.0" },
         components: {
-          securitySchemes: { adminBearer: { type: "http", scheme: "bearer", bearerFormat: "JWT" } },
+          securitySchemes: {
+            adminBearer: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+            adminRefreshCookie: { type: "apiKey", in: "cookie", name: "__Host-admin_refresh" },
+          },
         },
       },
     }),

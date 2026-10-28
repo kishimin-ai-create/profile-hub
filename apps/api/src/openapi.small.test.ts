@@ -221,13 +221,49 @@ test("OpenAPI describes administrator authentication and bearer boundaries", asy
 test("OpenAPI documents cookie-backed browser authentication without exposing refresh tokens", async () => {
   const response = await app.request("/docs/json");
   const document: unknown = await response.json();
-  const accessResponse = { content: { "application/json": { schema: { required: ["data"], properties: { data: { required: ["accessToken"], properties: { accessToken: { type: "string" } }, additionalProperties: false } } } } } };
+  const accessResponse = {
+    content: {
+      "application/json": {
+        schema: {
+          required: ["data"],
+          properties: {
+            data: {
+              required: ["accessToken"],
+              properties: { accessToken: { type: "string" } },
+              additionalProperties: false,
+            },
+          },
+        },
+      },
+    },
+  };
   expect(document).toMatchObject({
-    components: { securitySchemes: { adminRefreshCookie: { type: "apiKey", in: "cookie", name: "__Host-admin_refresh" } } },
+    components: {
+      securitySchemes: {
+        adminRefreshCookie: { type: "apiKey", in: "cookie", name: "__Host-admin_refresh" },
+      },
+    },
     paths: {
-      "/api/admin/auth/browser/login": { post: { operationId: "loginAdminBrowser", responses: { "200": accessResponse, "401": {}, "403": {} } } },
-      "/api/admin/auth/browser/refresh": { post: { operationId: "refreshAdminBrowser", security: [{ adminRefreshCookie: [] }], responses: { "200": accessResponse, "401": {}, "403": {} } } },
-      "/api/admin/auth/browser/logout": { post: { operationId: "logoutAdminBrowser", security: [{ adminRefreshCookie: [] }], responses: { "204": {}, "401": {}, "403": {} } } },
+      "/api/admin/auth/browser/login": {
+        post: {
+          operationId: "loginAdminBrowser",
+          responses: { "200": accessResponse, "401": {}, "403": {} },
+        },
+      },
+      "/api/admin/auth/browser/refresh": {
+        post: {
+          operationId: "refreshAdminBrowser",
+          security: [{ adminRefreshCookie: [] }],
+          responses: { "200": accessResponse, "401": {}, "403": {} },
+        },
+      },
+      "/api/admin/auth/browser/logout": {
+        post: {
+          operationId: "logoutAdminBrowser",
+          security: [{ adminRefreshCookie: [] }],
+          responses: { "204": {}, "401": {}, "403": {} },
+        },
+      },
     },
   });
 });

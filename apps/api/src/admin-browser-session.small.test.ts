@@ -42,6 +42,7 @@ test("browser login keeps the refresh token in a secure HttpOnly cookie", async 
   expect(cookie).toContain("HttpOnly");
   expect(cookie).toContain("Secure");
   expect(cookie).toContain("SameSite=None");
+  expect(cookie).toContain("Max-Age=86400");
   expect(cookie).toContain("Path=/");
   expect(cookie).not.toContain("Domain=");
   expect(

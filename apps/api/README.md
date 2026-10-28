@@ -22,7 +22,7 @@ process is running. Apply the migrations before using the PostgreSQL-backed endp
 
 Set `PUBLIC_ORIGIN` and `ADMIN_ORIGIN` to the exact browser origins permitted to call the API. If an
 origin is not configured it is not allowed; requests without an Origin header remain available to
-non-browser clients. Credentialed browser requests are not enabled by this configuration.
+non-browser clients. Credentialed CORS is enabled only for the configured administrator origin.
 
 ## Administrator authentication
 
@@ -36,12 +36,15 @@ command reads through EOF, preserves every character including newlines, and rej
 4096 bytes. It requires an email and a password of 8–1024 characters, and refuses to create another
 administrator if any user already exists. No signup endpoint is exposed.
 
-| Method | Path                      | Authentication and result                         |
-| ------ | ------------------------- | ------------------------------------------------- |
-| POST   | `/api/admin/auth/login`   | JSON email and password; returns a token pair     |
-| POST   | `/api/admin/auth/refresh` | Bearer refresh token; rotates and returns tokens  |
-| GET    | `/api/admin/auth/me`      | Bearer access token; returns the administrator ID |
-| POST   | `/api/admin/auth/logout`  | Bearer access token; revokes its session version  |
+| Method | Path                              | Authentication and result                                     |
+| ------ | --------------------------------- | ------------------------------------------------------------- |
+| POST   | `/api/admin/auth/login`           | JSON email and password; returns a token pair                 |
+| POST   | `/api/admin/auth/refresh`         | Bearer refresh token; rotates and returns tokens              |
+| GET    | `/api/admin/auth/me`              | Bearer access token; returns the administrator ID             |
+| POST   | `/api/admin/auth/logout`          | Bearer access token; revokes its session version              |
+| POST   | `/api/admin/auth/browser/login`   | Credentials; sets the refresh cookie and returns access token |
+| POST   | `/api/admin/auth/browser/refresh` | Refresh cookie; rotates it and returns access token           |
+| POST   | `/api/admin/auth/browser/logout`  | Refresh cookie; revokes and expires it                        |
 
 Login accepts at most 4096 bytes. Incorrect credentials receive the same error response whether the
 account is absent or the password is wrong. Login uses one shared limit of five attempts per minute
@@ -51,12 +54,17 @@ production. Requests over the limit return 429. The refresh and logout operation
 session version, invalidating tokens with the old version. A refresh that advances the version but
 fails before returning replacement tokens requires a new login.
 
-Tokens are returned in JSON and sent back in an `Authorization: Bearer` header; this API does not
-set authentication cookies. Browser token storage and recovery across page reloads are not yet
-implemented. JavaScript-accessible tokens can be stolen by an XSS vulnerability. If a future client
-uses cookies instead, its cookie attributes, credentialed CORS and CSRF protections require explicit
-design and verification. Authentication, security review, and production deployment remain in
-progress; a successful unit or integration test does not establish production readiness.
+Access tokens expire after at most 15 minutes. Refresh tokens expire after at most 24 hours of
+inactivity, and every session expires seven days after authentication even if refreshed. Deploying
+the authentication-time claim invalidates older tokens without it.
+
+The bearer endpoints return both tokens in JSON. Browser-specific login and refresh endpoints return
+the access token and keep the refresh token in a host-only Secure, HttpOnly, SameSite=None cookie.
+Browser session changes require the configured administrator Origin and `X-Admin-Request: 1`. The
+browser client is not yet implemented, and cross-site cookie restrictions have not been tested. An
+XSS vulnerability can still make authenticated requests even though it cannot read the HttpOnly
+cookie. Authentication, security review, and production deployment remain in progress; a successful
+unit or integration test does not establish production readiness.
 
 To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database
 with `bun run db:migrate`, set `TEST_DATABASE_URL` to its connection URL, and run

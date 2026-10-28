@@ -4,6 +4,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
+import { refreshSession } from "./auth/refresh-session";
 import { getDatabase } from "./infrastructures/db/database";
 import { findSessionVersion, revokeSession } from "./infrastructures/db/session-version";
 import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
@@ -129,6 +130,31 @@ export const createApp = (dependencies: Dependencies) => {
       return context.body(null, 204);
     }
     return next();
+  });
+
+  app.post("/api/admin/auth/refresh", async (context) => {
+    context.header("Cache-Control", "no-store");
+    const match = context.req.header("Authorization")?.match(/^Bearer ([^\s]+)$/i);
+    const { adminSecret, findAdminSessionVersion, revokeAdminSession } = dependencies;
+    if (!match || !adminSecret || !findAdminSessionVersion || !revokeAdminSession) {
+      return context.json(
+        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        401,
+      );
+    }
+    const tokens = await refreshSession(
+      match[1],
+      adminSecret,
+      findAdminSessionVersion,
+      revokeAdminSession,
+    );
+    if (!tokens) {
+      return context.json(
+        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        401,
+      );
+    }
+    return context.json({ data: tokens });
   });
 
   app.use(

@@ -20,7 +20,10 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       );
       const database = drizzle(client);
       expect(await findAdminByEmail(database, "account-test@example.com")).toEqual({
-        id: inserted.rows[0].id, email: "account-test@example.com", passwordHash: "test-hash", sessionVersion: 2,
+        id: inserted.rows[0].id,
+        email: "account-test@example.com",
+        passwordHash: "test-hash",
+        sessionVersion: 2,
       });
       expect(await findAdminByEmail(database, "absent@example.com")).toBeNull();
     } finally {

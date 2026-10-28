@@ -5,12 +5,16 @@ import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
 import { getDatabase } from "./infrastructures/db/database";
+import { findSessionVersion } from "./infrastructures/db/session-version";
+import { adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
 import { listPortfolios, type PortfolioSection } from "./public/portfolios";
 import { getPublicProfile } from "./public/profile";
 
 type Dependencies = {
+  adminSecret?: string;
+  findAdminSessionVersion?: (id: string) => Promise<number | null>;
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
@@ -126,6 +130,13 @@ export const createApp = (dependencies: Dependencies) => {
     return next();
   });
 
+  app.use(
+    "/api/admin/*",
+    adminGuard(
+      dependencies.adminSecret ?? "",
+      dependencies.findAdminSessionVersion ?? (() => Promise.resolve(null)),
+    ),
+  );
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get(
     "/api/public/favourites",
@@ -328,6 +339,8 @@ export const createApp = (dependencies: Dependencies) => {
 };
 
 const app = createApp({
+  adminSecret: process.env["JWT_SECRET"],
+  findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   getPublicProfile: () => getPublicProfile(getDatabase()),

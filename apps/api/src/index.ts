@@ -10,6 +10,7 @@ import { z } from "zod";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
+import { authenticateSession } from "./auth/session";
 import { findAdminByEmail } from "./infrastructures/db/admin-account";
 import { getDatabase } from "./infrastructures/db/database";
 import { consumeLoginAttempt } from "./infrastructures/db/login-throttle";
@@ -176,6 +177,42 @@ export const createApp = (dependencies: Dependencies) => {
     }
     return next();
   });
+
+  app.post(
+    "/api/admin/auth/browser/logout",
+    requireAdminBrowser(dependencies.adminOrigin),
+    async (context) => {
+      context.header("Cache-Control", "no-store");
+      const token = getCookie(context, "__Host-admin_refresh");
+      const { adminSecret, findAdminSessionVersion, revokeAdminSession } = dependencies;
+      if (!token || !adminSecret || !findAdminSessionVersion || !revokeAdminSession) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      const session = await authenticateSession(
+        token,
+        "refresh",
+        adminSecret,
+        findAdminSessionVersion,
+      );
+      if (!session || !(await revokeAdminSession(session.sub, session.version))) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      setCookie(context, "__Host-admin_refresh", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        path: "/",
+        maxAge: 0,
+      });
+      return context.body(null, 204);
+    },
+  );
 
   app.post(
     "/api/admin/auth/browser/refresh",

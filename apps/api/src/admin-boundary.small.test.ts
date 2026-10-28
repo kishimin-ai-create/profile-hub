@@ -61,3 +61,29 @@ test("the current administrator endpoint returns the verified identity", async (
   expect(await response.json()).toEqual({ data: { id: "42" } });
   expect((await app.request("/api/admin/auth/me")).status).toBe(401);
 });
+
+test("logout invalidates an existing administrator session", async () => {
+  let version = 3;
+  const app = createApp({
+    listFavourites: () => Promise.resolve([]),
+    listPortfolios: () => Promise.resolve([]),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    adminSecret: secret,
+    findAdminSessionVersion: () => Promise.resolve(version),
+    revokeAdminSession: (_id: string, expected: number) => {
+      if (version !== expected) return Promise.resolve(false);
+      version += 1;
+      return Promise.resolve(true);
+    },
+  });
+  const token = await issueToken("42", 3, "access", secret);
+  const headers = { Authorization: `Bearer ${token}` };
+  expect((await app.request("/api/admin/auth/logout", { method: "POST", headers })).status).toBe(
+    204,
+  );
+  expect((await app.request("/api/admin/auth/me", { headers })).status).toBe(401);
+  expect((await app.request("/api/admin/auth/logout", { method: "POST", headers })).status).toBe(
+    401,
+  );
+});

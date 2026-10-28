@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
@@ -13,7 +14,7 @@ import { findAdminByEmail } from "./infrastructures/db/admin-account";
 import { getDatabase } from "./infrastructures/db/database";
 import { consumeLoginAttempt } from "./infrastructures/db/login-throttle";
 import { findSessionVersion, revokeSession } from "./infrastructures/db/session-version";
-import { validatedAdminOrigin } from "./middleware/admin-browser";
+import { requireAdminBrowser, validatedAdminOrigin } from "./middleware/admin-browser";
 import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
@@ -175,6 +176,45 @@ export const createApp = (dependencies: Dependencies) => {
     }
     return next();
   });
+
+  app.post(
+    "/api/admin/auth/browser/login",
+    requireAdminBrowser(dependencies.adminOrigin),
+    bodyLimit({ maxSize: 4096 }),
+    async (context) => {
+      context.header("Cache-Control", "no-store");
+      let input: unknown;
+      try {
+        input = await context.req.json();
+      } catch {
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      }
+      const parsed = z
+        .object({ email: z.string().email().max(320), password: z.string().min(1).max(1024) })
+        .strict()
+        .safeParse(input);
+      if (!parsed.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const result = await dependencies.loginAdmin?.(parsed.data.email, parsed.data.password);
+      if (result?.status === "limited") {
+        context.header("Retry-After", "60");
+        return context.json({ error: { code: "RATE_LIMITED", message: "Too many attempts" } }, 429);
+      }
+      if (!result || result.status === "invalid")
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
+          401,
+        );
+      setCookie(context, "__Host-admin_refresh", result.tokens.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        path: "/",
+        maxAge: 604800,
+      });
+      return context.json({ data: { accessToken: result.tokens.accessToken } });
+    },
+  );
 
   app.post(
     "/api/admin/auth/login",

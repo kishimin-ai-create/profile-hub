@@ -20,9 +20,13 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         expect(await consumeLoginAttempt(database)).toBe(true);
       }
       expect(await consumeLoginAttempt(database)).toBe(false);
-      await client.query("UPDATE login_rate_limits SET window_started_at = statement_timestamp() - interval '61 seconds' WHERE id = 'login'");
+      await client.query(
+        "UPDATE login_rate_limits SET window_started_at = statement_timestamp() - interval '61 seconds' WHERE id = 'login'",
+      );
       expect(await consumeLoginAttempt(database)).toBe(true);
-      const state = await client.query<{ attempts: number }>("SELECT attempts FROM login_rate_limits WHERE id = 'login'");
+      const state = await client.query<{ attempts: number }>(
+        "SELECT attempts FROM login_rate_limits WHERE id = 'login'",
+      );
       expect(state.rows[0].attempts).toBe(1);
     } finally {
       await client.query("ROLLBACK");

@@ -6,6 +6,7 @@
     "build": "echo \"the API runs from TypeScript source under Bun\"",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts",
+    "admin:bootstrap": "bun run src/scripts/bootstrap-admin.ts",
     "test": "bun test --pass-with-no-tests",
     "test:small": "bun test --pass-with-no-tests small.test",
     "test:medium": "bun test --pass-with-no-tests medium.test",

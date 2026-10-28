@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { runBootstrap } from "./bootstrap-admin";
+import { runBootstrap } from "./bootstrap-service";
 
 test("bootstrap passes the complete password without writing it to output", async () => {
   const password = "long-secret-\n";
@@ -12,8 +12,12 @@ test("bootstrap passes the complete password without writing it to output", asyn
 });
 
 test("bootstrap reports refusal and errors without leaking credentials", async () => {
-  const refused = await runBootstrap("owner@example.com", "secret-value", () => Promise.resolve(false));
+  const refused = await runBootstrap("owner@example.com", "secret-value", () =>
+    Promise.resolve(false),
+  );
   expect(refused).toEqual({ exitCode: 1, message: "Administrator already exists" });
-  const failed = await runBootstrap("owner@example.com", "secret-value", () => Promise.reject(new Error("secret-value")));
+  const failed = await runBootstrap("owner@example.com", "secret-value", () =>
+    Promise.reject(new Error("secret-value")),
+  );
   expect(failed).toEqual({ exitCode: 1, message: "Administrator provisioning failed" });
 });

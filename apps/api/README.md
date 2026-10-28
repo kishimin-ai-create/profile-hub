@@ -29,7 +29,12 @@ non-browser clients. Credentialed browser requests are not enabled by this confi
 Set `JWT_SECRET` to a randomly generated secret of at least 32 UTF-8 bytes. Keep it outside the
 repository and use the same value for all API instances. A valid secret is required before login can
 rotate a session. Passwords are verified using Argon2id; this API does not expose account creation.
-Provisioning the first administrator is not yet automated.
+To create the first administrator after migrating an empty database, set `ADMIN_EMAIL` and provide
+the password as UTF-8 bytes on standard input to `bun run admin:bootstrap`. Provide the bytes from a
+trusted secret source without placing the password in shell history or command-line arguments. The
+command reads through EOF, preserves every character including newlines, and rejects input above
+4096 bytes. It requires an email and a password of 8–1024 characters, and refuses to create another
+administrator if any user already exists. No signup endpoint is exposed.
 
 | Method | Path                      | Authentication and result                         |
 | ------ | ------------------------- | ------------------------------------------------- |

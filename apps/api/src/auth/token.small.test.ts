@@ -70,3 +70,18 @@ test("tokens with invalid audience, claims, lifetime or excessive size are rejec
   await expect(issueToken("0", 0, "access", secret)).rejects.toThrow();
   await expect(issueToken("42", -1, "access", secret)).rejects.toThrow();
 });
+
+test("session tokens enforce both inactivity and absolute lifetimes", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const initial = await verifyToken(await issueToken("42", 0, "refresh", secret), "refresh", secret);
+  expect(initial).not.toBeNull();
+  if (!initial) throw new Error("Expected a refresh token");
+  expect(initial.authTime).toBe(initial.iat);
+  expect(initial.exp - initial.iat).toBe(24 * 60 * 60);
+  const staleAuthentication = {
+    iss: "profile-hub", aud: "profile-hub-admin", sub: "42", version: 0,
+    kind: "refresh", jti: crypto.randomUUID(), iat: now, exp: now + 60,
+    auth_time: now - 7 * 24 * 60 * 60,
+  };
+  expect(await verifyToken(await sign(staleAuthentication, secret, "HS256"), "refresh", secret)).toBeNull();
+});

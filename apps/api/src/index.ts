@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { setCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
@@ -176,6 +176,41 @@ export const createApp = (dependencies: Dependencies) => {
     }
     return next();
   });
+
+  app.post(
+    "/api/admin/auth/browser/refresh",
+    requireAdminBrowser(dependencies.adminOrigin),
+    async (context) => {
+      context.header("Cache-Control", "no-store");
+      const token = getCookie(context, "__Host-admin_refresh");
+      const { adminSecret, findAdminSessionVersion, revokeAdminSession } = dependencies;
+      if (!token || !adminSecret || !findAdminSessionVersion || !revokeAdminSession) {
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      }
+      const tokens = await refreshSession(
+        token,
+        adminSecret,
+        findAdminSessionVersion,
+        revokeAdminSession,
+      );
+      if (!tokens)
+        return context.json(
+          { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+          401,
+        );
+      setCookie(context, "__Host-admin_refresh", tokens.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        path: "/",
+        maxAge: 604800,
+      });
+      return context.json({ data: { accessToken: tokens.accessToken } });
+    },
+  );
 
   app.post(
     "/api/admin/auth/browser/login",

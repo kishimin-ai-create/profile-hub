@@ -1,11 +1,17 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
+import { z } from "zod";
 
+import { loginAdmin } from "./auth/login";
+import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
+import { findAdminByEmail } from "./infrastructures/db/admin-account";
 import { getDatabase } from "./infrastructures/db/database";
+import { consumeLoginAttempt } from "./infrastructures/db/login-throttle";
 import { findSessionVersion, revokeSession } from "./infrastructures/db/session-version";
 import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
@@ -14,6 +20,7 @@ import { listPortfolios, type PortfolioSection } from "./public/portfolios";
 import { getPublicProfile } from "./public/profile";
 
 type Dependencies = {
+  loginAdmin?: (email: string, password: string) => ReturnType<typeof loginAdmin>;
   adminSecret?: string;
   findAdminSessionVersion?: (id: string) => Promise<number | null>;
   revokeAdminSession?: (id: string, version: number) => Promise<boolean>;
@@ -130,6 +137,41 @@ export const createApp = (dependencies: Dependencies) => {
       return context.body(null, 204);
     }
     return next();
+  });
+
+  app.post("/api/admin/auth/login", bodyLimit({ maxSize: 4096 }), async (context) => {
+    context.header("Cache-Control", "no-store");
+    let input: unknown;
+    try {
+      input = await context.req.json();
+    } catch {
+      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+    }
+    const parsed = z
+      .object({ email: z.string().email().max(320), password: z.string().min(1).max(1024) })
+      .strict()
+      .safeParse(input);
+    if (!parsed.success) {
+      return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+    }
+    if (!dependencies.loginAdmin) {
+      return context.json(
+        { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
+        401,
+      );
+    }
+    const result = await dependencies.loginAdmin(parsed.data.email, parsed.data.password);
+    if (result.status === "limited") {
+      context.header("Retry-After", "60");
+      return context.json({ error: { code: "RATE_LIMITED", message: "Too many attempts" } }, 429);
+    }
+    if (result.status === "invalid") {
+      return context.json(
+        { error: { code: "UNAUTHORIZED", message: "Invalid email or password" } },
+        401,
+      );
+    }
+    return context.json({ data: result.tokens });
   });
 
   app.post("/api/admin/auth/refresh", async (context) => {
@@ -382,6 +424,16 @@ export const createApp = (dependencies: Dependencies) => {
 };
 
 const app = createApp({
+  loginAdmin: (email, password) =>
+    loginAdmin(email, password, {
+      consumeAttempt: () => consumeLoginAttempt(getDatabase()),
+      findAccount: (value) => findAdminByEmail(getDatabase(), value),
+      verifyPassword,
+      advanceSession: (id, version) => revokeSession(getDatabase(), id, version),
+      dummyHash:
+        "$argon2id$v=19$m=65536,t=2,p=1$/Ljqdtjb+NTnEzU6E6d7bPgVNN5FayXFRhPwCWntnfA$2E8icwtAyRdRGo9XygluUTG2zeN1zPQE7VvtK8WDrak",
+      secret: process.env["JWT_SECRET"] ?? "",
+    }),
   adminSecret: process.env["JWT_SECRET"],
   findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
   revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),

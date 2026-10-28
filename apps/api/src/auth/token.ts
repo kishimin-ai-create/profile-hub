@@ -22,7 +22,8 @@ function validSubject(value: unknown): value is string {
   );
 }
 
-function requireSecret(secret: string) {
+/** Validates the minimum encoding length of the signing secret. */
+export function requireSecret(secret: string) {
   if (new TextEncoder().encode(secret).length < 32) {
     throw new Error("JWT secret must be at least 32 bytes");
   }

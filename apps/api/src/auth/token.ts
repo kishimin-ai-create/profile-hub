@@ -8,11 +8,13 @@ export type SessionClaims = {
   jti: string;
   iat: number;
   exp: number;
+  authTime: number;
 };
 
 const issuer = "profile-hub";
 const audience = "profile-hub-admin";
-const tokenLifetime = (kind: TokenKind) => (kind === "access" ? 15 * 60 : 7 * 24 * 60 * 60);
+const tokenLifetime = (kind: TokenKind) => (kind === "access" ? 15 * 60 : 24 * 60 * 60);
+const absoluteLifetime = 7 * 24 * 60 * 60;
 
 function validSubject(value: unknown): value is string {
   return (
@@ -35,12 +37,22 @@ export async function issueToken(
   version: number,
   kind: TokenKind,
   secret: string,
+  authenticationTime?: number,
 ) {
   requireSecret(secret);
   if (!validSubject(subject) || !Number.isSafeInteger(version) || version < 0) {
     throw new Error("Invalid session claims");
   }
   const issuedAt = Math.floor(Date.now() / 1000);
+  const authTime = authenticationTime ?? issuedAt;
+  if (
+    !Number.isSafeInteger(authTime) ||
+    authTime < 0 ||
+    authTime > issuedAt ||
+    authTime + absoluteLifetime <= issuedAt
+  ) {
+    throw new Error("Invalid authentication time");
+  }
   return sign(
     {
       iss: issuer,
@@ -50,7 +62,8 @@ export async function issueToken(
       kind,
       jti: crypto.randomUUID(),
       iat: issuedAt,
-      exp: issuedAt + tokenLifetime(kind),
+      auth_time: authTime,
+      exp: Math.min(issuedAt + tokenLifetime(kind), authTime + absoluteLifetime),
     },
     secret,
     "HS256",
@@ -69,7 +82,7 @@ export async function verifyToken(
   }
   try {
     const payload = await verify(token, secret, { alg: "HS256", iss: issuer, aud: audience });
-    const { sub, version, jti, iat, exp } = payload;
+    const { sub, version, jti, iat, exp, auth_time: authTime } = payload;
     if (
       !validSubject(sub) ||
       typeof version !== "number" ||
@@ -82,12 +95,17 @@ export async function verifyToken(
       !Number.isSafeInteger(iat) ||
       typeof exp !== "number" ||
       !Number.isSafeInteger(exp) ||
+      typeof authTime !== "number" ||
+      !Number.isSafeInteger(authTime) ||
+      authTime < 0 ||
+      authTime > iat ||
       exp <= iat ||
+      exp > authTime + absoluteLifetime ||
       exp - iat > tokenLifetime(kind)
     ) {
       return null;
     }
-    return { sub, version, kind, jti, iat, exp };
+    return { sub, version, kind, jti, iat, exp, authTime };
   } catch {
     return null;
   }

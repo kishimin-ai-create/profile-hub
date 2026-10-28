@@ -243,7 +243,7 @@ export const createApp = (dependencies: Dependencies) => {
         secure: true,
         sameSite: "None",
         path: "/",
-        maxAge: 604800,
+        maxAge: 86400,
       });
       return context.json({ data: { accessToken: tokens.accessToken } });
     },
@@ -282,7 +282,7 @@ export const createApp = (dependencies: Dependencies) => {
         secure: true,
         sameSite: "None",
         path: "/",
-        maxAge: 604800,
+        maxAge: 86400,
       });
       return context.json({ data: { accessToken: result.tokens.accessToken } });
     },

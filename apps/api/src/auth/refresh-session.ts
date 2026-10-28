@@ -10,5 +10,5 @@ export async function refreshSession(
 ) {
   const session = await authenticateSession(token, "refresh", secret, findVersion);
   if (!session || !(await advance(session.sub, session.version))) return null;
-  return issueSessionTokens(session.sub, session.version + 1, secret);
+  return issueSessionTokens(session.sub, session.version + 1, secret, session.authTime);
 }

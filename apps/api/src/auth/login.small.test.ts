@@ -10,7 +10,10 @@ test("login checks the shared budget before credential verification", async () =
   let lookups = 0;
   const result = await loginAdmin("admin@example.com", "password", {
     consumeAttempt: () => Promise.resolve(false),
-    findAccount: () => { lookups += 1; return Promise.resolve(account); },
+    findAccount: () => {
+      lookups += 1;
+      return Promise.resolve(account);
+    },
     verifyPassword: () => Promise.resolve(true),
     advanceSession: () => Promise.resolve(true),
     dummyHash: "dummy",
@@ -26,7 +29,11 @@ test("login rotates the session before returning credentials", async () => {
     consumeAttempt: () => Promise.resolve(true),
     findAccount: () => Promise.resolve(account),
     verifyPassword: (password: string) => Promise.resolve(password === "correct"),
-    advanceSession: (_id: string, current: number) => { if (version !== current) return Promise.resolve(false); version += 1; return Promise.resolve(true); },
+    advanceSession: (_id: string, current: number) => {
+      if (version !== current) return Promise.resolve(false);
+      version += 1;
+      return Promise.resolve(true);
+    },
     dummyHash: "dummy",
     secret,
   };
@@ -35,7 +42,13 @@ test("login rotates the session before returning credentials", async () => {
   const result = await loginAdmin(account.email, "correct", dependencies);
   expect(result.status).toBe("success");
   if (result.status !== "success") throw new Error("Expected a session");
-  expect(await verifyToken(result.tokens.accessToken, "access", secret)).toMatchObject({ sub: "42", version: 3 });
-  expect(await verifyToken(result.tokens.refreshToken, "refresh", secret)).toMatchObject({ sub: "42", version: 3 });
+  expect(await verifyToken(result.tokens.accessToken, "access", secret)).toMatchObject({
+    sub: "42",
+    version: 3,
+  });
+  expect(await verifyToken(result.tokens.refreshToken, "refresh", secret)).toMatchObject({
+    sub: "42",
+    version: 3,
+  });
   expect(await loginAdmin(account.email, "correct", dependencies)).toEqual({ status: "invalid" });
 });

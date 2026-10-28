@@ -1,4 +1,6 @@
 import { expect, test } from "bun:test";
+import { z } from "zod";
+import { issueToken } from "./auth/token";
 
 import { createApp } from "./index";
 
@@ -86,3 +88,32 @@ test("failed browser login does not set a session cookie", async () => {
     ).status,
   ).toBe(413);
 });
+
+test("browser refresh rotates the HttpOnly cookie and rejects reuse", async () => {
+  const secret = "a-test-only-secret-with-at-least-32-bytes";
+  let version = 0;
+  const app = createApp({
+    listFavourites: () => Promise.resolve([]),
+    listPortfolios: () => Promise.resolve([]),
+    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    adminOrigin,
+    allowedOrigins: [adminOrigin],
+    adminSecret: secret,
+    findAdminSessionVersion: () => Promise.resolve(version),
+    revokeAdminSession: (_id: string, expected: number) => { if (expected !== version) return Promise.resolve(false); version += 1; return Promise.resolve(true); },
+  });
+  const refresh = await issueToken("42", 0, "refresh", secret);
+  const headers = { Origin: adminOrigin, "X-Admin-Request": "1", Cookie: `__Host-admin_refresh=${refresh}` };
+  const response = await app.request("/api/admin/auth/browser/refresh", { method: "POST", headers });
+  expect(response.status).toBe(200);
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  expect(response.headers.get("set-cookie")).toContain("HttpOnly");
+  expect(response.headers.get("set-cookie")).not.toContain(refresh);
+  const data = z.object({ data: z.object({ accessToken: z.string() }).strict() }).parse(await response.json());
+  expect((await app.request("/api/admin/auth/me", { headers: { Authorization: `Bearer ${data.data.accessToken}` } })).status).toBe(200);
+  const reused = await app.request("/api/admin/auth/browser/refresh", { method: "POST", headers });
+  expect(reused.status).toBe(401);
+  expect(reused.headers.get("set-cookie")).toBeNull();
+  expect((await app.request("/api/admin/auth/browser/refresh", { method: "POST", headers: { Cookie: headers.Cookie, Origin: adminOrigin } })).status).toBe(403);
+});
+

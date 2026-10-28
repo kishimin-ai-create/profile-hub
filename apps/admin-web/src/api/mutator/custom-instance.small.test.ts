@@ -54,3 +54,9 @@ describe("administrator API transport", () => {
     expect(request).toHaveBeenCalledWith(expect.objectContaining({ withCredentials: true }));
   });
 });
+
+test.each(["login", "refresh", "logout"])("browser %s supplies its required credential policy", async (operation) => {
+  const request = vi.spyOn(axios, "request").mockResolvedValue({ data: {}, status: 200, statusText: "OK", headers: {}, config: { headers: new AxiosHeaders() } });
+  await customInstance({ url: `/api/admin/auth/browser/${operation}`, method: "POST" });
+  expect(request).toHaveBeenCalledWith(expect.objectContaining({ withCredentials: true, headers: expect.objectContaining({ "X-Admin-Request": "1" }) }));
+});

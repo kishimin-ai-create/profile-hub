@@ -150,21 +150,46 @@ test("browser logout revokes the session and expires the refresh cookie", async 
   const app = createApp({
     listFavourites: () => Promise.resolve([]),
     listPortfolios: () => Promise.resolve([]),
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
     adminOrigin,
     allowedOrigins: [adminOrigin],
     adminSecret: secret,
     findAdminSessionVersion: () => Promise.resolve(version),
-    revokeAdminSession: (_id: string, expected: number) => { if (expected !== version) return Promise.resolve(false); version += 1; return Promise.resolve(true); },
+    revokeAdminSession: (_id: string, expected: number) => {
+      if (expected !== version) return Promise.resolve(false);
+      version += 1;
+      return Promise.resolve(true);
+    },
   });
   const refresh = await issueToken("42", 0, "refresh", secret);
   const access = await issueToken("42", 0, "access", secret);
   const cookie = `__Host-admin_refresh=${refresh}`;
-  expect((await app.request("/api/admin/auth/browser/logout", { method: "POST", headers: { Origin: adminOrigin, Cookie: cookie } })).status).toBe(403);
+  expect(
+    (
+      await app.request("/api/admin/auth/browser/logout", {
+        method: "POST",
+        headers: { Origin: adminOrigin, Cookie: cookie },
+      })
+    ).status,
+  ).toBe(403);
   expect(version).toBe(0);
-  const response = await app.request("/api/admin/auth/browser/logout", { method: "POST", headers: { Origin: adminOrigin, "X-Admin-Request": "1", Cookie: cookie } });
+  const response = await app.request("/api/admin/auth/browser/logout", {
+    method: "POST",
+    headers: { Origin: adminOrigin, "X-Admin-Request": "1", Cookie: cookie },
+  });
   expect(response.status).toBe(204);
   expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
-  expect((await app.request("/api/admin/auth/me", { headers: { Authorization: `Bearer ${access}` } })).status).toBe(401);
-  expect((await app.request("/api/admin/auth/browser/logout", { method: "POST", headers: { Origin: adminOrigin, "X-Admin-Request": "1", Cookie: cookie } })).status).toBe(401);
+  expect(
+    (await app.request("/api/admin/auth/me", { headers: { Authorization: `Bearer ${access}` } }))
+      .status,
+  ).toBe(401);
+  expect(
+    (
+      await app.request("/api/admin/auth/browser/logout", {
+        method: "POST",
+        headers: { Origin: adminOrigin, "X-Admin-Request": "1", Cookie: cookie },
+      })
+    ).status,
+  ).toBe(401);
 });

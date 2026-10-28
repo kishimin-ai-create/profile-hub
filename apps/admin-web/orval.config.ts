@@ -7,14 +7,13 @@ export default defineConfig({
   adminApi: {
     input: {
       target: OPENAPI_URL,
+      filters: { tags: ["Admin authentication"] },
     },
     output: {
-      mode: "tags-split",
-      target: "src/api/endpoints/admin-api.ts",
-      schemas: "src/models",
+      mode: "single",
+      target: "src/gen/admin-auth.ts",
       client: "react-query",
       httpClient: "axios",
-      clean: true,
       formatter: "prettier",
       override: {
         mutator: {
@@ -27,11 +26,12 @@ export default defineConfig({
   adminApiZod: {
     input: {
       target: OPENAPI_URL,
+      filters: { tags: ["Admin authentication"] },
     },
     output: {
-      mode: "tags-split",
+      mode: "single",
       client: "zod",
-      target: "src/api/endpoints/zod",
+      target: "src/gen/admin-auth",
       fileExtension: ".zod.ts",
       formatter: "prettier",
     },

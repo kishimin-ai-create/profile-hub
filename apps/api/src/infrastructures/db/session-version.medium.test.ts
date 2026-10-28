@@ -32,7 +32,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
   },
 );
 
- test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
+test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
   "revocation advances the current version only once for the same session",
   async () => {
     if (!databaseUrl) throw new Error("TEST_DATABASE_URL is required");
@@ -57,4 +57,3 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
     }
   },
 );
-

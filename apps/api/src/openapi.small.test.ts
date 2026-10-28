@@ -175,3 +175,18 @@ test("OpenAPI describes public API error envelopes", async () => {
     },
   });
 });
+
+test("OpenAPI describes administrator authentication and bearer boundaries", async () => {
+  const response = await app.request("/docs/json");
+  const document: unknown = await response.json();
+  expect(response.status).toBe(200);
+  expect(document).toMatchObject({
+    components: { securitySchemes: { adminBearer: { type: "http", scheme: "bearer" } } },
+    paths: {
+      "/api/admin/auth/login": { post: { operationId: "loginAdmin", requestBody: { required: true, content: { "application/json": { schema: { required: ["email", "password"] } } } }, responses: { "200": {}, "400": {}, "401": {}, "413": {}, "429": {} } } },
+      "/api/admin/auth/refresh": { post: { operationId: "refreshAdminSession", security: [{ adminBearer: [] }], responses: { "200": {}, "401": {} } } },
+      "/api/admin/auth/me": { get: { operationId: "getAdminSession", security: [{ adminBearer: [] }], responses: { "200": {}, "401": {} } } },
+      "/api/admin/auth/logout": { post: { operationId: "logoutAdmin", security: [{ adminBearer: [] }], responses: { "204": {}, "401": {} } } },
+    },
+  });
+});

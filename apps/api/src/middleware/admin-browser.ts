@@ -1,18 +1,23 @@
 import { createMiddleware } from "hono/factory";
 
-/** Rejects browser session requests outside the configured administrator origin. */
-export function requireAdminBrowser(adminOrigin: string | undefined) {
-  let validOrigin: string | undefined;
+/** Returns only a canonical HTTP(S) origin. */
+export function validatedAdminOrigin(adminOrigin: string | undefined): string | undefined {
   try {
     if (adminOrigin) {
       const url = new URL(adminOrigin);
       if ((url.protocol === "https:" || url.protocol === "http:") && url.origin === adminOrigin) {
-        validOrigin = adminOrigin;
+        return adminOrigin;
       }
     }
   } catch {
-    validOrigin = undefined;
+    return undefined;
   }
+  return undefined;
+}
+
+/** Rejects browser session requests outside the configured administrator origin. */
+export function requireAdminBrowser(adminOrigin: string | undefined) {
+  const validOrigin = validatedAdminOrigin(adminOrigin);
   return createMiddleware(async (context, next) => {
     if (
       !validOrigin ||

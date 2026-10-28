@@ -13,6 +13,7 @@ import { findAdminByEmail } from "./infrastructures/db/admin-account";
 import { getDatabase } from "./infrastructures/db/database";
 import { consumeLoginAttempt } from "./infrastructures/db/login-throttle";
 import { findSessionVersion, revokeSession } from "./infrastructures/db/session-version";
+import { validatedAdminOrigin } from "./middleware/admin-browser";
 import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
@@ -20,6 +21,7 @@ import { listPortfolios, type PortfolioSection } from "./public/portfolios";
 import { getPublicProfile } from "./public/profile";
 
 type Dependencies = {
+  adminOrigin?: string;
   loginAdmin?: (email: string, password: string) => ReturnType<typeof loginAdmin>;
   adminSecret?: string;
   findAdminSessionVersion?: (id: string) => Promise<number | null>;
@@ -157,9 +159,18 @@ export const createApp = (dependencies: Dependencies) => {
       );
     }
     context.header("Access-Control-Allow-Origin", origin);
+    const isAdminOrigin = origin === validatedAdminOrigin(dependencies.adminOrigin);
+    if (isAdminOrigin) {
+      context.header("Access-Control-Allow-Credentials", "true");
+    }
     if (isPreflight) {
       context.header("Access-Control-Allow-Methods", allowedMethods.join(", "));
-      context.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      context.header(
+        "Access-Control-Allow-Headers",
+        isAdminOrigin
+          ? "Authorization, Content-Type, X-Admin-Request"
+          : "Authorization, Content-Type",
+      );
       return context.body(null, 204);
     }
     return next();
@@ -548,6 +559,7 @@ export const createApp = (dependencies: Dependencies) => {
 };
 
 const app = createApp({
+  adminOrigin: process.env["ADMIN_ORIGIN"],
   loginAdmin: (email, password) =>
     loginAdmin(email, password, {
       consumeAttempt: () => consumeLoginAttempt(getDatabase()),

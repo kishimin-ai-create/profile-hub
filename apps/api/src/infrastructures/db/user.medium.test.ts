@@ -54,6 +54,15 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         [created.rows[0].id],
       );
       expect(updated.rows[0].session_version).toBe(1);
+      let rejection: unknown;
+      try {
+        await client.query("UPDATE users SET session_version = -1 WHERE id = $1", [
+          created.rows[0].id,
+        ]);
+      } catch (error) {
+        rejection = error;
+      }
+      expect(rejection).toMatchObject({ code: "23514" });
     } finally {
       await client.query("ROLLBACK");
       await client.end();

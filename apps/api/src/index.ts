@@ -6,7 +6,7 @@ import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
 import { getDatabase } from "./infrastructures/db/database";
 import { findSessionVersion } from "./infrastructures/db/session-version";
-import { adminGuard } from "./middleware/admin-guard";
+import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
 import { listPortfolios, type PortfolioSection } from "./public/portfolios";
@@ -76,7 +76,7 @@ const clientErrorResponse = errorResponse(
 
 /** Builds the API around its resource dependencies. */
 export const createApp = (dependencies: Dependencies) => {
-  const app = new Hono();
+  const app = new Hono<AdminEnvironment>();
 
   app.use(
     "*",
@@ -137,6 +137,10 @@ export const createApp = (dependencies: Dependencies) => {
       dependencies.findAdminSessionVersion ?? (() => Promise.resolve(null)),
     ),
   );
+  app.get("/api/admin/auth/me", (context) => {
+    context.header("Cache-Control", "no-store");
+    return context.json({ data: { id: context.get("adminSession").sub } });
+  });
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get(
     "/api/public/favourites",

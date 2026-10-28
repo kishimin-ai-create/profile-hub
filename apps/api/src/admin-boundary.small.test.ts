@@ -47,13 +47,17 @@ test("the current administrator endpoint returns the verified identity", async (
   const app = createApp({
     listFavourites: () => Promise.resolve([]),
     listPortfolios: () => Promise.resolve([]),
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
     adminSecret: secret,
     findAdminSessionVersion: () => Promise.resolve(3),
   });
   const token = await issueToken("42", 3, "access", secret);
-  const response = await app.request("/api/admin/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+  const response = await app.request("/api/admin/auth/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   expect(response.status).toBe(200);
+  expect(response.headers.get("cache-control")).toBe("no-store");
   expect(await response.json()).toEqual({ data: { id: "42" } });
   expect((await app.request("/api/admin/auth/me")).status).toBe(401);
 });

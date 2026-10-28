@@ -12,6 +12,19 @@ import {
 
 export const section = pgEnum("section", ["engineering", "hobby"]);
 
+export const loginRateLimits = pgTable(
+  "login_rate_limits",
+  {
+    id: text("id").primaryKey(),
+    attempts: integer("attempts").notNull(),
+    windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    check("login_rate_limits_singleton", sql`${table.id} = 'login'`),
+    check("login_rate_limits_attempts_range", sql`${table.attempts} BETWEEN 0 AND 5`),
+  ],
+);
+
 export const skills = pgTable(
   "skills",
   {

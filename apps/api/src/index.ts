@@ -5,7 +5,7 @@ import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 
 import { getDatabase } from "./infrastructures/db/database";
-import { findSessionVersion } from "./infrastructures/db/session-version";
+import { findSessionVersion, revokeSession } from "./infrastructures/db/session-version";
 import { type AdminEnvironment, adminGuard } from "./middleware/admin-guard";
 import { type RequestLog, requestLogger } from "./middleware/request-log";
 import { listFavourites } from "./public/favourites";
@@ -15,6 +15,7 @@ import { getPublicProfile } from "./public/profile";
 type Dependencies = {
   adminSecret?: string;
   findAdminSessionVersion?: (id: string) => Promise<number | null>;
+  revokeAdminSession?: (id: string, version: number) => Promise<boolean>;
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
@@ -140,6 +141,18 @@ export const createApp = (dependencies: Dependencies) => {
   app.get("/api/admin/auth/me", (context) => {
     context.header("Cache-Control", "no-store");
     return context.json({ data: { id: context.get("adminSession").sub } });
+  });
+  app.post("/api/admin/auth/logout", async (context) => {
+    const session = context.get("adminSession");
+    const revoked = await dependencies.revokeAdminSession?.(session.sub, session.version);
+    context.header("Cache-Control", "no-store");
+    if (!revoked) {
+      return context.json(
+        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        401,
+      );
+    }
+    return context.body(null, 204);
   });
   app.get("/health", (context) => context.json({ status: "ok" }));
   app.get(
@@ -345,6 +358,7 @@ export const createApp = (dependencies: Dependencies) => {
 const app = createApp({
   adminSecret: process.env["JWT_SECRET"],
   findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
+  revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   getPublicProfile: () => getPublicProfile(getDatabase()),

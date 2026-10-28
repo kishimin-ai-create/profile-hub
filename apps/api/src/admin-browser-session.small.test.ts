@@ -9,14 +9,29 @@ test("browser login keeps the refresh token in a secure HttpOnly cookie", async 
   const app = createApp({
     listFavourites: () => Promise.resolve([]),
     listPortfolios: () => Promise.resolve([]),
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
     adminOrigin,
     allowedOrigins: [adminOrigin],
-    loginAdmin: () => { attempts += 1; return Promise.resolve({ status: "success" as const, tokens: { accessToken: "test-access", refreshToken: "test-refresh" } }); },
+    loginAdmin: () => {
+      attempts += 1;
+      return Promise.resolve({
+        status: "success" as const,
+        tokens: { accessToken: "test-access", refreshToken: "test-refresh" },
+      });
+    },
   });
   const body = JSON.stringify({ email: "admin@example.com", password: "password" });
-  const headers = { Origin: adminOrigin, "Content-Type": "application/json", "X-Admin-Request": "1" };
-  const response = await app.request("/api/admin/auth/browser/login", { method: "POST", headers, body });
+  const headers = {
+    Origin: adminOrigin,
+    "Content-Type": "application/json",
+    "X-Admin-Request": "1",
+  };
+  const response = await app.request("/api/admin/auth/browser/login", {
+    method: "POST",
+    headers,
+    body,
+  });
   expect(response.status).toBe(200);
   expect(response.headers.get("cache-control")).toBe("no-store");
   expect(await response.json()).toEqual({ data: { accessToken: "test-access" } });
@@ -27,6 +42,47 @@ test("browser login keeps the refresh token in a secure HttpOnly cookie", async 
   expect(cookie).toContain("SameSite=None");
   expect(cookie).toContain("Path=/");
   expect(cookie).not.toContain("Domain=");
-  expect((await app.request("/api/admin/auth/browser/login", { method: "POST", headers: { Origin: adminOrigin, "Content-Type": "application/json" }, body })).status).toBe(403);
+  expect(
+    (
+      await app.request("/api/admin/auth/browser/login", {
+        method: "POST",
+        headers: { Origin: adminOrigin, "Content-Type": "application/json" },
+        body,
+      })
+    ).status,
+  ).toBe(403);
   expect(attempts).toBe(1);
+});
+
+test("failed browser login does not set a session cookie", async () => {
+  const app = createApp({
+    listFavourites: () => Promise.resolve([]),
+    listPortfolios: () => Promise.resolve([]),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    adminOrigin,
+    allowedOrigins: [adminOrigin],
+    loginAdmin: () => Promise.resolve({ status: "invalid" as const }),
+  });
+  const headers = {
+    Origin: adminOrigin,
+    "Content-Type": "application/json",
+    "X-Admin-Request": "1",
+  };
+  const response = await app.request("/api/admin/auth/browser/login", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ email: "missing@example.com", password: "wrong" }),
+  });
+  expect(response.status).toBe(401);
+  expect(response.headers.get("set-cookie")).toBeNull();
+  expect(
+    (
+      await app.request("/api/admin/auth/browser/login", {
+        method: "POST",
+        headers,
+        body: "x".repeat(5000),
+      })
+    ).status,
+  ).toBe(413);
 });

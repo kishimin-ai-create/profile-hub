@@ -93,7 +93,8 @@ test("refresh rotates a current refresh token and rejects reuse", async () => {
   const app = createApp({
     listFavourites: () => Promise.resolve([]),
     listPortfolios: () => Promise.resolve([]),
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
     adminSecret: secret,
     findAdminSessionVersion: () => Promise.resolve(version),
     revokeAdminSession: (_id: string, expected: number) => {
@@ -108,8 +109,12 @@ test("refresh rotates a current refresh token and rejects reuse", async () => {
   expect(response.status).toBe(200);
   expect(response.headers.get("cache-control")).toBe("no-store");
   const body: unknown = await response.json();
-  expect(body).toMatchObject({ data: { accessToken: expect.any(String), refreshToken: expect.any(String) } });
-  expect((await app.request("/api/admin/auth/refresh", { method: "POST", headers })).status).toBe(401);
+  expect(body).toMatchObject({
+    data: { accessToken: expect.any(String), refreshToken: expect.any(String) },
+  });
+  expect((await app.request("/api/admin/auth/refresh", { method: "POST", headers })).status).toBe(
+    401,
+  );
   expect((await app.request("/api/admin/auth/refresh", { method: "POST" })).status).toBe(401);
   expect((await app.request("/api/admin/auth/refresh", { headers })).status).toBe(401);
 });

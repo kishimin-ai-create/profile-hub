@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 import { createPortfolio } from "../admin/create-portfolio";
+import { findPortfolio } from "../admin/find-portfolio";
 import { issueToken } from "../auth/token";
 import { createApp } from "../index";
 import { listPortfolios } from "./portfolios";
@@ -43,6 +44,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         listFavourites: () => Promise.resolve([]),
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
         createPortfolio: (input) => createPortfolio(drizzle(client), input),
+        findPortfolio: (id) => findPortfolio(drizzle(client), id),
         getPublicProfile: () =>
           Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
         adminSecret: "a-test-only-secret-with-at-least-32-bytes",
@@ -93,6 +95,17 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       });
       expect(created.status).toBe(201);
       expect(await created.json()).toMatchObject({ data: { name: "Created", section: "hobby" } });
+      const ids = await client.query<{ id: string }>(
+        "SELECT id::text AS id FROM portfolios WHERE name = $1",
+        ["Created"],
+      );
+      const createdRow = ids.rows.find((_row, index) => index === 0);
+      if (!createdRow) throw new Error("Expected created portfolio");
+      const detail = await app.request(`/api/admin/portfolio/${createdRow.id}`, { headers });
+      expect(detail.status).toBe(200);
+      expect(await detail.json()).toMatchObject({
+        data: { id: createdRow.id, name: "Created", section: "hobby" },
+      });
       expect(await (await app.request("/api/public/portfolio?section=hobby")).json()).toMatchObject(
         { data: [{ name: "Hobby work" }, { name: "Created" }] },
       );

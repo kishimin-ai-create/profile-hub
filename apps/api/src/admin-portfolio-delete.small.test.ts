@@ -7,12 +7,22 @@ test("portfolio deletion rejects unauthorized and invalid requests", async () =>
   const secret = "a-test-only-secret-with-at-least-32-bytes";
   const deleted: string[] = [];
   const app = createApp({
-    listFavourites: () => Promise.resolve([]), listPortfolios: () => Promise.resolve([]),
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
-    adminSecret: secret, findAdminSessionVersion: () => Promise.resolve(3),
-    deletePortfolio: (id) => { deleted.push(id); return Promise.resolve(id === "42"); },
+    listFavourites: () => Promise.resolve([]),
+    listPortfolios: () => Promise.resolve([]),
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    adminSecret: secret,
+    findAdminSessionVersion: () => Promise.resolve(3),
+    deletePortfolio: (id) => {
+      deleted.push(id);
+      return Promise.resolve(id === "42");
+    },
   });
-  const request = (id: string, token?: string) => app.request(`/api/admin/portfolio/${id}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  const request = (id: string, token?: string) =>
+    app.request(`/api/admin/portfolio/${id}`, {
+      method: "DELETE",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
   expect((await request("42")).status).toBe(401);
   const token = await issueToken("42", 3, "access", secret);
   expect((await request("0", token)).status).toBe(400);

@@ -19,6 +19,7 @@ describe("administrator route access", () => {
         accessToken: () => null,
         restore: () => Promise.resolve(false),
         login: () => Promise.resolve(false),
+        logout: () => Promise.resolve(),
       });
       render(<RouterProvider router={router} />);
       expect(await screen.findByRole("heading", { name: "ログイン" })).toBeInTheDocument();
@@ -30,6 +31,7 @@ describe("administrator route access", () => {
       accessToken: () => null,
       restore: () => Promise.resolve(true),
       login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
     });
     render(<RouterProvider router={router} />);
     await waitFor(() => expect(router.state.status).toBe("idle"));
@@ -40,6 +42,7 @@ describe("administrator route access", () => {
     const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
       accessToken: () => state.token,
       restore: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
       login: () => {
         state.token = "access";
         return Promise.resolve(true);

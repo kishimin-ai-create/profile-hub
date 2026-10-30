@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { PortfolioInput } from "./admin/create-portfolio";
 import { createPortfolio } from "./admin/create-portfolio";
+import { deletePortfolio } from "./admin/delete-portfolio";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
 import { updatePortfolio } from "./admin/update-portfolio";
@@ -38,6 +39,7 @@ type Dependencies = {
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
   updatePortfolio?: (id: string, input: PortfolioInput) => ReturnType<typeof updatePortfolio>;
+  deletePortfolio?: (id: string) => ReturnType<typeof deletePortfolio>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
   allowedOrigins?: readonly string[];
   logRequest?: (event: RequestLog) => void;
@@ -664,6 +666,42 @@ export const createApp = (dependencies: Dependencies) => {
       return context.json({ data: entries });
     },
   );
+  app.on(
+    "DELETE",
+    "/api/admin/portfolio/:id",
+    describeRoute({
+      operationId: "deleteAdminPortfolio",
+      tags: ["Admin portfolio"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      responses: {
+        204: { description: "Portfolio deleted" },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Portfolio not found", "NOT_FOUND", "Not found"),
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.deletePortfolio) throw new Error("Portfolio persistence unavailable");
+      const deleted = await dependencies.deletePortfolio(id);
+      context.header("Cache-Control", "no-store");
+      if (!deleted)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.body(null, 204);
+    },
+  );
   app.put(
     "/api/admin/portfolio/:id",
     bodyLimit({ maxSize: 65536 }),
@@ -1131,6 +1169,7 @@ const app = createApp({
   createPortfolio: (input) => createPortfolio(getDatabase(), input),
   findPortfolio: (id) => findPortfolio(getDatabase(), id),
   updatePortfolio: (id, input) => updatePortfolio(getDatabase(), id, input),
+  deletePortfolio: (id) => deletePortfolio(getDatabase(), id),
   getPublicProfile: () => getPublicProfile(getDatabase()),
   allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
     (origin): origin is string => Boolean(origin),

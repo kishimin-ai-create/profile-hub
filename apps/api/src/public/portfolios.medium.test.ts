@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 import { createPortfolio } from "../admin/create-portfolio";
+import { deletePortfolio } from "../admin/delete-portfolio";
 import { findPortfolio } from "../admin/find-portfolio";
 import { updatePortfolio } from "../admin/update-portfolio";
 import { issueToken } from "../auth/token";
@@ -47,6 +48,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         createPortfolio: (input) => createPortfolio(drizzle(client), input),
         findPortfolio: (id) => findPortfolio(drizzle(client), id),
         updatePortfolio: (id, input) => updatePortfolio(drizzle(client), id, input),
+        deletePortfolio: (id) => deletePortfolio(drizzle(client), id),
         getPublicProfile: () =>
           Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
         adminSecret: "a-test-only-secret-with-at-least-32-bytes",
@@ -126,6 +128,17 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       });
       expect(await (await app.request("/api/public/portfolio?section=hobby")).json()).toMatchObject(
         { data: [{ name: "Hobby work" }, { name: "Updated" }] },
+      );
+      expect(
+        (await app.request(`/api/admin/portfolio/${createdRow.id}`, { method: "DELETE", headers }))
+          .status,
+      ).toBe(204);
+      expect(
+        (await app.request(`/api/admin/portfolio/${createdRow.id}`, { method: "DELETE", headers }))
+          .status,
+      ).toBe(404);
+      expect(await (await app.request("/api/public/portfolio?section=hobby")).json()).toMatchObject(
+        { data: [{ name: "Hobby work" }] },
       );
     } finally {
       await client.query("ROLLBACK");

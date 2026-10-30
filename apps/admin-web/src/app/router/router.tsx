@@ -1,13 +1,15 @@
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   Outlet,
   redirect,
 } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { createBrowserSession } from "../../auth/browser-session";
 
-const rootRoute = createRootRoute({
+type RouteSession = { accessToken: () => string | null; restore: () => Promise<boolean> };
+const rootRoute = createRootRouteWithContext<{ session: RouteSession }>()({
   component: () => (
     <main>
       <Outlet />
@@ -30,8 +32,10 @@ const loginRoute = createRoute({
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
-  beforeLoad: () => {
-    redirect({ to: "/login", throw: true });
+  beforeLoad: async ({ context }) => {
+    if (!context.session.accessToken() && !(await context.session.restore())) {
+      redirect({ to: "/login", throw: true });
+    }
   },
 });
 const dashboardRoute = createRoute({
@@ -71,4 +75,7 @@ const routeTree = rootRoute.addChildren([
   ]),
 ]);
 
-export const createAdminRouter = (history?: RouterHistory) => createRouter({ routeTree, history });
+export const createAdminRouter = (
+  history?: RouterHistory,
+  session: RouteSession = createBrowserSession(),
+) => createRouter({ routeTree, history, context: { session } });

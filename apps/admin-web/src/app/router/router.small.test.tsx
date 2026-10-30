@@ -1,6 +1,6 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, test } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
@@ -14,7 +14,10 @@ describe("administrator route access", () => {
   test.each(["/dashboard", "/portfolio", "/portfolio/new", "/portfolio/42", "/profile", "/hobby"])(
     "redirects an unauthenticated direct visit to %s to login",
     async (path) => {
-      const router = createAdminRouter(createMemoryHistory({ initialEntries: [path] }));
+      const router = createAdminRouter(createMemoryHistory({ initialEntries: [path] }), {
+        accessToken: () => null,
+        restore: () => Promise.resolve(false),
+      });
       render(<RouterProvider router={router} />);
       expect(await screen.findByRole("heading", { name: "ログイン" })).toBeInTheDocument();
       expect(router.state.location.pathname).toBe("/login");
@@ -26,7 +29,7 @@ describe("administrator route access", () => {
       restore: () => Promise.resolve(true),
     });
     render(<RouterProvider router={router} />);
-    await vi.waitFor(() => expect(router.state.status).toBe("idle"));
+    await waitFor(() => expect(router.state.status).toBe("idle"));
     expect(router.state.location.pathname).toBe("/dashboard");
   });
 });

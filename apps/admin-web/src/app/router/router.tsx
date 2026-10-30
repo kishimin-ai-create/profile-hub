@@ -7,8 +7,27 @@ import {
 } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
 import { createBrowserSession } from "../../auth/browser-session";
+import { LoginPage } from "../../auth/login-page";
 
-type RouteSession = { accessToken: () => string | null; restore: () => Promise<boolean> };
+type RouteSession = {
+  accessToken: () => string | null;
+  restore: () => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+};
+const isRouteContext = (value: unknown): value is { session: RouteSession } => {
+  if (typeof value !== "object" || value === null || !("session" in value)) return false;
+  const session = value.session;
+  return (
+    typeof session === "object" &&
+    session !== null &&
+    "login" in session &&
+    typeof session.login === "function" &&
+    "restore" in session &&
+    typeof session.restore === "function" &&
+    "accessToken" in session &&
+    typeof session.accessToken === "function"
+  );
+};
 const rootRoute = createRootRouteWithContext<{ session: RouteSession }>()({
   component: () => (
     <main>
@@ -27,7 +46,19 @@ const homeRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
-  component: () => <h1>{"ログイン"}</h1>,
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = loginRoute.useNavigate();
+    return (
+      <LoginPage
+        login={context.session.login}
+        onSuccess={() => {
+          void navigate({ to: "/dashboard" });
+        }}
+      />
+    );
+  },
 });
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,

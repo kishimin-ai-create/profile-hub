@@ -4,8 +4,10 @@ import { expect, test, vi } from "vitest";
 import { LoginPage } from "./login-page";
 
 test("submits credentials and opens the dashboard after login", async () => {
-  const login = vi.fn<(email: string, password: string) => Promise<boolean>>().mockResolvedValue(true);
-  const onSuccess = vi.fn();
+  const login = vi
+    .fn<(email: string, password: string) => Promise<boolean>>()
+    .mockResolvedValue(true);
+  const onSuccess = vi.fn<() => void>();
   render(<LoginPage login={login} onSuccess={onSuccess} />);
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");
@@ -16,7 +18,7 @@ test("submits credentials and opens the dashboard after login", async () => {
 });
 
 test("reports failed login without navigating", async () => {
-  const onSuccess = vi.fn();
+  const onSuccess = vi.fn<() => void>();
   render(<LoginPage login={() => Promise.reject(new Error("failure"))} onSuccess={onSuccess} />);
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");

@@ -55,4 +55,24 @@ describe("administrator route access", () => {
     await user.click(screen.getByRole("button", { name: "ログイン" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard"));
   });
+  test("authenticated administrators can navigate among the four management sections", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/dashboard"] }), {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    const nav = await screen.findByRole("navigation", { name: "管理メニュー" });
+    expect(nav.querySelectorAll("a")).toHaveLength(4);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("link", { name: "Portfolio" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/portfolio"));
+    await user.click(screen.getByRole("link", { name: "Profile" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/profile"));
+    await user.click(screen.getByRole("link", { name: "Hobby" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/hobby"));
+    await user.click(screen.getByRole("link", { name: "Dashboard" }));
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+  });
 });

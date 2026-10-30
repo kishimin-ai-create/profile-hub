@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
+import { issueToken } from "../auth/token";
 import { createApp } from "../index";
 import { listPortfolios } from "./portfolios";
 
@@ -42,6 +43,8 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
         getPublicProfile: () =>
           Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+        adminSecret: "a-test-only-secret-with-at-least-32-bytes",
+        findAdminSessionVersion: () => Promise.resolve(3),
       });
       const engineering = await app.request("/api/public/portfolio?section=engineering");
       expect(engineering.status).toBe(200);
@@ -55,6 +58,26 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       expect(await hobby.json()).toMatchObject({ data: [{ name: "Hobby work" }] });
       expect((await app.request("/api/public/portfolio")).status).toBe(400);
       expect((await app.request("/api/public/portfolio?section=invalid")).status).toBe(400);
+      const token = await issueToken(
+        "42",
+        3,
+        "access",
+        "a-test-only-secret-with-at-least-32-bytes",
+      );
+      const headers = { Authorization: `Bearer ${token}` };
+      const admin = await app.request("/api/admin/portfolio", { headers });
+      expect(admin.status).toBe(200);
+      expect(await admin.json()).toMatchObject({
+        data: [
+          { name: "Earlier", section: "engineering" },
+          { name: "Later", section: "engineering" },
+          { name: "Hobby work", section: "hobby" },
+        ],
+      });
+      const adminHobby = await app.request("/api/admin/portfolio?section=hobby", { headers });
+      expect(await adminHobby.json()).toMatchObject({
+        data: [{ name: "Hobby work", section: "hobby" }],
+      });
     } finally {
       await client.query("ROLLBACK");
       await client.end();

@@ -14,13 +14,21 @@ test("submits a new portfolio in its selected section", async () => {
   await user.type(screen.getByLabelText("技術（カンマ区切り）"), "Bun, React");
   await user.type(screen.getByLabelText("表示順"), "2");
   await user.click(screen.getByRole("button", { name: "作成" }));
-  expect(save).toHaveBeenCalledWith({ section: "hobby", name: "My project", summary: "A project", technologies: ["Bun", "React"], displayOrder: 2 });
+  expect(save).toHaveBeenCalledWith({
+    section: "hobby",
+    name: "My project",
+    summary: "A project",
+    technologies: ["Bun", "React"],
+    displayOrder: 2,
+  });
   expect(onSuccess).toHaveBeenCalledOnce();
 });
 
 test("shows a save error without navigating", async () => {
   const onSuccess = vi.fn<() => void>();
-  render(<PortfolioCreate save={() => Promise.reject(new Error("offline"))} onSuccess={onSuccess} />);
+  render(
+    <PortfolioCreate save={() => Promise.reject(new Error("offline"))} onSuccess={onSuccess} />,
+  );
   const user = userEvent.setup();
   await user.selectOptions(screen.getByLabelText("セクション"), "engineering");
   await user.type(screen.getByLabelText("作品名"), "Project");

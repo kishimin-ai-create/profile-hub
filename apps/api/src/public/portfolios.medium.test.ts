@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
+import { createPortfolio } from "../admin/create-portfolio";
 import { issueToken } from "../auth/token";
 import { createApp } from "../index";
 import { listPortfolios } from "./portfolios";
@@ -41,6 +42,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       const app = createApp({
         listFavourites: () => Promise.resolve([]),
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
+        createPortfolio: (input) => createPortfolio(drizzle(client), input),
         getPublicProfile: () =>
           Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
         adminSecret: "a-test-only-secret-with-at-least-32-bytes",
@@ -78,6 +80,22 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       expect(await adminHobby.json()).toMatchObject({
         data: [{ name: "Hobby work", section: "hobby" }],
       });
+      const created = await app.request("/api/admin/portfolio", {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "hobby",
+          name: "Created",
+          summary: "Created via API",
+          technologies: ["Bun"],
+          displayOrder: 2,
+        }),
+      });
+      expect(created.status).toBe(201);
+      expect(await created.json()).toMatchObject({ data: { name: "Created", section: "hobby" } });
+      expect(await (await app.request("/api/public/portfolio?section=hobby")).json()).toMatchObject(
+        { data: [{ name: "Hobby work" }, { name: "Created" }] },
+      );
     } finally {
       await client.query("ROLLBACK");
       await client.end();

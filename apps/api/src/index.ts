@@ -7,6 +7,9 @@ import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 import { z } from "zod";
 
+import type { PortfolioInput } from "./admin/create-portfolio";
+import { createPortfolio } from "./admin/create-portfolio";
+import { portfolioInput } from "./admin/portfolio-input";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
@@ -30,6 +33,7 @@ type Dependencies = {
   revokeAdminSession?: (id: string, version: number) => Promise<boolean>;
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
+  createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
   allowedOrigins?: readonly string[];
   logRequest?: (event: RequestLog) => void;
@@ -486,6 +490,97 @@ export const createApp = (dependencies: Dependencies) => {
       dependencies.findAdminSessionVersion ?? (() => Promise.resolve(null)),
     ),
   );
+  app.post(
+    "/api/admin/portfolio",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "createAdminPortfolio",
+      tags: ["Admin portfolio"],
+      security: [{ adminBearer: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["section", "name", "summary", "technologies", "displayOrder"],
+              properties: {
+                section: { type: "string", enum: ["engineering", "hobby"] },
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                summary: { type: "string", minLength: 1, maxLength: 4000 },
+                technologies: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 50,
+                  items: { type: "string", minLength: 1, maxLength: 100 },
+                },
+                repositoryUrl: { type: ["string", "null"], maxLength: 2048 },
+                demoUrl: { type: ["string", "null"], maxLength: 2048 },
+                imageUrl: { type: ["string", "null"], maxLength: 2048 },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+              additionalProperties: false,
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: "Created portfolio",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: [
+                      "id",
+                      "section",
+                      "name",
+                      "summary",
+                      "technologies",
+                      "repositoryUrl",
+                      "demoUrl",
+                      "imageUrl",
+                      "displayOrder",
+                    ],
+                    properties: {
+                      id: { type: "string" },
+                      section: { type: "string", enum: ["engineering", "hobby"] },
+                      name: { type: "string" },
+                      summary: { type: "string" },
+                      technologies: { type: "array", items: { type: "string" } },
+                      repositoryUrl: { type: ["string", "null"] },
+                      demoUrl: { type: ["string", "null"] },
+                      imageUrl: { type: ["string", "null"] },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const input: unknown = await context.req.json().catch(() => null);
+      const result = portfolioInput.safeParse(input);
+      if (!result.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.createPortfolio) throw new Error("Portfolio persistence unavailable");
+      const created = await dependencies.createPortfolio(result.data);
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: created }, 201);
+    },
+  );
   app.get(
     "/api/admin/portfolio",
     describeRoute({
@@ -852,6 +947,7 @@ const app = createApp({
   revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
+  createPortfolio: (input) => createPortfolio(getDatabase(), input),
   getPublicProfile: () => getPublicProfile(getDatabase()),
   allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
     (origin): origin is string => Boolean(origin),

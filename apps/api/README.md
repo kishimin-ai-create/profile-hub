@@ -61,10 +61,11 @@ the authentication-time claim invalidates older tokens without it.
 The bearer endpoints return both tokens in JSON. Browser-specific login and refresh endpoints return
 the access token and keep the refresh token in a host-only Secure, HttpOnly, SameSite=None cookie.
 Browser session changes require the configured administrator Origin and `X-Admin-Request: 1`. The
-browser client is not yet implemented, and cross-site cookie restrictions have not been tested. An
-XSS vulnerability can still make authenticated requests even though it cannot read the HttpOnly
-cookie. Authentication, security review, and production deployment remain in progress; a successful
-unit or integration test does not establish production readiness.
+browser client has a login and session flow on its development branch, but cross-site cookie
+restrictions have not been tested. An XSS vulnerability can still make authenticated requests even
+though it cannot read the HttpOnly cookie. Authentication, security review, and production
+deployment remain in progress; a successful unit or integration test does not establish production
+readiness.
 
 To exercise the PostgreSQL schema integration test, apply migrations to a disposable test database
 with `bun run db:migrate`, set `TEST_DATABASE_URL` to its connection URL, and run

@@ -32,5 +32,6 @@ bun run test
 bun run build
 ```
 
-The auth guard, routing, and the management screens arrive with their own issues. What renders today
-is a placeholder that proves the toolchain and the shared workspace packages resolve.
+The login screen, session restoration, protected routes, and dashboard logout are implemented on the
+authentication development branch. Management screens remain in progress. Browser cookie behavior
+and multiple-tab session coordination still need verification before production.

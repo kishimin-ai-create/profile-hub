@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { PortfolioList } from "./portfolio-list";
 
 test("shows each portfolio section and filters the list", async () => {
@@ -38,4 +38,26 @@ test("does not show previous results after the data source changes", async () =>
   view.rerender(<PortfolioList load={() => new Promise(() => {})} />);
   expect(screen.queryByText("Old")).not.toBeInTheDocument();
   expect(screen.getByText("読み込み中")).toBeInTheDocument();
+});
+
+test("asks for confirmation before deleting a portfolio", async () => {
+  const remove = vi.fn<(id: string) => Promise<void>>().mockResolvedValue();
+  const confirmation = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValueOnce(true);
+  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])} remove={remove} />);
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "Project を削除" }));
+  expect(remove).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Project を削除" }));
+  expect(remove).toHaveBeenCalledWith("1");
+  expect(await screen.findByText("作品がありません")).toBeInTheDocument();
+  confirmation.mockRestore();
+});
+
+test("keeps the portfolio visible when deletion fails", async () => {
+  const confirmation = vi.spyOn(window, "confirm").mockReturnValue(true);
+  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])} remove={() => Promise.reject(new Error("offline"))} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Project を削除" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("作品を削除できませんでした");
+  expect(screen.getByText("Project")).toBeInTheDocument();
+  confirmation.mockRestore();
 });

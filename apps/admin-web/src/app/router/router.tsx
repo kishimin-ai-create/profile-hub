@@ -10,6 +10,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
+import { PortfolioPage } from "../../portfolio/portfolio-page";
 
 type RouteSession = {
   accessToken: () => string | null;
@@ -105,6 +106,11 @@ const dashboardRoute = createRoute({
 const portfolioRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/portfolio",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    return <PortfolioPage session={context.session} />;
+  },
 });
 const portfolioNewRoute = createRoute({
   getParentRoute: () => protectedRoute,

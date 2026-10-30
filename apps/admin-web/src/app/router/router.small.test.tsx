@@ -1,6 +1,6 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
@@ -20,4 +20,13 @@ describe("administrator route access", () => {
       expect(router.state.location.pathname).toBe("/login");
     },
   );
+  test("allows a restored session to reach the requested protected route", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/dashboard"] }), {
+      accessToken: () => null,
+      restore: () => Promise.resolve(true),
+    });
+    render(<RouterProvider router={router} />);
+    await vi.waitFor(() => expect(router.state.status).toBe("idle"));
+    expect(router.state.location.pathname).toBe("/dashboard");
+  });
 });

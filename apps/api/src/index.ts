@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { PortfolioInput } from "./admin/create-portfolio";
 import { createPortfolio } from "./admin/create-portfolio";
+import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
@@ -34,6 +35,7 @@ type Dependencies = {
   listFavourites: () => ReturnType<typeof listFavourites>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
+  findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
   allowedOrigins?: readonly string[];
   logRequest?: (event: RequestLog) => void;
@@ -661,6 +663,78 @@ export const createApp = (dependencies: Dependencies) => {
     },
   );
   app.get(
+    "/api/admin/portfolio/:id",
+    describeRoute({
+      operationId: "getAdminPortfolio",
+      tags: ["Admin portfolio"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      responses: {
+        200: {
+          description: "Portfolio",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: [
+                      "id",
+                      "section",
+                      "name",
+                      "summary",
+                      "technologies",
+                      "repositoryUrl",
+                      "demoUrl",
+                      "imageUrl",
+                      "displayOrder",
+                    ],
+                    properties: {
+                      id: { type: "string" },
+                      section: { type: "string", enum: ["engineering", "hobby"] },
+                      name: { type: "string" },
+                      summary: { type: "string" },
+                      technologies: { type: "array", items: { type: "string" } },
+                      repositoryUrl: { type: ["string", "null"] },
+                      demoUrl: { type: ["string", "null"] },
+                      imageUrl: { type: ["string", "null"] },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Portfolio not found", "NOT_FOUND", "Not found"),
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.findPortfolio) throw new Error("Portfolio persistence unavailable");
+      const portfolio = await dependencies.findPortfolio(id);
+      context.header("Cache-Control", "no-store");
+      if (!portfolio)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.json({ data: portfolio });
+    },
+  );
+  app.get(
     "/api/admin/auth/me",
     describeRoute({
       operationId: "getAdminSession",
@@ -948,6 +1022,7 @@ const app = createApp({
   listFavourites: () => listFavourites(getDatabase()),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   createPortfolio: (input) => createPortfolio(getDatabase(), input),
+  findPortfolio: (id) => findPortfolio(getDatabase(), id),
   getPublicProfile: () => getPublicProfile(getDatabase()),
   allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
     (origin): origin is string => Boolean(origin),

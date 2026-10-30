@@ -11,6 +11,7 @@ import type { PortfolioInput } from "./admin/create-portfolio";
 import { createPortfolio } from "./admin/create-portfolio";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
+import { updatePortfolio } from "./admin/update-portfolio";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
@@ -36,6 +37,7 @@ type Dependencies = {
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
+  updatePortfolio?: (id: string, input: PortfolioInput) => ReturnType<typeof updatePortfolio>;
   getPublicProfile: () => ReturnType<typeof getPublicProfile>;
   allowedOrigins?: readonly string[];
   logRequest?: (event: RequestLog) => void;
@@ -662,6 +664,111 @@ export const createApp = (dependencies: Dependencies) => {
       return context.json({ data: entries });
     },
   );
+  app.put(
+    "/api/admin/portfolio/:id",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "updateAdminPortfolio",
+      tags: ["Admin portfolio"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["section", "name", "summary", "technologies", "displayOrder"],
+              properties: {
+                section: { type: "string", enum: ["engineering", "hobby"] },
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                summary: { type: "string", minLength: 1, maxLength: 4000 },
+                technologies: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 50,
+                  items: { type: "string", minLength: 1, maxLength: 100 },
+                },
+                repositoryUrl: { type: ["string", "null"], maxLength: 2048 },
+                demoUrl: { type: ["string", "null"], maxLength: 2048 },
+                imageUrl: { type: ["string", "null"], maxLength: 2048 },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+              additionalProperties: false,
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Updated portfolio",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: [
+                      "id",
+                      "section",
+                      "name",
+                      "summary",
+                      "technologies",
+                      "repositoryUrl",
+                      "demoUrl",
+                      "imageUrl",
+                      "displayOrder",
+                    ],
+                    properties: {
+                      id: { type: "string" },
+                      section: { type: "string", enum: ["engineering", "hobby"] },
+                      name: { type: "string" },
+                      summary: { type: "string" },
+                      technologies: { type: "array", items: { type: "string" } },
+                      repositoryUrl: { type: ["string", "null"] },
+                      demoUrl: { type: ["string", "null"] },
+                      imageUrl: { type: ["string", "null"] },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Portfolio not found", "NOT_FOUND", "Not found"),
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const input: unknown = await context.req.json().catch(() => null);
+      const result = portfolioInput.safeParse(input);
+      if (!result.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.updatePortfolio) throw new Error("Portfolio persistence unavailable");
+      const updated = await dependencies.updatePortfolio(id, result.data);
+      context.header("Cache-Control", "no-store");
+      if (!updated)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.json({ data: updated });
+    },
+  );
   app.get(
     "/api/admin/portfolio/:id",
     describeRoute({
@@ -1023,6 +1130,7 @@ const app = createApp({
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   createPortfolio: (input) => createPortfolio(getDatabase(), input),
   findPortfolio: (id) => findPortfolio(getDatabase(), id),
+  updatePortfolio: (id, input) => updatePortfolio(getDatabase(), id, input),
   getPublicProfile: () => getPublicProfile(getDatabase()),
   allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
     (origin): origin is string => Boolean(origin),

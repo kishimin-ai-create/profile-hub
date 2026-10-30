@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 import { createPortfolio } from "../admin/create-portfolio";
 import { findPortfolio } from "../admin/find-portfolio";
+import { updatePortfolio } from "../admin/update-portfolio";
 import { issueToken } from "../auth/token";
 import { createApp } from "../index";
 import { listPortfolios } from "./portfolios";
@@ -45,6 +46,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         listPortfolios: (requestedSection) => listPortfolios(drizzle(client), requestedSection),
         createPortfolio: (input) => createPortfolio(drizzle(client), input),
         findPortfolio: (id) => findPortfolio(drizzle(client), id),
+        updatePortfolio: (id, input) => updatePortfolio(drizzle(client), id, input),
         getPublicProfile: () =>
           Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
         adminSecret: "a-test-only-secret-with-at-least-32-bytes",
@@ -88,6 +90,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         body: JSON.stringify({
           section: "hobby",
           name: "Created",
+          repositoryUrl: "https://example.test/repo",
           summary: "Created via API",
           technologies: ["Bun"],
           displayOrder: 2,
@@ -106,8 +109,23 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       expect(await detail.json()).toMatchObject({
         data: { id: createdRow.id, name: "Created", section: "hobby" },
       });
+      const updated = await app.request(`/api/admin/portfolio/${createdRow.id}`, {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "hobby",
+          name: "Updated",
+          summary: "Edited",
+          technologies: ["Bun"],
+          displayOrder: 2,
+        }),
+      });
+      expect(updated.status).toBe(200);
+      expect(await updated.json()).toMatchObject({
+        data: { name: "Updated", repositoryUrl: null },
+      });
       expect(await (await app.request("/api/public/portfolio?section=hobby")).json()).toMatchObject(
-        { data: [{ name: "Hobby work" }, { name: "Created" }] },
+        { data: [{ name: "Hobby work" }, { name: "Updated" }] },
       );
     } finally {
       await client.query("ROLLBACK");

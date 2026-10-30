@@ -487,6 +487,85 @@ export const createApp = (dependencies: Dependencies) => {
     ),
   );
   app.get(
+    "/api/admin/portfolio",
+    describeRoute({
+      operationId: "listAdminPortfolios",
+      tags: ["Admin portfolio"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "section",
+          in: "query",
+          required: false,
+          schema: { type: "string", enum: ["engineering", "hobby"] },
+        },
+      ],
+      responses: {
+        200: {
+          description: "Portfolios in display order within each section",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: [
+                        "id",
+                        "section",
+                        "name",
+                        "summary",
+                        "technologies",
+                        "repositoryUrl",
+                        "demoUrl",
+                        "imageUrl",
+                        "displayOrder",
+                      ],
+                      properties: {
+                        id: { type: "string" },
+                        section: { type: "string", enum: ["engineering", "hobby"] },
+                        name: { type: "string" },
+                        summary: { type: "string" },
+                        technologies: { type: "array", items: { type: "string" } },
+                        repositoryUrl: { type: ["string", "null"] },
+                        demoUrl: { type: ["string", "null"] },
+                        imageUrl: { type: ["string", "null"] },
+                        displayOrder: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const section = context.req.query("section");
+      if (section !== undefined && section !== "engineering" && section !== "hobby")
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const entries =
+        section === undefined
+          ? (
+              await Promise.all([
+                dependencies.listPortfolios("engineering"),
+                dependencies.listPortfolios("hobby"),
+              ])
+            ).flat()
+          : await dependencies.listPortfolios(section);
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: entries });
+    },
+  );
+  app.get(
     "/api/admin/auth/me",
     describeRoute({
       operationId: "getAdminSession",

@@ -1,5 +1,5 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { createAdminRouter } from "./router";
@@ -64,7 +64,7 @@ describe("administrator route access", () => {
     });
     render(<RouterProvider router={router} />);
     const nav = await screen.findByRole("navigation", { name: "管理メニュー" });
-    expect(nav.querySelectorAll("a")).toHaveLength(4);
+    expect(within(nav).getAllByRole("link")).toHaveLength(4);
     const user = userEvent.setup();
     await user.click(screen.getByRole("link", { name: "Portfolio" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/portfolio"));

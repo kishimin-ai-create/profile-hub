@@ -2,6 +2,7 @@ import {
   createRootRouteWithContext,
   createRoute,
   createRouter,
+  Link,
   Outlet,
   redirect,
 } from "@tanstack/react-router";
@@ -67,6 +68,17 @@ const loginRoute = createRoute({
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
+  component: () => (
+    <>
+      <nav aria-label={"管理メニュー"}>
+        <Link to={"/dashboard"}>{"Dashboard"}</Link>
+        <Link to={"/portfolio"}>{"Portfolio"}</Link>
+        <Link to={"/profile"}>{"Profile"}</Link>
+        <Link to={"/hobby"}>{"Hobby"}</Link>
+      </nav>
+      <Outlet />
+    </>
+  ),
   beforeLoad: async ({ context }) => {
     if (!context.session.accessToken() && !(await context.session.restore())) {
       redirect({ to: "/login", throw: true });

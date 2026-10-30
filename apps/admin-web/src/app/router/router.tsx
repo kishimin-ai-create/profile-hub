@@ -7,9 +7,11 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { createAuthorizedRequest } from "../../api/authorized-request";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
+import { PortfolioCreate } from "../../portfolio/portfolio-create";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
 
 type RouteSession = {
@@ -109,12 +111,33 @@ const portfolioRoute = createRoute({
   component: () => {
     const context: unknown = rootRoute.useRouteContext();
     if (!isRouteContext(context)) throw new Error("Missing session context");
-    return <PortfolioPage session={context.session} />;
+    return (
+      <>
+        <Link to={"/portfolio/new"}>{"作品を作成"}</Link>
+        <PortfolioPage session={context.session} />
+      </>
+    );
   },
 });
 const portfolioNewRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/portfolio/new",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = portfolioNewRoute.useNavigate();
+    const request = createAuthorizedRequest(context.session);
+    return (
+      <PortfolioCreate
+        save={async (data) => {
+          await request({ method: "POST", url: "/api/admin/portfolio", data });
+        }}
+        onSuccess={() => {
+          void navigate({ to: "/portfolio" });
+        }}
+      />
+    );
+  },
 });
 const portfolioDetailRoute = createRoute({
   getParentRoute: () => protectedRoute,

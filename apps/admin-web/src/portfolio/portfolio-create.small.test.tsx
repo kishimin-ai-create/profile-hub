@@ -12,6 +12,7 @@ test("submits a new portfolio in its selected section", async () => {
   await user.type(screen.getByLabelText("作品名"), "My project");
   await user.type(screen.getByLabelText("概要"), "A project");
   await user.type(screen.getByLabelText("技術（カンマ区切り）"), "Bun, React");
+  await user.type(screen.getByLabelText("デモ URL"), "https://example.test/demo");
   await user.type(screen.getByLabelText("表示順"), "2");
   await user.click(screen.getByRole("button", { name: "作成" }));
   expect(save).toHaveBeenCalledWith({
@@ -19,6 +20,7 @@ test("submits a new portfolio in its selected section", async () => {
     name: "My project",
     summary: "A project",
     technologies: ["Bun", "React"],
+    demoUrl: "https://example.test/demo",
     displayOrder: 2,
   });
   expect(onSuccess).toHaveBeenCalledOnce();

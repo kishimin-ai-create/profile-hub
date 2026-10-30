@@ -9,12 +9,16 @@ type PortfolioInput = {
   summary: string;
   technologies: string[];
   displayOrder: number;
+  repositoryUrl?: string;
+  demoUrl?: string;
+  imageUrl?: string;
 };
 type Props = { save: (value: PortfolioInput) => Promise<void>; onSuccess: () => void };
 
 export const PortfolioCreate = ({ save, onSuccess }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,6 +34,19 @@ export const PortfolioCreate = ({ save, onSuccess }: Props) => {
       .map((item) => item.trim())
       .filter(Boolean);
     const order = text("displayOrder");
+    const links = ["repositoryUrl", "demoUrl", "imageUrl"];
+    const invalidUrl = links.find((key) => {
+      const value = text(key);
+      if (!value) return false;
+      try {
+        const url = new URL(value);
+        return url.protocol !== "http:" && url.protocol !== "https:";
+      } catch {
+        return true;
+      }
+    });
+    setUrlError(invalidUrl ?? null);
+    if (invalidUrl) return;
     if (
       !section.success ||
       !text("name") ||
@@ -51,6 +68,9 @@ export const PortfolioCreate = ({ save, onSuccess }: Props) => {
         summary: text("summary"),
         technologies,
         displayOrder: Number(order),
+        ...(text("repositoryUrl") ? { repositoryUrl: text("repositoryUrl") } : {}),
+        ...(text("demoUrl") ? { demoUrl: text("demoUrl") } : {}),
+        ...(text("imageUrl") ? { imageUrl: text("imageUrl") } : {}),
       });
       onSuccess();
     } catch {
@@ -87,6 +107,42 @@ export const PortfolioCreate = ({ save, onSuccess }: Props) => {
         <label htmlFor={"technologies"}>{"技術（カンマ区切り）"}</label>
 
         <input id={"technologies"} name={"technologies"} required />
+
+        <label htmlFor={"repositoryUrl"}>{"リポジトリ URL"}</label>
+
+        <input
+          id={"repositoryUrl"}
+          name={"repositoryUrl"}
+          maxLength={2048}
+          aria-invalid={urlError === "repositoryUrl"}
+          aria-describedby={urlError === "repositoryUrl" ? "url-error" : undefined}
+        />
+
+        <label htmlFor={"demoUrl"}>{"デモ URL"}</label>
+
+        <input
+          id={"demoUrl"}
+          name={"demoUrl"}
+          maxLength={2048}
+          aria-invalid={urlError === "demoUrl"}
+          aria-describedby={urlError === "demoUrl" ? "url-error" : undefined}
+        />
+
+        <label htmlFor={"imageUrl"}>{"画像 URL"}</label>
+
+        <input
+          id={"imageUrl"}
+          name={"imageUrl"}
+          maxLength={2048}
+          aria-invalid={urlError === "imageUrl"}
+          aria-describedby={urlError === "imageUrl" ? "url-error" : undefined}
+        />
+
+        {urlError && (
+          <p id={"url-error"} role={"alert"}>
+            {"http または https の URL を入力してください"}
+          </p>
+        )}
 
         <label htmlFor={"displayOrder"}>{"表示順"}</label>
 

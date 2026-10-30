@@ -8,8 +8,24 @@ test("administrator portfolio list requires authentication and filters by sectio
   const calls: string[] = [];
   const app = createApp({
     listFavourites: () => Promise.resolve([]),
-    listPortfolios: (section) => { calls.push(section); return Promise.resolve([]); },
-    getPublicProfile: () => Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    listPortfolios: (section) => {
+      calls.push(section);
+      return Promise.resolve([
+        {
+          id: section === "engineering" ? "1" : "2",
+          section,
+          name: section,
+          summary: "summary",
+          technologies: ["TypeScript"],
+          repositoryUrl: null,
+          demoUrl: null,
+          imageUrl: null,
+          displayOrder: 1,
+        },
+      ]);
+    },
+    getPublicProfile: () =>
+      Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
     adminSecret: secret,
     findAdminSessionVersion: () => Promise.resolve(3),
   });
@@ -20,11 +36,23 @@ test("administrator portfolio list requires authentication and filters by sectio
   const all = await app.request("/api/admin/portfolio", { headers });
   expect(all.status).toBe(200);
   expect(all.headers.get("cache-control")).toBe("no-store");
-  expect(await all.json()).toEqual({ data: [] });
+  expect(await all.json()).toMatchObject({
+    data: [{ section: "engineering" }, { section: "hobby" }],
+  });
   expect(calls).toEqual(["engineering", "hobby"]);
   calls.length = 0;
-  expect((await app.request("/api/admin/portfolio?section=hobby", { headers })).status).toBe(200);
+  const hobby = await app.request("/api/admin/portfolio?section=hobby", { headers });
+  expect(hobby.status).toBe(200);
+  expect(await hobby.json()).toMatchObject({ data: [{ section: "hobby" }] });
   expect(calls).toEqual(["hobby"]);
   expect((await app.request("/api/admin/portfolio?section=invalid", { headers })).status).toBe(400);
   expect(calls).toEqual(["hobby"]);
+  const docs = await app.request("/docs/json");
+  expect(await docs.json()).toMatchObject({
+    paths: {
+      "/api/admin/portfolio": {
+        get: { operationId: "listAdminPortfolios", security: [{ adminBearer: [] }] },
+      },
+    },
+  });
 });

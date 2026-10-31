@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 export type PortfolioRow = { id: string; name: string; section: "engineering" | "hobby" };
-type Props = { load: () => Promise<PortfolioRow[]>; remove?: (id: string) => Promise<void> };
+type Props = {
+  load: () => Promise<PortfolioRow[]>;
+  remove?: (id: string) => Promise<void>;
+  renderEdit?: (row: PortfolioRow) => ReactNode;
+};
 type State =
   | { status: "loading" }
   | { status: "error"; source: Props["load"] }
   | { status: "ready"; source: Props["load"]; rows: PortfolioRow[] };
 
-export const PortfolioList = ({ load, remove }: Props) => {
+export const PortfolioList = ({ load, remove, renderEdit }: Props) => {
   const [state, setState] = useState<State>({ status: "loading" });
   const [section, setSection] = useState("all");
   const [deleting, setDeleting] = useState(false);
@@ -77,6 +82,7 @@ export const PortfolioList = ({ load, remove }: Props) => {
             {rows.map((row) => (
               <li key={row.id}>
                 <span>{row.name}</span> <span>{row.section}</span>
+                {renderEdit?.(row)}
                 {remove && (
                   <button
                     type={"button"}

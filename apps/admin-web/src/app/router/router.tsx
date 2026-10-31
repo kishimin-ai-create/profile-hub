@@ -7,10 +7,12 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { z } from "zod";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
+import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
 
 type RouteSession = {
@@ -113,7 +115,12 @@ const portfolioRoute = createRoute({
     return (
       <>
         <Link to={"/portfolio/new"}>{"作品を作成"}</Link>
-        <PortfolioPage session={context.session} />
+        <PortfolioPage
+          session={context.session}
+          renderEdit={(row) => (
+            <Link to={"/portfolio/$id"} params={{ id: row.id }}>{`${row.name} を編集`}</Link>
+          )}
+        />
       </>
     );
   },
@@ -138,6 +145,23 @@ const portfolioNewRoute = createRoute({
 const portfolioDetailRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/portfolio/$id",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    const params: unknown = portfolioDetailRoute.useParams();
+    const result = z.object({ id: z.string() }).safeParse(params);
+    const navigate = portfolioDetailRoute.useNavigate();
+    if (!isRouteContext(context) || !result.success) throw new Error("Missing portfolio context");
+    return (
+      <PortfolioEditPage
+        key={result.data.id}
+        id={result.data.id}
+        session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/portfolio" });
+        }}
+      />
+    );
+  },
 });
 const profileRoute = createRoute({
   getParentRoute: () => protectedRoute,

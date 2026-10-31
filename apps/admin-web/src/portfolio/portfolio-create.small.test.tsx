@@ -71,3 +71,10 @@ test("disables editing while a portfolio is being saved", async () => {
   expect(screen.getByLabelText("作品名")).toBeDisabled();
   expect(screen.getByRole("button", { name: "作成" })).toBeDisabled();
 });
+
+test("preserves an unchanged technology containing a comma when editing", async () => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(<PortfolioCreate initial={{ section: "hobby", name: "Project", summary: "Summary", technologies: ["Research, Development"], displayOrder: 1 }} save={save} onSuccess={() => {}} />);
+  await userEvent.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({ technologies: ["Research, Development"] }));
+});

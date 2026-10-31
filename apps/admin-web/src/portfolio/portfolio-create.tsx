@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { z } from "zod";
 
 const sectionSchema = z.enum(["engineering", "hobby"]);
-type PortfolioInput = {
+export type PortfolioInput = {
   section: "engineering" | "hobby";
   name: string;
   summary: string;
@@ -17,9 +17,10 @@ type Props = {
   save: (value: PortfolioInput) => Promise<void>;
   onSuccess: () => void;
   onDirty?: () => void;
+  initial?: PortfolioInput;
 };
 
-export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
+export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -33,10 +34,14 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
       return typeof value === "string" ? value.trim() : "";
     };
     const section = sectionSchema.safeParse(text("section"));
-    const technologies = text("technologies")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const technologyText = text("technologies");
+    const technologies =
+      initial && technologyText === initial.technologies.join(", ")
+        ? initial.technologies
+        : technologyText
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
     const order = text("displayOrder");
     const links = ["repositoryUrl", "demoUrl", "imageUrl"];
     const invalidUrl = links.find((key) => {
@@ -86,7 +91,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
   };
   return (
     <>
-      <h1>{"作品を作成"}</h1>
+      <h1>{initial ? "作品を編集" : "作品を作成"}</h1>
       <form
         onChange={onDirty}
         onSubmit={(event) => {
@@ -97,7 +102,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
           <legend>{"作品情報"}</legend>
           <label htmlFor={"section"}>{"セクション"}</label>
 
-          <select id={"section"} name={"section"} defaultValue={""} required>
+          <select id={"section"} name={"section"} defaultValue={initial?.section ?? ""} required>
             <option value={""}>{"選択してください"}</option>
             <option value={"engineering"}>{"engineering"}</option>
             <option value={"hobby"}>{"hobby"}</option>
@@ -105,21 +110,39 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
 
           <label htmlFor={"name"}>{"作品名"}</label>
 
-          <input id={"name"} name={"name"} maxLength={200} required />
+          <input
+            id={"name"}
+            name={"name"}
+            defaultValue={initial?.name ?? ""}
+            maxLength={200}
+            required
+          />
 
           <label htmlFor={"summary"}>{"概要"}</label>
 
-          <textarea id={"summary"} name={"summary"} maxLength={4000} required />
+          <textarea
+            id={"summary"}
+            name={"summary"}
+            defaultValue={initial?.summary ?? ""}
+            maxLength={4000}
+            required
+          />
 
           <label htmlFor={"technologies"}>{"技術（カンマ区切り）"}</label>
 
-          <input id={"technologies"} name={"technologies"} required />
+          <input
+            id={"technologies"}
+            name={"technologies"}
+            defaultValue={initial?.technologies.join(", ") ?? ""}
+            required
+          />
 
           <label htmlFor={"repositoryUrl"}>{"リポジトリ URL"}</label>
 
           <input
             id={"repositoryUrl"}
             name={"repositoryUrl"}
+            defaultValue={initial?.repositoryUrl ?? ""}
             maxLength={2048}
             aria-invalid={urlError === "repositoryUrl"}
             aria-describedby={urlError === "repositoryUrl" ? "url-error" : undefined}
@@ -130,6 +153,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
           <input
             id={"demoUrl"}
             name={"demoUrl"}
+            defaultValue={initial?.demoUrl ?? ""}
             maxLength={2048}
             aria-invalid={urlError === "demoUrl"}
             aria-describedby={urlError === "demoUrl" ? "url-error" : undefined}
@@ -140,6 +164,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
           <input
             id={"imageUrl"}
             name={"imageUrl"}
+            defaultValue={initial?.imageUrl ?? ""}
             maxLength={2048}
             aria-invalid={urlError === "imageUrl"}
             aria-describedby={urlError === "imageUrl" ? "url-error" : undefined}
@@ -156,6 +181,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
           <input
             id={"displayOrder"}
             name={"displayOrder"}
+            defaultValue={initial?.displayOrder ?? ""}
             type={"number"}
             min={-2147483648}
             max={2147483647}
@@ -165,7 +191,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
           {error && <p role={"alert"}>{"作品を保存できませんでした"}</p>}
 
           <button type={"submit"} disabled={pending}>
-            {"作成"}
+            {initial ? "保存" : "作成"}
           </button>
         </fieldset>
       </form>

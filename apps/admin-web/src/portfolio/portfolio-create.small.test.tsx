@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
-import { SessionRenewedError } from "../api/authorized-request";
+import { sessionRenewedError } from "../api/authorized-request";
 import { PortfolioCreate } from "./portfolio-create";
 
 test("submits a new portfolio in its selected section", async () => {
@@ -95,7 +95,7 @@ test("preserves an unchanged technology containing a comma when editing", async 
 });
 
 test("keeps form input and asks for a retry after session renewal", async () => {
-  render(<PortfolioCreate save={() => Promise.reject(new SessionRenewedError())} onSuccess={() => {}} />);
+  render(<PortfolioCreate save={() => Promise.reject(sessionRenewedError)} onSuccess={() => {}} />);
   const user = userEvent.setup();
   await user.selectOptions(screen.getByLabelText("セクション"), "hobby");
   await user.type(screen.getByLabelText("作品名"), "Project");
@@ -103,6 +103,8 @@ test("keeps form input and asks for a retry after session renewal", async () => 
   await user.type(screen.getByLabelText("技術（カンマ区切り）"), "Bun");
   await user.type(screen.getByLabelText("表示順"), "1");
   await user.click(screen.getByRole("button", { name: "作成" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("認証を更新しました。もう一度保存してください");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "認証を更新しました。もう一度保存してください",
+  );
   expect(screen.getByLabelText("作品名")).toHaveValue("Project");
 });

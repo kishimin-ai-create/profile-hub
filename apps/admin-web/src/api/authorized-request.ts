@@ -2,6 +2,7 @@ import { isAxiosError } from "axios";
 import { customInstance } from "./mutator/custom-instance";
 
 export type AdminSession = { accessToken: () => string | null; restore?: () => Promise<boolean> };
+export const sessionRenewedError = new Error("Session renewed; retry the request");
 type AdminRequest = {
   url: string;
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -21,7 +22,6 @@ export const createAuthorizedRequest =
       return await customInstance<T>({ ...request, headers: { Authorization: `Bearer ${token}` } });
     } catch (error) {
       if (
-        request.method !== "GET" ||
         !isAxiosError(error) ||
         error.response?.status !== 401 ||
         session.accessToken() !== token ||
@@ -31,6 +31,7 @@ export const createAuthorizedRequest =
       if (!(await session.restore())) throw error;
       const refreshed = session.accessToken();
       if (!refreshed || refreshed === token) throw error;
+      if (request.method !== "GET") throw sessionRenewedError;
       return customInstance<T>({ ...request, headers: { Authorization: `Bearer ${refreshed}` } });
     }
   };

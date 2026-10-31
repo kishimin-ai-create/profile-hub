@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, expect, test, vi } from "vitest";
-import { createAuthorizedRequest, SessionRenewedError } from "./authorized-request";
+import { createAuthorizedRequest, sessionRenewedError } from "./authorized-request";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -81,9 +81,14 @@ test("does not replay a failed write", async () => {
     config: { headers: new AxiosHeaders() },
   };
   const send = vi.spyOn(axios, "request").mockRejectedValue(error);
-  const restore = vi.fn<() => Promise<boolean>>(() => { state.token = "fresh"; return Promise.resolve(true); });
+  const restore = vi.fn<() => Promise<boolean>>(() => {
+    state.token = "fresh";
+    return Promise.resolve(true);
+  });
   const request = createAuthorizedRequest({ accessToken: () => state.token, restore });
-  await expect(request({ method: "POST", url: "/api/admin/portfolio", data: {} })).rejects.toBeInstanceOf(SessionRenewedError);
+  await expect(request({ method: "POST", url: "/api/admin/portfolio", data: {} })).rejects.toBe(
+    sessionRenewedError,
+  );
   expect(send).toHaveBeenCalledOnce();
   expect(restore).toHaveBeenCalledOnce();
 });

@@ -32,6 +32,12 @@ bun run test
 bun run build
 ```
 
+To exercise the browser session flow in Chromium and WebKit, install the Playwright browsers and
+ensure `openssl` is available on `PATH`, then run `bun run e2e:auth`. The test starts local HTTPS
+servers with a temporary self-signed certificate and an in-memory administrator fixture. It verifies
+same-site, cross-origin browser behavior; it does not exercise PostgreSQL or cross-site cookie
+rules.
+
 The login screen, session restoration, protected routes, and dashboard logout are implemented on the
 authentication development branch. Management screens remain in progress. Browser cookie behavior
 and multiple-tab session coordination still need verification before production.

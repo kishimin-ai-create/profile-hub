@@ -26,7 +26,21 @@ export const PortfolioPage = ({ session, renderEdit }: Props) => {
       remove: async (id: string) => {
         await request({ method: "DELETE", url: `/api/admin/portfolio/${id}` });
       },
+      reorder: async (section: "engineering" | "hobby", ids: string[]) => {
+        await request({
+          method: "PATCH",
+          url: "/api/admin/portfolio/order",
+          data: { section, ids },
+        });
+      },
     };
   }, [session]);
-  return <PortfolioList load={api.load} remove={api.remove} renderEdit={renderEdit} />;
+  return (
+    <PortfolioList
+      load={api.load}
+      remove={api.remove}
+      reorder={api.reorder}
+      renderEdit={renderEdit}
+    />
+  );
 };

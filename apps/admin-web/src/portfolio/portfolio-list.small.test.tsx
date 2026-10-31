@@ -76,11 +76,45 @@ test("keeps the portfolio visible when deletion fails", async () => {
 });
 
 test("reorders entries within their own section using buttons", async () => {
-  const reorder = vi.fn<(section: "engineering" | "hobby", ids: string[]) => Promise<void>>().mockResolvedValue();
-  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "First", section: "engineering" }, { id: "2", name: "Second", section: "engineering" }, { id: "3", name: "Hobby", section: "hobby" }])} reorder={reorder} />);
+  const reorder = vi
+    .fn<(section: "engineering" | "hobby", ids: string[]) => Promise<void>>()
+    .mockResolvedValue();
+  render(
+    <PortfolioList
+      load={() =>
+        Promise.resolve([
+          { id: "1", name: "First", section: "engineering" },
+          { id: "2", name: "Second", section: "engineering" },
+          { id: "3", name: "Hobby", section: "hobby" },
+        ])
+      }
+      reorder={reorder}
+    />,
+  );
   const user = userEvent.setup();
   await user.click(await screen.findByRole("button", { name: "Second を上へ" }));
   expect(reorder).toHaveBeenCalledWith("engineering", ["2", "1"]);
   const items = within(screen.getByRole("list", { name: "作品一覧" })).getAllByRole("listitem");
-  expect(items.map((item) => within(item).getByText(/^(First|Second|Hobby)$/).textContent)).toEqual(["Second", "First", "Hobby"]);
+  expect(items[0]).toHaveTextContent("Second");
+  expect(items[1]).toHaveTextContent("First");
+  expect(items[2]).toHaveTextContent("Hobby");
+});
+
+test("retains the order when the reorder request fails", async () => {
+  render(
+    <PortfolioList
+      load={() =>
+        Promise.resolve([
+          { id: "1", name: "First", section: "hobby" },
+          { id: "2", name: "Second", section: "hobby" },
+        ])
+      }
+      reorder={() => Promise.reject(new Error("offline"))}
+    />,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: "Second を上へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("並べ替えできませんでした");
+  const items = within(screen.getByRole("list", { name: "作品一覧" })).getAllByRole("listitem");
+  expect(items[0]).toHaveTextContent("First");
+  expect(items[1]).toHaveTextContent("Second");
 });

@@ -76,9 +76,15 @@ describe("administrator route access", () => {
     expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
   });
   test("warns before leaving a new portfolio with unsaved changes", async () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValueOnce(true);
+    const confirm = vi
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
     const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/portfolio/new"] }), {
-      accessToken: () => "access", restore: () => Promise.resolve(false), login: () => Promise.resolve(false), logout: () => Promise.resolve(),
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
     });
     render(<RouterProvider router={router} />);
     const user = userEvent.setup();

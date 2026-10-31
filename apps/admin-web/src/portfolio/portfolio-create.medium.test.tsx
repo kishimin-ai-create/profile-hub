@@ -11,11 +11,13 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   server.resetHandlers();
   vi.unstubAllEnvs();
+  vi.restoreAllMocks();
 });
 afterAll(() => server.close());
 
 test("creating a portfolio sends authenticated data and returns to the list", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const confirmation = vi.spyOn(window, "confirm");
   server.use(
     http.post("https://api.example.test/api/admin/portfolio", async ({ request }) => {
       const body: unknown = await request.json();
@@ -44,4 +46,5 @@ test("creating a portfolio sends authenticated data and returns to the list", as
   await user.click(screen.getByRole("button", { name: "作成" }));
   expect(await screen.findByText("New project")).toBeInTheDocument();
   expect(router.state.location.pathname).toBe("/portfolio");
+  expect(confirmation).not.toHaveBeenCalled();
 });

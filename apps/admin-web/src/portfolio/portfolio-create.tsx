@@ -13,9 +13,13 @@ type PortfolioInput = {
   demoUrl?: string;
   imageUrl?: string;
 };
-type Props = { save: (value: PortfolioInput) => Promise<void>; onSuccess: () => void };
+type Props = {
+  save: (value: PortfolioInput) => Promise<void>;
+  onSuccess: () => void;
+  onDirty?: () => void;
+};
 
-export const PortfolioCreate = ({ save, onSuccess }: Props) => {
+export const PortfolioCreate = ({ save, onSuccess, onDirty }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -84,82 +88,86 @@ export const PortfolioCreate = ({ save, onSuccess }: Props) => {
     <>
       <h1>{"作品を作成"}</h1>
       <form
+        onChange={onDirty}
         onSubmit={(event) => {
           void submit(event);
         }}
       >
-        <label htmlFor={"section"}>{"セクション"}</label>
+        <fieldset disabled={pending}>
+          <legend>{"作品情報"}</legend>
+          <label htmlFor={"section"}>{"セクション"}</label>
 
-        <select id={"section"} name={"section"} defaultValue={""} required>
-          <option value={""}>{"選択してください"}</option>
-          <option value={"engineering"}>{"engineering"}</option>
-          <option value={"hobby"}>{"hobby"}</option>
-        </select>
+          <select id={"section"} name={"section"} defaultValue={""} required>
+            <option value={""}>{"選択してください"}</option>
+            <option value={"engineering"}>{"engineering"}</option>
+            <option value={"hobby"}>{"hobby"}</option>
+          </select>
 
-        <label htmlFor={"name"}>{"作品名"}</label>
+          <label htmlFor={"name"}>{"作品名"}</label>
 
-        <input id={"name"} name={"name"} maxLength={200} required />
+          <input id={"name"} name={"name"} maxLength={200} required />
 
-        <label htmlFor={"summary"}>{"概要"}</label>
+          <label htmlFor={"summary"}>{"概要"}</label>
 
-        <textarea id={"summary"} name={"summary"} maxLength={4000} required />
+          <textarea id={"summary"} name={"summary"} maxLength={4000} required />
 
-        <label htmlFor={"technologies"}>{"技術（カンマ区切り）"}</label>
+          <label htmlFor={"technologies"}>{"技術（カンマ区切り）"}</label>
 
-        <input id={"technologies"} name={"technologies"} required />
+          <input id={"technologies"} name={"technologies"} required />
 
-        <label htmlFor={"repositoryUrl"}>{"リポジトリ URL"}</label>
+          <label htmlFor={"repositoryUrl"}>{"リポジトリ URL"}</label>
 
-        <input
-          id={"repositoryUrl"}
-          name={"repositoryUrl"}
-          maxLength={2048}
-          aria-invalid={urlError === "repositoryUrl"}
-          aria-describedby={urlError === "repositoryUrl" ? "url-error" : undefined}
-        />
+          <input
+            id={"repositoryUrl"}
+            name={"repositoryUrl"}
+            maxLength={2048}
+            aria-invalid={urlError === "repositoryUrl"}
+            aria-describedby={urlError === "repositoryUrl" ? "url-error" : undefined}
+          />
 
-        <label htmlFor={"demoUrl"}>{"デモ URL"}</label>
+          <label htmlFor={"demoUrl"}>{"デモ URL"}</label>
 
-        <input
-          id={"demoUrl"}
-          name={"demoUrl"}
-          maxLength={2048}
-          aria-invalid={urlError === "demoUrl"}
-          aria-describedby={urlError === "demoUrl" ? "url-error" : undefined}
-        />
+          <input
+            id={"demoUrl"}
+            name={"demoUrl"}
+            maxLength={2048}
+            aria-invalid={urlError === "demoUrl"}
+            aria-describedby={urlError === "demoUrl" ? "url-error" : undefined}
+          />
 
-        <label htmlFor={"imageUrl"}>{"画像 URL"}</label>
+          <label htmlFor={"imageUrl"}>{"画像 URL"}</label>
 
-        <input
-          id={"imageUrl"}
-          name={"imageUrl"}
-          maxLength={2048}
-          aria-invalid={urlError === "imageUrl"}
-          aria-describedby={urlError === "imageUrl" ? "url-error" : undefined}
-        />
+          <input
+            id={"imageUrl"}
+            name={"imageUrl"}
+            maxLength={2048}
+            aria-invalid={urlError === "imageUrl"}
+            aria-describedby={urlError === "imageUrl" ? "url-error" : undefined}
+          />
 
-        {urlError && (
-          <p id={"url-error"} role={"alert"}>
-            {"http または https の URL を入力してください"}
-          </p>
-        )}
+          {urlError && (
+            <p id={"url-error"} role={"alert"}>
+              {"http または https の URL を入力してください"}
+            </p>
+          )}
 
-        <label htmlFor={"displayOrder"}>{"表示順"}</label>
+          <label htmlFor={"displayOrder"}>{"表示順"}</label>
 
-        <input
-          id={"displayOrder"}
-          name={"displayOrder"}
-          type={"number"}
-          min={-2147483648}
-          max={2147483647}
-          required
-        />
+          <input
+            id={"displayOrder"}
+            name={"displayOrder"}
+            type={"number"}
+            min={-2147483648}
+            max={2147483647}
+            required
+          />
 
-        {error && <p role={"alert"}>{"作品を保存できませんでした"}</p>}
+          {error && <p role={"alert"}>{"作品を保存できませんでした"}</p>}
 
-        <button type={"submit"} disabled={pending}>
-          {"作成"}
-        </button>
+          <button type={"submit"} disabled={pending}>
+            {"作成"}
+          </button>
+        </fieldset>
       </form>
     </>
   );

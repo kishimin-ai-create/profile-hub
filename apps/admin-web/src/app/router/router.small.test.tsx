@@ -1,7 +1,7 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
@@ -74,5 +74,26 @@ describe("administrator route access", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/hobby"));
     await user.click(screen.getByRole("link", { name: "Dashboard" }));
     expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+  });
+  test("warns before leaving a new portfolio with unsaved changes", async () => {
+    const confirm = vi
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/portfolio/new"] }), {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("作品名"), "Draft");
+    await user.click(screen.getByRole("link", { name: "Dashboard" }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+    expect(router.state.location.pathname).toBe("/portfolio/new");
+    await user.click(screen.getByRole("link", { name: "Dashboard" }));
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+    confirm.mockRestore();
   });
 });

@@ -7,11 +7,10 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
-import { createAuthorizedRequest } from "../../api/authorized-request";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
-import { PortfolioCreate } from "../../portfolio/portfolio-create";
+import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
 
 type RouteSession = {
@@ -126,12 +125,9 @@ const portfolioNewRoute = createRoute({
     const context: unknown = rootRoute.useRouteContext();
     if (!isRouteContext(context)) throw new Error("Missing session context");
     const navigate = portfolioNewRoute.useNavigate();
-    const request = createAuthorizedRequest(context.session);
     return (
-      <PortfolioCreate
-        save={async (data) => {
-          await request({ method: "POST", url: "/api/admin/portfolio", data });
-        }}
+      <PortfolioCreatePage
+        session={context.session}
         onSuccess={() => {
           void navigate({ to: "/portfolio" });
         }}

@@ -57,3 +57,17 @@ test("rejects unsafe portfolio URLs with a field error", async () => {
   expect(screen.getByText("http または https の URL を入力してください")).toBeInTheDocument();
   expect(save).not.toHaveBeenCalled();
 });
+
+test("disables editing while a portfolio is being saved", async () => {
+  const save = vi.fn<(value: unknown) => Promise<void>>(() => new Promise(() => {}));
+  render(<PortfolioCreate save={save} onSuccess={() => {}} />);
+  const user = userEvent.setup();
+  await user.selectOptions(screen.getByLabelText("セクション"), "hobby");
+  await user.type(screen.getByLabelText("作品名"), "Project");
+  await user.type(screen.getByLabelText("概要"), "Summary");
+  await user.type(screen.getByLabelText("技術（カンマ区切り）"), "Bun");
+  await user.type(screen.getByLabelText("表示順"), "1");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(screen.getByLabelText("作品名")).toBeDisabled();
+  expect(screen.getByRole("button", { name: "作成" })).toBeDisabled();
+});

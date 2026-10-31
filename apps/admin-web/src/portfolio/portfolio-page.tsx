@@ -11,12 +11,17 @@ const portfolioResponse = z.object({
 type Props = { session: { accessToken: () => string | null } };
 
 export const PortfolioPage = ({ session }: Props) => {
-  const load = useMemo(() => {
+  const api = useMemo(() => {
     const request = createAuthorizedRequest(session);
-    return async () =>
-      portfolioResponse.parse(
-        await request<unknown>({ method: "GET", url: "/api/admin/portfolio" }),
-      ).data;
+    return {
+      load: async () =>
+        portfolioResponse.parse(
+          await request<unknown>({ method: "GET", url: "/api/admin/portfolio" }),
+        ).data,
+      remove: async (id: string) => {
+        await request({ method: "DELETE", url: `/api/admin/portfolio/${id}` });
+      },
+    };
   }, [session]);
-  return <PortfolioList load={load} />;
+  return <PortfolioList load={api.load} remove={api.remove} />;
 };

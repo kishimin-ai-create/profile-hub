@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
+import { SessionRenewedError } from "../api/authorized-request";
 import { PortfolioCreate } from "./portfolio-create";
 
 test("submits a new portfolio in its selected section", async () => {
@@ -74,7 +75,34 @@ test("disables editing while a portfolio is being saved", async () => {
 
 test("preserves an unchanged technology containing a comma when editing", async () => {
   const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
-  render(<PortfolioCreate initial={{ section: "hobby", name: "Project", summary: "Summary", technologies: ["Research, Development"], displayOrder: 1 }} save={save} onSuccess={() => {}} />);
+  render(
+    <PortfolioCreate
+      initial={{
+        section: "hobby",
+        name: "Project",
+        summary: "Summary",
+        technologies: ["Research, Development"],
+        displayOrder: 1,
+      }}
+      save={save}
+      onSuccess={() => {}}
+    />,
+  );
   await userEvent.click(screen.getByRole("button", { name: "保存" }));
-  expect(save).toHaveBeenCalledWith(expect.objectContaining({ technologies: ["Research, Development"] }));
+  expect(save).toHaveBeenCalledWith(
+    expect.objectContaining({ technologies: ["Research, Development"] }),
+  );
+});
+
+test("keeps form input and asks for a retry after session renewal", async () => {
+  render(<PortfolioCreate save={() => Promise.reject(new SessionRenewedError())} onSuccess={() => {}} />);
+  const user = userEvent.setup();
+  await user.selectOptions(screen.getByLabelText("セクション"), "hobby");
+  await user.type(screen.getByLabelText("作品名"), "Project");
+  await user.type(screen.getByLabelText("概要"), "Summary");
+  await user.type(screen.getByLabelText("技術（カンマ区切り）"), "Bun");
+  await user.type(screen.getByLabelText("表示順"), "1");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("認証を更新しました。もう一度保存してください");
+  expect(screen.getByLabelText("作品名")).toHaveValue("Project");
 });

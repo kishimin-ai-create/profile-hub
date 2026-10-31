@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, expect, test, vi } from "vitest";
-import { createAuthorizedRequest } from "./authorized-request";
+import { createAuthorizedRequest, SessionRenewedError } from "./authorized-request";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -71,6 +71,7 @@ test("refreshes an expired session once before retrying a read", async () => {
 });
 
 test("does not replay a failed write", async () => {
+  const state = { token: "expired" };
   const error = new AxiosError("unauthorized");
   error.response = {
     data: null,
@@ -80,13 +81,11 @@ test("does not replay a failed write", async () => {
     config: { headers: new AxiosHeaders() },
   };
   const send = vi.spyOn(axios, "request").mockRejectedValue(error);
-  const restore = vi.fn<() => Promise<boolean>>().mockResolvedValue(true);
-  const request = createAuthorizedRequest({ accessToken: () => "expired", restore });
-  await expect(request({ method: "POST", url: "/api/admin/portfolio", data: {} })).rejects.toThrow(
-    "unauthorized",
-  );
+  const restore = vi.fn<() => Promise<boolean>>(() => { state.token = "fresh"; return Promise.resolve(true); });
+  const request = createAuthorizedRequest({ accessToken: () => state.token, restore });
+  await expect(request({ method: "POST", url: "/api/admin/portfolio", data: {} })).rejects.toBeInstanceOf(SessionRenewedError);
   expect(send).toHaveBeenCalledOnce();
-  expect(restore).not.toHaveBeenCalled();
+  expect(restore).toHaveBeenCalledOnce();
 });
 
 test("does not refresh after the active session changes during a request", async () => {

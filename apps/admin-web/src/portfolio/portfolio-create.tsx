@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { z } from "zod";
+import { sessionRenewedError } from "../api/authorized-request";
 
 const sectionSchema = z.enum(["engineering", "hobby"]);
 export type PortfolioInput = {
@@ -22,7 +23,7 @@ type Props = {
 
 export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<"failed" | "renewed" | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -64,12 +65,12 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
       !order ||
       !Number.isInteger(Number(order))
     ) {
-      setError(true);
+      setError("failed");
       return;
     }
     submitting.current = true;
     setPending(true);
-    setError(false);
+    setError(null);
     try {
       await save({
         section: section.data,
@@ -82,8 +83,8 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
         ...(text("imageUrl") ? { imageUrl: text("imageUrl") } : {}),
       });
       onSuccess();
-    } catch {
-      setError(true);
+    } catch (failure) {
+      setError(failure === sessionRenewedError ? "renewed" : "failed");
     } finally {
       submitting.current = false;
       setPending(false);
@@ -188,7 +189,13 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             required
           />
 
-          {error && <p role={"alert"}>{"作品を保存できませんでした"}</p>}
+          {error && (
+            <p role={"alert"}>
+              {error === "renewed"
+                ? "認証を更新しました。もう一度保存してください"
+                : "作品を保存できませんでした"}
+            </p>
+          )}
 
           <button type={"submit"} disabled={pending}>
             {initial ? "保存" : "作成"}

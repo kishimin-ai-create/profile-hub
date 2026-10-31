@@ -2,6 +2,7 @@ import { useBlocker } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
+import type { AdminSession } from "../api/authorized-request";
 import { PortfolioCreate } from "./portfolio-create";
 
 const detailSchema = z.object({
@@ -19,7 +20,7 @@ const detailSchema = z.object({
 });
 type Detail = z.infer<typeof detailSchema>["data"];
 type State = { status: "loading" } | { status: "error" } | { status: "ready"; data: Detail };
-type Props = { id: string; session: { accessToken: () => string | null }; onSuccess: () => void };
+type Props = { id: string; session: AdminSession; onSuccess: () => void };
 
 export const PortfolioEditPage = ({ id, session, onSuccess }: Props) => {
   const [state, setState] = useState<State>({ status: "loading" });

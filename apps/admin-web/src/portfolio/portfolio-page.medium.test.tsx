@@ -57,6 +57,25 @@ test("reordering submits a complete section to the authenticated API", async () 
     expect(items[1]).toHaveTextContent("First");
   });
 });
+
+test("an expired read is restored before the portfolio list appears", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const state = { token: "expired" };
+  const restore = vi.fn<() => Promise<boolean>>(() => {
+    state.token = "fresh";
+    return Promise.resolve(true);
+  });
+  server.use(
+    http.get("https://api.example.test/api/admin/portfolio", ({ request }) =>
+      request.headers.get("Authorization") === "Bearer fresh"
+        ? HttpResponse.json({ data: [{ id: "1", name: "Project", section: "hobby" }] })
+        : new HttpResponse(null, { status: 401 }),
+    ),
+  );
+  render(<PortfolioPage session={{ accessToken: () => state.token, restore }} />);
+  expect(await screen.findByText("Project")).toBeInTheDocument();
+  expect(restore).toHaveBeenCalledOnce();
+});
 afterAll(() => server.close());
 
 test("the portfolio page displays authenticated API results", async () => {

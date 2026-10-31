@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
+import type { AdminSession } from "../api/authorized-request";
 import { PortfolioList } from "./portfolio-list";
 import type { PortfolioRow } from "./portfolio-list";
 
@@ -11,7 +12,7 @@ const portfolioResponse = z.object({
   ),
 });
 type Props = {
-  session: { accessToken: () => string | null };
+  session: AdminSession;
   renderEdit?: (row: PortfolioRow) => ReactNode;
 };
 

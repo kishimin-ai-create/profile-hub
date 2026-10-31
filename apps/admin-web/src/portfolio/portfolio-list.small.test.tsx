@@ -42,8 +42,16 @@ test("does not show previous results after the data source changes", async () =>
 
 test("asks for confirmation before deleting a portfolio", async () => {
   const remove = vi.fn<(id: string) => Promise<void>>().mockResolvedValue();
-  const confirmation = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValueOnce(true);
-  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])} remove={remove} />);
+  const confirmation = vi
+    .spyOn(window, "confirm")
+    .mockReturnValueOnce(false)
+    .mockReturnValueOnce(true);
+  render(
+    <PortfolioList
+      load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])}
+      remove={remove}
+    />,
+  );
   const user = userEvent.setup();
   await user.click(await screen.findByRole("button", { name: "Project を削除" }));
   expect(remove).not.toHaveBeenCalled();
@@ -55,7 +63,12 @@ test("asks for confirmation before deleting a portfolio", async () => {
 
 test("keeps the portfolio visible when deletion fails", async () => {
   const confirmation = vi.spyOn(window, "confirm").mockReturnValue(true);
-  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])} remove={() => Promise.reject(new Error("offline"))} />);
+  render(
+    <PortfolioList
+      load={() => Promise.resolve([{ id: "1", name: "Project", section: "hobby" }])}
+      remove={() => Promise.reject(new Error("offline"))}
+    />,
+  );
   await userEvent.click(await screen.findByRole("button", { name: "Project を削除" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("作品を削除できませんでした");
   expect(screen.getByText("Project")).toBeInTheDocument();

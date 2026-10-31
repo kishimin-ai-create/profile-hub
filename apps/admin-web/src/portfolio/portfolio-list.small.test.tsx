@@ -74,3 +74,13 @@ test("keeps the portfolio visible when deletion fails", async () => {
   expect(screen.getByText("Project")).toBeInTheDocument();
   confirmation.mockRestore();
 });
+
+test("reorders entries within their own section using buttons", async () => {
+  const reorder = vi.fn<(section: "engineering" | "hobby", ids: string[]) => Promise<void>>().mockResolvedValue();
+  render(<PortfolioList load={() => Promise.resolve([{ id: "1", name: "First", section: "engineering" }, { id: "2", name: "Second", section: "engineering" }, { id: "3", name: "Hobby", section: "hobby" }])} reorder={reorder} />);
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "Second を上へ" }));
+  expect(reorder).toHaveBeenCalledWith("engineering", ["2", "1"]);
+  const items = within(screen.getByRole("list", { name: "作品一覧" })).getAllByRole("listitem");
+  expect(items.map((item) => within(item).getByText(/^(First|Second|Hobby)$/).textContent)).toEqual(["Second", "First", "Hobby"]);
+});

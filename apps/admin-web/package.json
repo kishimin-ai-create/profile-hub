@@ -22,6 +22,7 @@
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
     "e2e": "playwright test",
+    "e2e:auth": "playwright test --config playwright.auth.config.ts",
     "e2e:ui": "playwright test --ui",
     "vrt:capture": "storycap --serverCmd \"bunx serve storybook-static -p 6007\" http://localhost:6007",
     "vrt": "reg-suit run",

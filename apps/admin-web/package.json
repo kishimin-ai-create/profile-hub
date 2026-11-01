@@ -22,6 +22,7 @@
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
     "e2e": "playwright test",
+    "e2e:auth": "playwright test --config playwright.auth.config.ts",
     "e2e:ui": "playwright test --ui",
     "vrt:capture": "storycap --serverCmd \"bunx serve storybook-static -p 6007\" http://localhost:6007",
     "vrt": "reg-suit run",
@@ -32,9 +33,11 @@
     "@profile-hub/utils": "workspace:*",
     "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-query-devtools": "^5.100.14",
+    "@tanstack/react-router": "^1.170.46",
     "axios": "^1.16.1",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@markuplint/jsx-parser": "^4.18.3",

@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "session_version" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_session_version_nonnegative" CHECK ("users"."session_version" >= 0);

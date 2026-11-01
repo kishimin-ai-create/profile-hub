@@ -3,9 +3,8 @@ import { describe, expect, test } from "vitest";
 import { App } from "./App";
 
 describe("App", () => {
-  test("names every section the administrator console is expected to serve", () => {
+  test("opens the login page from the application entry point", async () => {
     render(<App />);
-
-    expect(screen.getByText(/engineering, hobby/)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "ログイン" })).toBeInTheDocument();
   });
 });

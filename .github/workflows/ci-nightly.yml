@@ -20,6 +20,23 @@ jobs:
     name: All tests (${{ matrix.workspace }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: ${{ matrix.workspace == 'api' && 'postgres:17' || '' }}
+        env:
+          POSTGRES_DB: profile_hub_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d profile_hub_test" --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      TEST_DATABASE_URL:
+        ${{ matrix.workspace == 'api' &&
+        'postgresql://postgres:postgres@127.0.0.1:5432/profile_hub_test' || '' }}
+      REQUIRE_TEST_DATABASE: ${{ matrix.workspace == 'api' && '1' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +62,13 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Apply API migrations
+        if: matrix.workspace == 'api'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/profile_hub_test
+        run: bun run db:migrate
+        working-directory: apps/api
 
       - name: Lint
         run: bun run lint
@@ -134,10 +158,13 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          if [ -d e2e ]; then
+          if [ "${{ matrix.workspace }}" = "admin-web" ]; then
+            bun run e2e:auth
+          fi
+          if [ -d e2e ] && find e2e -type f \( -name '*.spec.*' -o -name '*.test.*' \) ! -name 'auth-session.large.test.ts' -print -quit | grep -q .; then
             bun run e2e
           else
-            echo "No e2e directory yet — skipping"
+            echo "No additional E2E tests — skipping"
           fi
         working-directory: apps/${{ matrix.workspace }}
 

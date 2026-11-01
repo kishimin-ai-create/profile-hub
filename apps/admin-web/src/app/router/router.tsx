@@ -19,6 +19,7 @@ import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
 import { ProfileEditPage } from "../../profile/profile-edit-page";
 import { ProfilePage } from "../../profile/profile-page";
+import { SkillCreatePage } from "../../profile/skill-create-page";
 import { SkillList } from "../../profile/skill-list";
 
 type RouteSession = {
@@ -179,6 +180,7 @@ const profileRoute = createRoute({
       <>
         <Link to={"/profile/edit"}>{"プロフィールを編集"}</Link>
         <ProfilePage session={context.session} />
+        <Link to={"/profile/skills/new"}>{"スキルを作成"}</Link>
         <SkillList session={context.session} />
       </>
     );
@@ -193,6 +195,23 @@ const profileEditRoute = createRoute({
     const navigate = profileEditRoute.useNavigate();
     return (
       <ProfileEditPage
+        session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/profile" });
+        }}
+      />
+    );
+  },
+});
+const skillNewRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile/skills/new",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = skillNewRoute.useNavigate();
+    return (
+      <SkillCreatePage
         session={context.session}
         onSuccess={() => {
           void navigate({ to: "/profile" });
@@ -268,6 +287,7 @@ const routeTree = rootRoute.addChildren([
     portfolioDetailRoute,
     profileRoute,
     profileEditRoute,
+    skillNewRoute,
     hobbyRoute,
     hobbyNewRoute,
     hobbyEditRoute,

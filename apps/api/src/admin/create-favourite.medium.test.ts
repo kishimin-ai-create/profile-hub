@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 import { createFavourite } from "./create-favourite";
+import { deleteFavourite } from "./delete-favourite";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 
@@ -34,6 +35,11 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           display_order: input.displayOrder,
         },
       ]);
+      expect(await deleteFavourite(drizzle(client), created.id)).toBe(true);
+      expect(await deleteFavourite(drizzle(client), created.id)).toBe(false);
+      expect(
+        (await client.query("SELECT id FROM favourites WHERE id = $1", [created.id])).rows,
+      ).toEqual([]);
     } finally {
       await client.query("ROLLBACK");
       await client.end();

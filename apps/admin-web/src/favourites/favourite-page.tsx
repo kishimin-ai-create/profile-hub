@@ -17,6 +17,7 @@ export const FavouritePage = ({ session }: { session: AdminSession }) => {
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [reorderError, setReorderError] = useState(false);
   const pending = useRef(false);
   useEffect(() => {
     const lifecycle = { active: true };
@@ -57,6 +58,39 @@ export const FavouritePage = ({ session }: { session: AdminSession }) => {
       setBusy(false);
     }
   };
+  const move = async (row: Favourite, direction: -1 | 1) => {
+    if (pending.current || state.status !== "ready" || state.source !== session) return;
+    const from = state.rows.findIndex((entry) => entry.id === row.id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= state.rows.length) return;
+    const rows = state.rows.map((entry, index) =>
+      index === from
+        ? (state.rows[to] ?? entry)
+        : index === to
+          ? (state.rows[from] ?? entry)
+          : entry,
+    );
+    pending.current = true;
+    setBusy(true);
+    setReorderError(false);
+    try {
+      await request({
+        method: "PATCH",
+        url: "/api/admin/favourites/order",
+        data: { ids: rows.map((entry) => entry.id) },
+      });
+      setState((previous) =>
+        previous.status === "ready" && previous.source === session
+          ? { ...previous, rows }
+          : previous,
+      );
+    } catch {
+      setReorderError(true);
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  };
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"読み込み中"}</p>;
   if (state.status === "error") return <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>;
@@ -64,14 +98,29 @@ export const FavouritePage = ({ session }: { session: AdminSession }) => {
     <section>
       <h1>{"お気に入り"}</h1>
       {deleteError && <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>}
+      {reorderError && <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>}
       {state.rows.length === 0 ? (
         <p>{"お気に入りがありません"}</p>
       ) : (
         <ul aria-label={"お気に入り一覧"}>
-          {state.rows.map((row) => (
+          {state.rows.map((row, index) => (
             <li key={row.id}>
               <h2>{row.name}</h2>
               <p>{row.description}</p>
+              <button
+                type={"button"}
+                disabled={busy || index === 0}
+                onClick={() => {
+                  void move(row, -1);
+                }}
+              >{`${row.name} を上へ`}</button>
+              <button
+                type={"button"}
+                disabled={busy || index === state.rows.length - 1}
+                onClick={() => {
+                  void move(row, 1);
+                }}
+              >{`${row.name} を下へ`}</button>
               <button
                 type={"button"}
                 disabled={busy}

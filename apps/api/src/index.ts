@@ -593,6 +593,51 @@ export const createApp = (dependencies: Dependencies) => {
     },
   );
   app.get(
+    "/api/admin/favourites",
+    describeRoute({
+      operationId: "listAdminFavourites",
+      tags: ["Admin favourites"],
+      security: [{ adminBearer: [] }],
+      responses: {
+        200: {
+          description: "Favourites in display order",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: ["id", "name", "description", "link", "displayOrder"],
+                      properties: {
+                        id: { type: "string" },
+                        name: { type: "string" },
+                        description: { type: "string" },
+                        link: { type: "string" },
+                        displayOrder: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const data = await dependencies.listFavourites();
+      context.header("Cache-Control", "no-store");
+      return context.json({ data });
+    },
+  );
+  app.get(
     "/api/admin/portfolio",
     describeRoute({
       operationId: "listAdminPortfolios",

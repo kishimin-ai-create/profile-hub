@@ -19,6 +19,7 @@ import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
 import { ProfileEditPage } from "../../profile/profile-edit-page";
 import { ProfilePage } from "../../profile/profile-page";
+import { SkillList } from "../../profile/skill-list";
 
 type RouteSession = {
   accessToken: () => string | null;
@@ -178,6 +179,7 @@ const profileRoute = createRoute({
       <>
         <Link to={"/profile/edit"}>{"プロフィールを編集"}</Link>
         <ProfilePage session={context.session} />
+        <SkillList session={context.session} />
       </>
     );
   },

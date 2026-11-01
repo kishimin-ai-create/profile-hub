@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, test, vi } from "vitest";
-import { HomeProfile } from "./HomeProfile";
+import { PublicProfile } from "./PublicProfile";
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
@@ -18,7 +18,7 @@ const showProfile = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <HomeProfile />
+      <PublicProfile />
     </QueryClientProvider>,
   );
 

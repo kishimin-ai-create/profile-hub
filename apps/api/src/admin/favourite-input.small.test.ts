@@ -11,6 +11,7 @@ const valid = {
 
 test("accepts a favourite with a bounded HTTP link", () => {
   expect(favouriteInput.safeParse(valid).success).toBe(true);
+  expect(favouriteInput.safeParse({ ...valid, link: "HTTPS://example.com" }).success).toBe(true);
 });
 
 test("rejects unsafe links, missing text and values outside storage bounds", () => {
@@ -22,6 +23,7 @@ test("rejects unsafe links, missing text and values outside storage bounds", () 
     { ...valid, link: "javascript:alert(1)" },
     { ...valid, link: "mailto:test@example.com" },
     { ...valid, link: "not a url" },
+    { ...valid, link: "https:example.com" },
     { ...valid, displayOrder: 2147483648 },
     { ...valid, extra: true },
   ])

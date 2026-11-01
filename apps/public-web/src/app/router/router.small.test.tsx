@@ -5,6 +5,9 @@ import { describe, expect, test, vi } from "vitest";
 import { createAppRouter } from "./router";
 
 vi.mock("../../features/home/HomeProfile", () => ({ HomeProfile: () => null }));
+vi.mock("../../features/hobby/HobbyContact", () => ({
+  HobbyContact: () => <h1>{"Hobby Contact"}</h1>,
+}));
 
 describe("public routes", () => {
   test.each([

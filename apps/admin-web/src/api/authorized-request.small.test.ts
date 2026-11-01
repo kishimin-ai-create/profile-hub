@@ -4,6 +4,32 @@ import { createAuthorizedRequest, sessionRenewedError } from "./authorized-reque
 
 afterEach(() => vi.restoreAllMocks());
 
+test("allows only favourite API paths while keeping credentials on the configured origin", async () => {
+  const send = vi
+    .spyOn(axios, "request")
+    .mockResolvedValue({
+      data: { data: [] },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    });
+  const client = createAuthorizedRequest({ accessToken: () => "access" });
+  for (const url of [
+    "/api/admin/favourites",
+    "/api/admin/favourites/12",
+    "/api/admin/favourites/order",
+  ])
+    await expect(client({ method: "GET", url })).resolves.toEqual({ data: [] });
+  for (const url of [
+    "https://attacker.example/api/admin/favourites",
+    "/api/admin/favourites/../auth",
+    "/api/admin/favourites/0",
+  ])
+    await expect(client({ method: "GET", url })).rejects.toThrow("Invalid administrator request");
+  expect(send).toHaveBeenCalledTimes(3);
+});
+
 test("uses the current in-memory credential only for an admin portfolio request", async () => {
   const request = vi.spyOn(axios, "request").mockResolvedValue({
     data: { data: [] },

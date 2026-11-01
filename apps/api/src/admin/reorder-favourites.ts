@@ -15,10 +15,10 @@ export async function reorderFavourites(database: NodePgDatabase, ids: string[])
         ids.some((id) => !existing.has(id))
       )
         return false;
-      for (const [position, id] of ids.entries()) {
+      for (const id of ids) {
         await transaction
           .update(favourites)
-          .set({ displayOrder: position, updatedAt: new Date() })
+          .set({ displayOrder: ids.indexOf(id), updatedAt: new Date() })
           .where(eq(favourites.id, BigInt(id)));
       }
       return true;

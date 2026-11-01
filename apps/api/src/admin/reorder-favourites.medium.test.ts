@@ -17,8 +17,8 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         "INSERT INTO favourites (name, description, link, display_order) VALUES ('A', 'A', 'https://example.com/a', 0), ('B', 'B', 'https://example.com/b', 1) RETURNING id::text",
       );
       ids.push(...result.rows.map((row) => row.id));
-      const first = ids.at(0);
-      const second = ids.at(1);
+      const first = ids.find((_id, index) => index === 0);
+      const second = ids.find((_id, index) => index === 1);
       if (!first || !second) throw new Error("Expected test rows");
       expect(await reorderFavourites(drizzle(client), [first])).toBe(false);
       expect(await reorderFavourites(drizzle(client), [second, first])).toBe(true);

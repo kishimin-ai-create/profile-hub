@@ -51,10 +51,24 @@ test("does not display a hobby project on engineering", async () => {
 });
 
 test("shows a project image and hides it when it cannot load", async () => {
-  server.use(http.get("*/api/public/portfolio", () => HttpResponse.json({ data: [{ ...project, imageUrl: "https://example.com/image.png" }] })));
+  server.use(
+    http.get("*/api/public/portfolio", () =>
+      HttpResponse.json({ data: [{ ...project, imageUrl: "https://example.com/image.png" }] }),
+    ),
+  );
   show();
   const image = await screen.findByRole("img", { name: "Work の画像" });
   expect(image).toHaveAttribute("src", "https://example.com/image.png");
   fireEvent.error(image);
   expect(screen.queryByRole("img", { name: "Work の画像" })).not.toBeInTheDocument();
+});
+
+test("rejects an unsafe image URL", async () => {
+  server.use(
+    http.get("*/api/public/portfolio", () =>
+      HttpResponse.json({ data: [{ ...project, imageUrl: "javascript:alert(1)" }] }),
+    ),
+  );
+  show();
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
 });

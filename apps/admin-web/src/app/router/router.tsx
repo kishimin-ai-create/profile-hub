@@ -11,6 +11,7 @@ import { z } from "zod";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
+import { FavouriteCreatePage } from "../../favourites/favourite-create-page";
 import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
@@ -174,7 +175,29 @@ const hobbyRoute = createRoute({
   component: () => {
     const context: unknown = rootRoute.useRouteContext();
     if (!isRouteContext(context)) throw new Error("Missing session context");
-    return <FavouritePage session={context.session} />;
+    return (
+      <>
+        <Link to={"/hobby/new"}>{"お気に入りを作成"}</Link>
+        <FavouritePage session={context.session} />
+      </>
+    );
+  },
+});
+const hobbyNewRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/hobby/new",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = hobbyNewRoute.useNavigate();
+    return (
+      <FavouriteCreatePage
+        session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/hobby" });
+        }}
+      />
+    );
   },
 });
 const routeTree = rootRoute.addChildren([
@@ -187,6 +210,7 @@ const routeTree = rootRoute.addChildren([
     portfolioDetailRoute,
     profileRoute,
     hobbyRoute,
+    hobbyNewRoute,
   ]),
 ]);
 

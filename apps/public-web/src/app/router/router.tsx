@@ -46,6 +46,7 @@ const engineeringRoute = createRoute({
       <PublicProfile />
       <EngineeringSkills />
       <SectionProjects section={"engineering"} />
+      <Link to={"/engineering/contact"}>{"仕事について連絡する"}</Link>
     </>
   ),
 });

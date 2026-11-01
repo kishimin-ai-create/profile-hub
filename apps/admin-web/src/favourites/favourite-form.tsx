@@ -12,9 +12,10 @@ type Props = {
   save: (data: FavouriteInput) => Promise<void>;
   onSuccess: () => void;
   onDirty?: () => void;
+  initial?: FavouriteInput;
 };
 
-export const FavouriteForm = ({ save, onSuccess, onDirty }: Props) => {
+export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submitting = useRef(false);
@@ -79,15 +80,20 @@ export const FavouriteForm = ({ save, onSuccess, onDirty }: Props) => {
       <fieldset disabled={pending}>
         <label>
           {"名前"}
-          <input name={"name"} required maxLength={200} />
+          <input name={"name"} required maxLength={200} defaultValue={initial?.name} />
         </label>
         <label>
           {"説明"}
-          <textarea name={"description"} required maxLength={4000} />
+          <textarea
+            name={"description"}
+            required
+            maxLength={4000}
+            defaultValue={initial?.description}
+          />
         </label>
         <label>
           {"URL"}
-          <input name={"link"} required maxLength={2048} />
+          <input name={"link"} required maxLength={2048} defaultValue={initial?.link} />
         </label>
         <label>
           {"表示順"}
@@ -97,9 +103,10 @@ export const FavouriteForm = ({ save, onSuccess, onDirty }: Props) => {
             required
             min={-2147483648}
             max={2147483647}
+            defaultValue={initial?.displayOrder}
           />
         </label>
-        <button type={"submit"}>{"作成"}</button>
+        <button type={"submit"}>{initial ? "保存" : "作成"}</button>
       </fieldset>
       {error && <p role={"alert"}>{error}</p>}
     </form>

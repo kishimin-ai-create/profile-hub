@@ -11,7 +11,16 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: [
-    { command: "bun run e2e/public-api-fixture.mjs", url: "http://localhost:43123/api/public/profile", reuseExistingServer: false },
-    { command: "bun run dev -- --port 43122 --strictPort", url: "http://localhost:43122", reuseExistingServer: false, env: { VITE_API_URL: "http://localhost:43123" } },
+    {
+      command: "bun run e2e/public-api-fixture.mjs",
+      url: "http://localhost:43123/api/public/profile",
+      reuseExistingServer: false,
+    },
+    {
+      command: "bun run dev -- --port 43122 --strictPort",
+      url: "http://localhost:43122",
+      reuseExistingServer: false,
+      env: { VITE_API_URL: "http://localhost:43123" },
+    },
   ],
 });

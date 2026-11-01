@@ -161,7 +161,10 @@ jobs:
           if [ "${{ matrix.workspace }}" = "admin-web" ]; then
             bun run e2e:auth
           fi
-          if [ -d e2e ] && find e2e -type f \( -name '*.spec.*' -o -name '*.test.*' \) ! -name 'auth-session.large.test.ts' -print -quit | grep -q .; then
+          if [ "${{ matrix.workspace }}" = "public-web" ]; then
+            bun run e2e:public-api
+          fi
+          if [ -d e2e ] && find e2e -type f \( -name '*.spec.*' -o -name '*.test.*' \) ! -name 'auth-session.large.test.ts' ! -name 'public-api.large.test.ts' -print -quit | grep -q .; then
             bun run e2e
           else
             echo "No additional E2E tests — skipping"

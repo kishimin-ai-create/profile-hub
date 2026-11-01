@@ -1,8 +1,10 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { createAppRouter } from "./router";
+
+vi.mock("../../features/home/HomeProfile", () => ({ HomeProfile: () => null }));
 
 describe("public routes", () => {
   test.each([

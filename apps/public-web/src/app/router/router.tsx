@@ -3,6 +3,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { ErrorState, LoadingState } from "../../components/QueryState";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
+import { HomeProfile } from "../../features/home/HomeProfile";
 import { SiteLayout } from "./SiteLayout";
 
 const rootRoute = createRootRoute({
@@ -16,6 +17,7 @@ const homeRoute = createRoute({
   component: () => (
     <>
       <h1>{"Home"}</h1>
+      <HomeProfile />
       <nav aria-label={"セクション"}>
         <ul>
           <li>

@@ -13,6 +13,7 @@ afterAll(() => server.close());
 
 test("shows the public profile on the engineering page", async () => {
   server.use(
+    http.get("*/api/public/portfolio", () => HttpResponse.json({ data: [] })),
     http.get("*/api/public/profile", () =>
       HttpResponse.json({
         data: {

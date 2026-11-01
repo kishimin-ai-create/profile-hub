@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { customInstance } from "../../api/mutator/custom-instance";
-import { QueryState } from "../../components/QueryState";
+import { customInstance } from "../api/mutator/custom-instance";
+import { QueryState } from "./QueryState";
 
 type Project = {
   id: string;
@@ -17,12 +17,12 @@ const optionalUrl = (value: unknown): string | null => {
   if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Invalid URL");
   return url.href;
 };
-const readProjects = async (): Promise<Project[]> => {
+const readProjects = async (section: "engineering" | "hobby"): Promise<Project[]> => {
   const result: unknown = await customInstance({
     url: "/api/public/portfolio",
     method: "GET",
     baseURL: import.meta.env.VITE_API_URL || "",
-    params: { section: "hobby" },
+    params: { section },
   });
   if (
     typeof result !== "object" ||
@@ -39,7 +39,7 @@ const readProjects = async (): Promise<Project[]> => {
       !("id" in entry) ||
       typeof entry.id !== "string" ||
       !("section" in entry) ||
-      entry.section !== "hobby" ||
+      entry.section !== section ||
       !("name" in entry) ||
       typeof entry.name !== "string" ||
       !("summary" in entry) ||
@@ -61,8 +61,11 @@ const readProjects = async (): Promise<Project[]> => {
     };
   });
 };
-export const HobbyProjects = () => {
-  const query = useQuery({ queryKey: ["hobby-projects"], queryFn: readProjects });
+export const SectionProjects = ({ section }: { section: "engineering" | "hobby" }) => {
+  const query = useQuery({
+    queryKey: ["section-projects", section],
+    queryFn: () => readProjects(section),
+  });
   return (
     <section>
       <h2>{"作品"}</h2>

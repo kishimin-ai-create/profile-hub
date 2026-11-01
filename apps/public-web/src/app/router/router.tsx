@@ -2,13 +2,13 @@ import { createRootRoute, createRoute, createRouter, Link } from "@tanstack/reac
 import type { RouterHistory } from "@tanstack/react-router";
 import { PublicProfile } from "../../components/PublicProfile";
 import { ErrorState, LoadingState } from "../../components/QueryState";
+import { SectionProjects } from "../../components/SectionProjects";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { EngineeringContact } from "../../features/engineering/EngineeringContact";
 import { EngineeringSkills } from "../../features/engineering/EngineeringSkills";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { HobbyContact } from "../../features/hobby/HobbyContact";
 import { HobbyFavourites } from "../../features/hobby/HobbyFavourites";
-import { HobbyProjects } from "../../features/hobby/HobbyProjects";
 import { SiteLayout } from "./SiteLayout";
 
 const rootRoute = createRootRoute({
@@ -45,6 +45,7 @@ const engineeringRoute = createRoute({
       <EngineeringHero />
       <PublicProfile />
       <EngineeringSkills />
+      <SectionProjects section={"engineering"} />
     </>
   ),
 });
@@ -62,7 +63,7 @@ const hobbyRoute = createRoute({
     <>
       <HobbyHero />
       <HobbyFavourites />
-      <HobbyProjects />
+      <SectionProjects section={"hobby"} />
       <Link to={"/hobby/contact"}>{"趣味について連絡する"}</Link>
     </>
   ),

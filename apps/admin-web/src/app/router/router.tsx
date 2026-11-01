@@ -17,6 +17,7 @@ import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
+import { ProfilePage } from "../../profile/profile-page";
 
 type RouteSession = {
   accessToken: () => string | null;
@@ -169,6 +170,11 @@ const portfolioDetailRoute = createRoute({
 const profileRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/profile",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    return <ProfilePage session={context.session} />;
+  },
 });
 const hobbyRoute = createRoute({
   getParentRoute: () => protectedRoute,

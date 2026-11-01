@@ -1,8 +1,10 @@
 import { expect, test } from "bun:test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
+import { z } from "zod";
 
-import app, { createApp } from "../index";
+import { issueToken } from "../auth/token";
+import app, { createApp, createConfiguredApp } from "../index";
 import { getDatabase } from "../infrastructures/db/database";
 import { listFavourites } from "./favourites";
 
@@ -60,7 +62,12 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       throw new Error("TEST_DATABASE_URL is required");
     }
     const previousUrl = process.env["DATABASE_URL"];
+    const previousSecret = process.env["JWT_SECRET"];
+    const secret = "a-test-only-secret-with-at-least-32-bytes";
     process.env["DATABASE_URL"] = databaseUrl;
+    process.env["JWT_SECRET"] = secret;
+    let userId: string | undefined;
+    let favouriteId: string | undefined;
     try {
       const response = await app.request("/api/public/favourites");
       expect(response.status).toBe(200);
@@ -73,8 +80,52 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       expect(await profile.json()).toEqual({
         data: { profile: null, skills: [], links: { engineering: [], hobby: [] } },
       });
+      const database = getDatabase();
+      const user = await database.$client.query<{ id: string }>(
+        "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id::text",
+        [`configured-${crypto.randomUUID()}@example.test`, "unused-test-hash"],
+      );
+      userId = user.rows.find((_row, index) => index === 0)?.id;
+      if (!userId) throw new Error("Expected a test administrator");
+      const token = await issueToken(userId, 0, "access", secret);
+      const configured = createConfiguredApp();
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      const input = {
+        name: "Tea",
+        description: "Green tea",
+        link: "https://example.com",
+        displayOrder: 0,
+      };
+      const created = await configured.request("/api/admin/favourites", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(input),
+      });
+      expect(created.status).toBe(201);
+      favouriteId = z.object({ data: z.object({ id: z.string() }) }).parse(await created.json())
+        .data.id;
+      const updated = await configured.request(`/api/admin/favourites/${favouriteId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ ...input, name: "Coffee" }),
+      });
+      expect(updated.status).toBe(200);
+      expect(await updated.json()).toMatchObject({ data: { id: favouriteId, name: "Coffee" } });
+      expect(
+        (
+          await configured.request(`/api/admin/favourites/${favouriteId}`, {
+            method: "DELETE",
+            headers,
+          })
+        ).status,
+      ).toBe(204);
     } finally {
+      if (favouriteId)
+        await getDatabase().$client.query("DELETE FROM favourites WHERE id = $1", [favouriteId]);
+      if (userId) await getDatabase().$client.query("DELETE FROM users WHERE id = $1", [userId]);
       await getDatabase().$client.end();
+      if (previousSecret === undefined) delete process.env["JWT_SECRET"];
+      else process.env["JWT_SECRET"] = previousSecret;
       if (previousUrl === undefined) {
         delete process.env["DATABASE_URL"];
       } else {

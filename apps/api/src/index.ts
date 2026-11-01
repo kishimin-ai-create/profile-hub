@@ -1689,37 +1689,39 @@ export const createApp = (dependencies: Dependencies) => {
   return app;
 };
 
-const app = createApp({
-  adminOrigin: process.env["ADMIN_ORIGIN"],
-  loginAdmin: (email, password) =>
-    loginAdmin(email, password, {
-      consumeAttempt: () => consumeLoginAttempt(getDatabase()),
-      findAccount: (value) => findAdminByEmail(getDatabase(), value),
-      verifyPassword,
-      advanceSession: (id, version) => revokeSession(getDatabase(), id, version),
-      dummyHash:
-        "$argon2id$v=19$m=65536,t=2,p=1$/Ljqdtjb+NTnEzU6E6d7bPgVNN5FayXFRhPwCWntnfA$2E8icwtAyRdRGo9XygluUTG2zeN1zPQE7VvtK8WDrak",
-      secret: process.env["JWT_SECRET"] ?? "",
-    }),
-  adminSecret: process.env["JWT_SECRET"],
-  findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
-  revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),
-  listFavourites: () => listFavourites(getDatabase()),
-  createFavourite: (input) => createFavourite(getDatabase(), input),
-  deleteFavourite: (id) => deleteFavourite(getDatabase(), id),
-  updateFavourite: (id, input) => updateFavourite(getDatabase(), id, input),
-  reorderFavourites: (ids) => reorderFavourites(getDatabase(), ids),
-  updateProfile: (input) => updateProfile(getDatabase(), input),
-  listPortfolios: (section) => listPortfolios(getDatabase(), section),
-  createPortfolio: (input) => createPortfolio(getDatabase(), input),
-  findPortfolio: (id) => findPortfolio(getDatabase(), id),
-  updatePortfolio: (id, input) => updatePortfolio(getDatabase(), id, input),
-  deletePortfolio: (id) => deletePortfolio(getDatabase(), id),
-  reorderPortfolios: (section, ids) => reorderPortfolios(getDatabase(), section, ids),
-  getPublicProfile: () => getPublicProfile(getDatabase()),
-  allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
-    (origin): origin is string => Boolean(origin),
-  ),
-});
+/** Creates the API using runtime configuration and the shared database. */
+export const createConfiguredApp = () =>
+  createApp({
+    adminOrigin: process.env["ADMIN_ORIGIN"],
+    loginAdmin: (email, password) =>
+      loginAdmin(email, password, {
+        consumeAttempt: () => consumeLoginAttempt(getDatabase()),
+        findAccount: (value) => findAdminByEmail(getDatabase(), value),
+        verifyPassword,
+        advanceSession: (id, version) => revokeSession(getDatabase(), id, version),
+        dummyHash:
+          "$argon2id$v=19$m=65536,t=2,p=1$/Ljqdtjb+NTnEzU6E6d7bPgVNN5FayXFRhPwCWntnfA$2E8icwtAyRdRGo9XygluUTG2zeN1zPQE7VvtK8WDrak",
+        secret: process.env["JWT_SECRET"] ?? "",
+      }),
+    adminSecret: process.env["JWT_SECRET"],
+    findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
+    revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),
+    listFavourites: () => listFavourites(getDatabase()),
+    createFavourite: (input) => createFavourite(getDatabase(), input),
+    deleteFavourite: (id) => deleteFavourite(getDatabase(), id),
+    updateFavourite: (id, input) => updateFavourite(getDatabase(), id, input),
+    reorderFavourites: (ids) => reorderFavourites(getDatabase(), ids),
+    updateProfile: (input) => updateProfile(getDatabase(), input),
+    listPortfolios: (section) => listPortfolios(getDatabase(), section),
+    createPortfolio: (input) => createPortfolio(getDatabase(), input),
+    findPortfolio: (id) => findPortfolio(getDatabase(), id),
+    updatePortfolio: (id, input) => updatePortfolio(getDatabase(), id, input),
+    deletePortfolio: (id) => deletePortfolio(getDatabase(), id),
+    reorderPortfolios: (section, ids) => reorderPortfolios(getDatabase(), section, ids),
+    getPublicProfile: () => getPublicProfile(getDatabase()),
+    allowedOrigins: [process.env["PUBLIC_ORIGIN"], process.env["ADMIN_ORIGIN"]].filter(
+      (origin): origin is string => Boolean(origin),
+    ),
+  });
 
-export default app;
+export default createConfiguredApp();

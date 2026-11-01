@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 import { createFavourite } from "./create-favourite";
 import { deleteFavourite } from "./delete-favourite";
+import { updateFavourite } from "./update-favourite";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 
@@ -35,6 +36,12 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           display_order: input.displayOrder,
         },
       ]);
+      const changed = { ...input, name: "Coffee" };
+      expect(await updateFavourite(drizzle(client), created.id, changed)).toEqual({
+        ...changed,
+        id: created.id,
+      });
+      expect(await updateFavourite(drizzle(client), "9223372036854775807", changed)).toBeNull();
       expect(await deleteFavourite(drizzle(client), created.id)).toBe(true);
       expect(await deleteFavourite(drizzle(client), created.id)).toBe(false);
       expect(

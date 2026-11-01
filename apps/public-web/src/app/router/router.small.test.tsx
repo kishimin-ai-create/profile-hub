@@ -6,6 +6,7 @@ import { createAppRouter } from "./router";
 
 vi.mock("../../features/home/HomeProfile", () => ({ HomeProfile: () => null }));
 vi.mock("../../features/hobby/HobbyFavourites", () => ({ HobbyFavourites: () => null }));
+vi.mock("../../features/hobby/HobbyProjects", () => ({ HobbyProjects: () => null }));
 vi.mock("../../features/engineering/EngineeringContact", () => ({
   EngineeringContact: () => <h1>{"Engineering Contact"}</h1>,
 }));

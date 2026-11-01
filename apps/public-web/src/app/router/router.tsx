@@ -6,6 +6,7 @@ import { EngineeringContact } from "../../features/engineering/EngineeringContac
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { HobbyContact } from "../../features/hobby/HobbyContact";
 import { HobbyFavourites } from "../../features/hobby/HobbyFavourites";
+import { HobbyProjects } from "../../features/hobby/HobbyProjects";
 import { HomeProfile } from "../../features/home/HomeProfile";
 import { SiteLayout } from "./SiteLayout";
 
@@ -54,6 +55,7 @@ const hobbyRoute = createRoute({
     <>
       <HobbyHero />
       <HobbyFavourites />
+      <HobbyProjects />
     </>
   ),
 });

@@ -1,0 +1,96 @@
+import { useQuery } from "@tanstack/react-query";
+import { customInstance } from "../../api/mutator/custom-instance";
+import { QueryState } from "../../components/QueryState";
+
+type Project = {
+  id: string;
+  name: string;
+  summary: string;
+  technologies: string[];
+  repository: string | null;
+  demo: string | null;
+};
+const optionalUrl = (value: unknown): string | null => {
+  if (value === null) return null;
+  if (typeof value !== "string" || !/^https?:\/\//i.test(value)) throw new Error("Invalid URL");
+  const url = new URL(value);
+  if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Invalid URL");
+  return url.href;
+};
+const readProjects = async (): Promise<Project[]> => {
+  const result: unknown = await customInstance({
+    url: "/api/public/portfolio",
+    method: "GET",
+    baseURL: import.meta.env.VITE_API_URL || "",
+    params: { section: "hobby" },
+  });
+  if (
+    typeof result !== "object" ||
+    result === null ||
+    !("data" in result) ||
+    !Array.isArray(result.data)
+  )
+    throw new Error("Invalid response");
+  const entries: unknown[] = result.data;
+  return entries.map((entry) => {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      !("id" in entry) ||
+      typeof entry.id !== "string" ||
+      !("section" in entry) ||
+      entry.section !== "hobby" ||
+      !("name" in entry) ||
+      typeof entry.name !== "string" ||
+      !("summary" in entry) ||
+      typeof entry.summary !== "string" ||
+      !("technologies" in entry) ||
+      !Array.isArray(entry.technologies) ||
+      !entry.technologies.every((value: unknown) => typeof value === "string") ||
+      !("repositoryUrl" in entry) ||
+      !("demoUrl" in entry)
+    )
+      throw new Error("Invalid project");
+    return {
+      id: entry.id,
+      name: entry.name,
+      summary: entry.summary,
+      technologies: entry.technologies,
+      repository: optionalUrl(entry.repositoryUrl),
+      demo: optionalUrl(entry.demoUrl),
+    };
+  });
+};
+export const HobbyProjects = () => {
+  const query = useQuery({ queryKey: ["hobby-projects"], queryFn: readProjects });
+  return (
+    <section>
+      <h2>{"作品"}</h2>
+      <QueryState query={query}>
+        {query.data?.length ? (
+          <ul>
+            {query.data.map((project) => (
+              <li key={project.id}>
+                <h3>{project.name}</h3>
+                <p>{project.summary}</p>
+                <p>{project.technologies.join("、")}</p>
+                {project.repository && (
+                  <a href={project.repository} target={"_blank"} rel={"noopener noreferrer"}>
+                    {"リポジトリ"}
+                  </a>
+                )}
+                {project.demo && (
+                  <a href={project.demo} target={"_blank"} rel={"noopener noreferrer"}>
+                    {"デモ"}
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>{"作品はまだありません。"}</p>
+        )}
+      </QueryState>
+    </section>
+  );
+};

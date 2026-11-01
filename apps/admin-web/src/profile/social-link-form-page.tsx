@@ -44,14 +44,16 @@ export const SocialLinkFormPage = ({
     const order = text("displayOrder");
     const isEmail =
       kind === "email" && /^mailto:/i.test(url) && z.email().safeParse(url.slice(7)).success;
-    let isWeb = false;
-    try {
-      const parsed = new URL(url);
-      isWeb =
-        /^https?:\/\//i.test(url) && (parsed.protocol === "http:" || parsed.protocol === "https:");
-    } catch {
-      isWeb = false;
-    }
+    const isWeb = (() => {
+      try {
+        const parsed = new URL(url);
+        return (
+          /^https?:\/\//i.test(url) && (parsed.protocol === "http:" || parsed.protocol === "https:")
+        );
+      } catch {
+        return false;
+      }
+    })();
     if (!isEmail && !isWeb) {
       setError("URL を確認してください");
       return;

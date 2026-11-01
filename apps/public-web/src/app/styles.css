@@ -101,6 +101,11 @@ h1 {
 p {
   margin: 0;
 }
+.project-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
 .section-hero {
   display: flex;
   flex-direction: column;

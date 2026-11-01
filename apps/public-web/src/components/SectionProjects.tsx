@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { customInstance } from "../api/mutator/custom-instance";
 import { QueryState } from "./QueryState";
 
@@ -9,6 +10,7 @@ type Project = {
   technologies: string[];
   repository: string | null;
   demo: string | null;
+  image: string | null;
 };
 const optionalUrl = (value: unknown): string | null => {
   if (value === null) return null;
@@ -48,7 +50,8 @@ const readProjects = async (section: "engineering" | "hobby"): Promise<Project[]
       !Array.isArray(entry.technologies) ||
       !entry.technologies.every((value: unknown) => typeof value === "string") ||
       !("repositoryUrl" in entry) ||
-      !("demoUrl" in entry)
+      !("demoUrl" in entry) ||
+      !("imageUrl" in entry)
     )
       throw new Error("Invalid project");
     return {
@@ -58,8 +61,23 @@ const readProjects = async (section: "engineering" | "hobby"): Promise<Project[]
       technologies: entry.technologies,
       repository: optionalUrl(entry.repositoryUrl),
       demo: optionalUrl(entry.demoUrl),
+      image: optionalUrl(entry.imageUrl),
     };
   });
+};
+const ProjectImage = ({ name, url }: { name: string; url: string }) => {
+  const [failed, setFailed] = useState(false);
+  return failed ? null : (
+    <img
+      className={"project-image"}
+      src={url}
+      alt={`${name} の画像`}
+      loading={"lazy"}
+      onError={() => {
+        setFailed(true);
+      }}
+    />
+  );
 };
 export const SectionProjects = ({ section }: { section: "engineering" | "hobby" }) => {
   const query = useQuery({
@@ -75,6 +93,9 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
             {query.data.map((project) => (
               <li key={project.id}>
                 <h3>{project.name}</h3>
+                {project.image && (
+                  <ProjectImage key={project.image} name={project.name} url={project.image} />
+                )}
                 <p>{project.summary}</p>
                 <p>{project.technologies.join("、")}</p>
                 {project.repository && (

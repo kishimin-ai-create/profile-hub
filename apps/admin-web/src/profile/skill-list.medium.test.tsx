@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -99,4 +99,53 @@ test("does not delete a skill when confirmation is cancelled", async () => {
   await userEvent.click(await screen.findByRole("button", { name: "TypeScript を削除" }));
   expect(remove).not.toHaveBeenCalled();
   expect(screen.getByText("TypeScript")).toBeInTheDocument();
+});
+
+test("reorders the complete skill list through the authenticated API", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "TypeScript", displayOrder: 0 },
+          { id: "2", name: "Bun", displayOrder: 1 },
+        ],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/skills/order", async ({ request }) => {
+      expect(request.headers.get("Authorization")).toBe("Bearer access");
+      expect(await request.json()).toEqual({ ids: ["2", "1"] });
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Bun を上へ" }));
+  await waitFor(() => {
+    const items = within(screen.getByRole("list", { name: "スキル一覧" })).getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Bun");
+    expect(items[1]).toHaveTextContent("TypeScript");
+  });
+});
+
+test("keeps the skill order when saving fails", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "TypeScript", displayOrder: 0 },
+          { id: "2", name: "Bun", displayOrder: 1 },
+        ],
+      }),
+    ),
+    http.patch(
+      "https://api.example.test/api/admin/skills/order",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Bun を上へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルの順序を変更できませんでした");
+  const items = within(screen.getByRole("list", { name: "スキル一覧" })).getAllByRole("listitem");
+  expect(items[0]).toHaveTextContent("TypeScript");
 });

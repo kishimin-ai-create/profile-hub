@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { issueToken } from "./auth/token";
 import { createApp } from "./index";
 

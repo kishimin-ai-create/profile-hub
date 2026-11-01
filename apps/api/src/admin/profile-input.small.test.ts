@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { profileInput } from "./profile-input";
 
 const valid = { name: "Example", title: null, bio: null, avatarUrl: null };

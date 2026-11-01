@@ -56,7 +56,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
 );
 
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
-  "the configured API serves all public resources from the database",
+  "the configured API serves public resources and manages entries through the database",
   async () => {
     if (!databaseUrl) {
       throw new Error("TEST_DATABASE_URL is required");
@@ -68,6 +68,8 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
     process.env["JWT_SECRET"] = secret;
     let userId: string | undefined;
     let favouriteId: string | undefined;
+    let skillId: string | undefined;
+    let socialLinkId: string | undefined;
     try {
       const response = await app.request("/api/public/favourites");
       expect(response.status).toBe(200);
@@ -119,9 +121,64 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           })
         ).status,
       ).toBe(204);
+      const skill = { name: "TypeScript", displayOrder: 0 };
+      const skillCreated = await configured.request("/api/admin/skills", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(skill),
+      });
+      expect(skillCreated.status).toBe(201);
+      skillId = z.object({ data: z.object({ id: z.string() }) }).parse(await skillCreated.json())
+        .data.id;
+      const skillUpdated = await configured.request(`/api/admin/skills/${skillId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ ...skill, name: "Bun" }),
+      });
+      expect(skillUpdated.status).toBe(200);
+      expect(await skillUpdated.json()).toMatchObject({ data: { id: skillId, name: "Bun" } });
+      expect(
+        (await configured.request(`/api/admin/skills/${skillId}`, { method: "DELETE", headers }))
+          .status,
+      ).toBe(204);
+      const link = {
+        section: "hobby",
+        kind: "website",
+        url: "https://example.com",
+        displayOrder: 0,
+      };
+      const linkCreated = await configured.request("/api/admin/social-links", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(link),
+      });
+      expect(linkCreated.status).toBe(201);
+      socialLinkId = z
+        .object({ data: z.object({ id: z.string() }) })
+        .parse(await linkCreated.json()).data.id;
+      const linkUpdated = await configured.request(`/api/admin/social-links/${socialLinkId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ ...link, url: "https://example.org" }),
+      });
+      expect(linkUpdated.status).toBe(200);
+      expect(await linkUpdated.json()).toMatchObject({
+        data: { id: socialLinkId, section: "hobby", url: "https://example.org" },
+      });
+      expect(
+        (
+          await configured.request(`/api/admin/social-links/${socialLinkId}`, {
+            method: "DELETE",
+            headers,
+          })
+        ).status,
+      ).toBe(204);
     } finally {
       if (favouriteId)
         await getDatabase().$client.query("DELETE FROM favourites WHERE id = $1", [favouriteId]);
+      if (skillId) await getDatabase().$client.query("DELETE FROM skills WHERE id = $1", [skillId]);
+      if (socialLinkId)
+        await getDatabase().$client.query("DELETE FROM social_links WHERE id = $1", [socialLinkId]);
       if (userId) await getDatabase().$client.query("DELETE FROM users WHERE id = $1", [userId]);
       await getDatabase().$client.end();
       if (previousSecret === undefined) delete process.env["JWT_SECRET"];

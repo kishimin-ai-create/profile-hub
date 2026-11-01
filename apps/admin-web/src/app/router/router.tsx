@@ -17,6 +17,7 @@ import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
+import { ProfileEditPage } from "../../profile/profile-edit-page";
 import { ProfilePage } from "../../profile/profile-page";
 
 type RouteSession = {
@@ -173,7 +174,29 @@ const profileRoute = createRoute({
   component: () => {
     const context: unknown = rootRoute.useRouteContext();
     if (!isRouteContext(context)) throw new Error("Missing session context");
-    return <ProfilePage session={context.session} />;
+    return (
+      <>
+        <Link to={"/profile/edit"}>{"プロフィールを編集"}</Link>
+        <ProfilePage session={context.session} />
+      </>
+    );
+  },
+});
+const profileEditRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile/edit",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = profileEditRoute.useNavigate();
+    return (
+      <ProfileEditPage
+        session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/profile" });
+        }}
+      />
+    );
   },
 });
 const hobbyRoute = createRoute({
@@ -242,6 +265,7 @@ const routeTree = rootRoute.addChildren([
     portfolioNewRoute,
     portfolioDetailRoute,
     profileRoute,
+    profileEditRoute,
     hobbyRoute,
     hobbyNewRoute,
     hobbyEditRoute,

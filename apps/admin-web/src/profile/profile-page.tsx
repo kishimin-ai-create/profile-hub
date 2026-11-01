@@ -1,19 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
 import type { AdminSession } from "../api/authorized-request";
-
-const profileSchema = z.object({
-  data: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      title: z.string().nullable(),
-      bio: z.string().nullable(),
-      avatarUrl: z.string().nullable(),
-    })
-    .nullable(),
-});
+import { profileSchema } from "./profile-schema";
 type Profile = z.infer<typeof profileSchema>["data"];
 type State =
   | { status: "loading" }

@@ -4,7 +4,7 @@ const frontend = "https://localhost:43112";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "auth-session.large.spec.ts",
+  testMatch: "auth-session.large.test.ts",
   workers: 1,
   reporter: "list",
   use: { baseURL: frontend, trace: "on-first-retry", ignoreHTTPSErrors: true },

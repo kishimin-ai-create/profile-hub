@@ -3,6 +3,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { ErrorState, LoadingState } from "../../components/QueryState";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { EngineeringContact } from "../../features/engineering/EngineeringContact";
+import { EngineeringSkills } from "../../features/engineering/EngineeringSkills";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { HobbyContact } from "../../features/hobby/HobbyContact";
 import { HobbyFavourites } from "../../features/hobby/HobbyFavourites";
@@ -39,7 +40,12 @@ const homeRoute = createRoute({
 const engineeringRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/engineering",
-  component: EngineeringHero,
+  component: () => (
+    <>
+      <EngineeringHero />
+      <EngineeringSkills />
+    </>
+  ),
 });
 
 const engineeringContactRoute = createRoute({

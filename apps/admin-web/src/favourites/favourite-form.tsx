@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { sessionRenewedError } from "../api/authorized-request";
 
@@ -18,6 +18,8 @@ type Props = {
 export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
+  const urlError = error === "http または https の URL を入力してください";
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -93,7 +95,14 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
         </label>
         <label>
           {"URL"}
-          <input name={"link"} required maxLength={2048} defaultValue={initial?.link} />
+          <input
+            name={"link"}
+            required
+            maxLength={2048}
+            defaultValue={initial?.link}
+            aria-invalid={urlError || undefined}
+            aria-describedby={urlError ? errorId : undefined}
+          />
         </label>
         <label>
           {"表示順"}
@@ -108,7 +117,11 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
         </label>
         <button type={"submit"}>{initial ? "保存" : "作成"}</button>
       </fieldset>
-      {error && <p role={"alert"}>{error}</p>}
+      {error && (
+        <p id={errorId} role={"alert"}>
+          {error}
+        </p>
+      )}
     </form>
   );
 };

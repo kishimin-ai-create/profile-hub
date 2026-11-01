@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { customInstance } from "../../api/mutator/custom-instance";
-import { QueryState } from "../../components/QueryState";
+import { customInstance } from "../api/mutator/custom-instance";
+import { QueryState } from "./QueryState";
 
 type Profile = { name: string; title: string | null; bio: string | null };
 
@@ -30,7 +30,7 @@ const readProfile = async (): Promise<Profile | null> => {
   return { name: profile.name, title: profile.title, bio: profile.bio };
 };
 
-export const HomeProfile = () => {
+export const PublicProfile = () => {
   const query = useQuery({ queryKey: ["public-profile"], queryFn: readProfile });
   return (
     <QueryState query={query}>

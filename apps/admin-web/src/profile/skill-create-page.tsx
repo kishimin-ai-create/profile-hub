@@ -7,9 +7,11 @@ import type { AdminSession } from "../api/authorized-request";
 export const SkillCreatePage = ({
   session,
   onSuccess,
+  initial,
 }: {
   session: AdminSession;
   onSuccess: () => void;
+  initial?: { id: string; name: string; displayOrder: number };
 }) => {
   const dirty = useRef(false);
   const submitting = useRef(false);
@@ -43,8 +45,8 @@ export const SkillCreatePage = ({
     setError(null);
     try {
       await request({
-        method: "POST",
-        url: "/api/admin/skills",
+        method: initial ? "PUT" : "POST",
+        url: initial ? `/api/admin/skills/${initial.id}` : "/api/admin/skills",
         data: { name, displayOrder: Number(order) },
       });
       dirty.current = false;
@@ -62,7 +64,7 @@ export const SkillCreatePage = ({
   };
   return (
     <>
-      <h1>{"スキルを作成"}</h1>
+      <h1>{initial ? "スキルを編集" : "スキルを作成"}</h1>
       <form
         onChange={() => {
           dirty.current = true;
@@ -74,7 +76,7 @@ export const SkillCreatePage = ({
         <fieldset disabled={pending}>
           <label>
             {"スキル名"}
-            <input name={"name"} required maxLength={200} />
+            <input name={"name"} required maxLength={200} defaultValue={initial?.name} />
           </label>
           <label>
             {"表示順"}
@@ -84,9 +86,10 @@ export const SkillCreatePage = ({
               required
               min={-2147483648}
               max={2147483647}
+              defaultValue={initial?.displayOrder}
             />
           </label>
-          <button type={"submit"}>{"作成"}</button>
+          <button type={"submit"}>{initial ? "保存" : "作成"}</button>
         </fieldset>
         {error && <p role={"alert"}>{error}</p>}
       </form>

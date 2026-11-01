@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
 import type { AdminSession } from "../api/authorized-request";
@@ -12,7 +13,13 @@ type State =
   | { status: "error"; source: AdminSession }
   | { status: "ready"; source: AdminSession; skills: Skill[] };
 
-export const SkillList = ({ session }: { session: AdminSession }) => {
+export const SkillList = ({
+  session,
+  renderEdit,
+}: {
+  session: AdminSession;
+  renderEdit?: (skill: Skill) => ReactNode;
+}) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
@@ -106,6 +113,7 @@ export const SkillList = ({ session }: { session: AdminSession }) => {
           {state.skills.map((skill, index) => (
             <li key={skill.id}>
               {skill.name}
+              {renderEdit?.(skill)}
               <button
                 type={"button"}
                 disabled={busy || index === 0}

@@ -51,3 +51,30 @@ test("keeps input when session renewal requires an explicit retry", async () => 
   expect(screen.getByLabelText("名前")).toHaveValue("Tea");
   expect(onSuccess).not.toHaveBeenCalled();
 });
+
+test("prepopulates an existing favourite for editing", async () => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(
+    <FavouriteForm
+      save={save}
+      onSuccess={() => {}}
+      initial={{
+        name: "Tea",
+        description: "Green tea",
+        link: "https://example.com",
+        displayOrder: 1,
+      }}
+    />,
+  );
+  const user = userEvent.setup();
+  expect(screen.getByLabelText("名前")).toHaveValue("Tea");
+  await user.clear(screen.getByLabelText("名前"));
+  await user.type(screen.getByLabelText("名前"), "Coffee");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledWith({
+    name: "Coffee",
+    description: "Green tea",
+    link: "https://example.com",
+    displayOrder: 1,
+  });
+});

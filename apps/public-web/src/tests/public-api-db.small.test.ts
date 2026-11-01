@@ -9,6 +9,9 @@ test("uses in-memory data when no database is configured", () => {
 });
 
 test("accepts only the dedicated local browser test database", () => {
+  expect(() => browserTestDatabaseUrl("not-a-url")).toThrow(
+    "Public browser database must be a dedicated local test database",
+  );
   expect(
     browserTestDatabaseUrl("postgres://test:test@127.0.0.1:5432/profile_hub_public_browser_test"),
   ).toBe("postgres://test:test@127.0.0.1:5432/profile_hub_public_browser_test");

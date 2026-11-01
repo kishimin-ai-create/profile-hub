@@ -13,7 +13,9 @@ type AdminRequest = {
 export const createAuthorizedRequest =
   (session: AdminSession) =>
   async <T>(request: AdminRequest): Promise<T> => {
-    if (!/^\/api\/admin\/portfolio(?:\/(?:[1-9][0-9]{0,18}|order))?$/.test(request.url)) {
+    if (
+      !/^\/api\/admin\/(?:portfolio|favourites)(?:\/(?:[1-9][0-9]{0,18}|order))?$/.test(request.url)
+    ) {
       throw new Error("Invalid administrator request");
     }
     const token = session.accessToken();

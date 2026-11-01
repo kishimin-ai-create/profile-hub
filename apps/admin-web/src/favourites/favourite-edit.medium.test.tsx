@@ -60,3 +60,38 @@ test("edits an existing favourite and returns to the list", async () => {
   expect(await screen.findByText("Coffee")).toBeInTheDocument();
   expect(router.state.location.pathname).toBe("/hobby");
 });
+
+test("shows an error when the favourite no longer exists", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({ data: [] }),
+    ),
+  );
+  const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/hobby/1/edit"] }), {
+    accessToken: () => "access",
+    restore: () => Promise.resolve(false),
+    login: () => Promise.resolve(false),
+    logout: () => Promise.resolve(),
+  });
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
+});
+
+test("shows an error when loading the favourite fails", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get(
+      "https://api.example.test/api/admin/favourites",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/hobby/1/edit"] }), {
+    accessToken: () => "access",
+    restore: () => Promise.resolve(false),
+    login: () => Promise.resolve(false),
+    logout: () => Promise.resolve(),
+  });
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
+});

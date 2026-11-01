@@ -11,6 +11,8 @@ import type { FavouriteInput } from "./admin/create-favourite";
 import { createFavourite } from "./admin/create-favourite";
 import type { PortfolioInput } from "./admin/create-portfolio";
 import { createPortfolio } from "./admin/create-portfolio";
+import type { SkillInput } from "./admin/create-skill";
+import { createSkill } from "./admin/create-skill";
 import { deleteFavourite } from "./admin/delete-favourite";
 import { deletePortfolio } from "./admin/delete-portfolio";
 import { favouriteInput } from "./admin/favourite-input";
@@ -19,6 +21,7 @@ import { portfolioInput } from "./admin/portfolio-input";
 import { profileInput } from "./admin/profile-input";
 import { reorderFavourites } from "./admin/reorder-favourites";
 import { reorderPortfolios } from "./admin/reorder-portfolios";
+import { skillInput } from "./admin/skill-input";
 import { updateFavourite } from "./admin/update-favourite";
 import { updatePortfolio } from "./admin/update-portfolio";
 import type { ProfileInput } from "./admin/update-profile";
@@ -50,6 +53,7 @@ type Dependencies = {
   updateFavourite?: (id: string, input: FavouriteInput) => ReturnType<typeof updateFavourite>;
   reorderFavourites?: (ids: string[]) => ReturnType<typeof reorderFavourites>;
   updateProfile?: (input: ProfileInput) => ReturnType<typeof updateProfile>;
+  createSkill?: (input: SkillInput) => ReturnType<typeof createSkill>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -604,6 +608,70 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.post(
+    "/api/admin/skills",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "createAdminSkill",
+      tags: ["Admin skills"],
+      security: [{ adminBearer: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["name", "displayOrder"],
+              properties: {
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: "Skill created",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id", "name", "displayOrder"],
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const input: unknown = await context.req.json().catch(() => null);
+      const parsed = skillInput.safeParse(input);
+      if (!parsed.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.createSkill) throw new Error("Skill persistence unavailable");
+      const skill = await dependencies.createSkill(parsed.data);
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: skill }, 201);
     },
   );
   app.get(
@@ -1712,6 +1780,7 @@ export const createConfiguredApp = () =>
     updateFavourite: (id, input) => updateFavourite(getDatabase(), id, input),
     reorderFavourites: (ids) => reorderFavourites(getDatabase(), ids),
     updateProfile: (input) => updateProfile(getDatabase(), input),
+    createSkill: (input) => createSkill(getDatabase(), input),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

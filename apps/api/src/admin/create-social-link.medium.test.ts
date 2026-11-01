@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 import { createSocialLink } from "./create-social-link";
 import { deleteSocialLink } from "./delete-social-link";
+import { updateSocialLink } from "./update-social-link";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
@@ -34,6 +35,12 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           display_order: input.displayOrder,
         },
       ]);
+      const changed = { ...input, url: "mailto:other@example.com" };
+      expect(await updateSocialLink(drizzle(client), created.id, changed)).toEqual({
+        ...changed,
+        id: created.id,
+      });
+      expect(await updateSocialLink(drizzle(client), "9223372036854775807", changed)).toBeNull();
       expect(await deleteSocialLink(drizzle(client), created.id)).toBe(true);
       expect(await deleteSocialLink(drizzle(client), created.id)).toBe(false);
       expect(

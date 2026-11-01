@@ -33,6 +33,7 @@ import { updatePortfolio } from "./admin/update-portfolio";
 import type { ProfileInput } from "./admin/update-profile";
 import { updateProfile } from "./admin/update-profile";
 import { updateSkill } from "./admin/update-skill";
+import { updateSocialLink } from "./admin/update-social-link";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
@@ -66,6 +67,7 @@ type Dependencies = {
   reorderSkills?: (ids: string[]) => ReturnType<typeof reorderSkills>;
   createSocialLink?: (input: SocialLinkInput) => ReturnType<typeof createSocialLink>;
   deleteSocialLink?: (id: string) => ReturnType<typeof deleteSocialLink>;
+  updateSocialLink?: (id: string, input: SocialLinkInput) => ReturnType<typeof updateSocialLink>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -620,6 +622,92 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.put(
+    "/api/admin/social-links/:id",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "updateAdminSocialLink",
+      tags: ["Admin social links"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["section", "kind", "url", "displayOrder"],
+              properties: {
+                section: { type: "string", enum: ["engineering", "hobby"] },
+                kind: { type: "string", minLength: 1, maxLength: 100 },
+                url: {
+                  type: "string",
+                  maxLength: 2048,
+                  description: "HTTP(S), or mailto with one email address when kind is email",
+                },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Social link updated",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id", "section", "kind", "url", "displayOrder"],
+                    properties: {
+                      id: { type: "string" },
+                      section: { type: "string", enum: ["engineering", "hobby"] },
+                      kind: { type: "string" },
+                      url: { type: "string" },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Social link not found", "NOT_FOUND", "Not found"),
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const input: unknown = await context.req.json().catch(() => null);
+      const parsed = socialLinkInput.safeParse(input);
+      if (!parsed.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.updateSocialLink) throw new Error("Social link persistence unavailable");
+      const updated = await dependencies.updateSocialLink(id, parsed.data);
+      context.header("Cache-Control", "no-store");
+      if (!updated)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.json({ data: updated });
     },
   );
   app.on(
@@ -2123,6 +2211,7 @@ export const createConfiguredApp = () =>
     reorderSkills: (ids) => reorderSkills(getDatabase(), ids),
     createSocialLink: (input) => createSocialLink(getDatabase(), input),
     deleteSocialLink: (id) => deleteSocialLink(getDatabase(), id),
+    updateSocialLink: (id, input) => updateSocialLink(getDatabase(), id, input),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

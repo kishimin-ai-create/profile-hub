@@ -1,14 +1,14 @@
 import { createRootRoute, createRoute, createRouter, Link } from "@tanstack/react-router";
 import type { RouterHistory } from "@tanstack/react-router";
+import { PublicProfile } from "../../components/PublicProfile";
 import { ErrorState, LoadingState } from "../../components/QueryState";
+import { SectionProjects } from "../../components/SectionProjects";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { EngineeringContact } from "../../features/engineering/EngineeringContact";
 import { EngineeringSkills } from "../../features/engineering/EngineeringSkills";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { HobbyContact } from "../../features/hobby/HobbyContact";
 import { HobbyFavourites } from "../../features/hobby/HobbyFavourites";
-import { HobbyProjects } from "../../features/hobby/HobbyProjects";
-import { HomeProfile } from "../../features/home/HomeProfile";
 import { SiteLayout } from "./SiteLayout";
 
 const rootRoute = createRootRoute({
@@ -22,7 +22,7 @@ const homeRoute = createRoute({
   component: () => (
     <>
       <h1>{"Home"}</h1>
-      <HomeProfile />
+      <PublicProfile />
       <nav aria-label={"セクション"}>
         <ul>
           <li>
@@ -43,7 +43,9 @@ const engineeringRoute = createRoute({
   component: () => (
     <>
       <EngineeringHero />
+      <PublicProfile />
       <EngineeringSkills />
+      <SectionProjects section={"engineering"} />
     </>
   ),
 });
@@ -61,7 +63,7 @@ const hobbyRoute = createRoute({
     <>
       <HobbyHero />
       <HobbyFavourites />
-      <HobbyProjects />
+      <SectionProjects section={"hobby"} />
       <Link to={"/hobby/contact"}>{"趣味について連絡する"}</Link>
     </>
   ),

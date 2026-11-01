@@ -105,3 +105,22 @@ test("keeps a favourite when deletion fails", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを削除できませんでした");
   expect(screen.getByText("Tea")).toBeInTheDocument();
 });
+
+test("does not delete a favourite when confirmation is cancelled", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  const remove = vi.fn<() => void>();
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({ data: [{ id: "1", name: "Tea", description: "Green tea" }] }),
+    ),
+    http.delete("https://api.example.test/api/admin/favourites/1", () => {
+      remove();
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Tea を削除" }));
+  expect(remove).not.toHaveBeenCalled();
+  expect(screen.getByText("Tea")).toBeInTheDocument();
+});

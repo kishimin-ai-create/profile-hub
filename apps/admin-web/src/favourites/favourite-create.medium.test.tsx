@@ -52,7 +52,7 @@ test("creating a favourite sends authenticated data and returns to the list", as
 });
 
 test("unsaved favourite input blocks navigation when the administrator cancels", async () => {
-  vi.spyOn(window, "confirm").mockReturnValue(false);
+  const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
   const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/hobby/new"] }), {
     accessToken: () => "access",
     restore: () => Promise.resolve(false),
@@ -63,7 +63,7 @@ test("unsaved favourite input blocks navigation when the administrator cancels",
   const user = userEvent.setup();
   await user.type(await screen.findByLabelText("名前"), "Tea");
   await user.click(screen.getByRole("link", { name: "Dashboard" }));
-  expect(window.confirm).toHaveBeenCalledOnce();
+  expect(confirmation).toHaveBeenCalledOnce();
   expect(router.state.location.pathname).toBe("/hobby/new");
   expect(screen.getByLabelText("名前")).toHaveValue("Tea");
 });

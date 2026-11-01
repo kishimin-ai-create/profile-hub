@@ -5,15 +5,13 @@ import { createAuthorizedRequest, sessionRenewedError } from "./authorized-reque
 afterEach(() => vi.restoreAllMocks());
 
 test("allows only favourite API paths while keeping credentials on the configured origin", async () => {
-  const send = vi
-    .spyOn(axios, "request")
-    .mockResolvedValue({
-      data: { data: [] },
-      status: 200,
-      statusText: "OK",
-      headers: {},
-      config: { headers: new AxiosHeaders() },
-    });
+  const send = vi.spyOn(axios, "request").mockResolvedValue({
+    data: { data: [] },
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
   const client = createAuthorizedRequest({ accessToken: () => "access" });
   for (const url of [
     "/api/admin/favourites",

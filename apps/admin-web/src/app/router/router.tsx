@@ -17,8 +17,8 @@ import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
-import { ProfilePage } from "../../profile/profile-page";
 import { ProfileEditPage } from "../../profile/profile-edit-page";
+import { ProfilePage } from "../../profile/profile-page";
 
 type RouteSession = {
   accessToken: () => string | null;

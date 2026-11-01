@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
 import type { AdminSession } from "../api/authorized-request";
@@ -12,7 +13,13 @@ type State =
   | { status: "error"; source: AdminSession }
   | { status: "ready"; source: AdminSession; rows: Favourite[] };
 
-export const FavouritePage = ({ session }: { session: AdminSession }) => {
+export const FavouritePage = ({
+  session,
+  renderEdit,
+}: {
+  session: AdminSession;
+  renderEdit?: (row: Favourite) => ReactNode;
+}) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
@@ -107,6 +114,7 @@ export const FavouritePage = ({ session }: { session: AdminSession }) => {
             <li key={row.id}>
               <h2>{row.name}</h2>
               <p>{row.description}</p>
+              {renderEdit?.(row)}
               <button
                 type={"button"}
                 disabled={busy || index === 0}

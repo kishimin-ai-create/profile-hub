@@ -12,6 +12,7 @@ import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
 import { FavouriteCreatePage } from "../../favourites/favourite-create-page";
+import { FavouriteEditPage } from "../../favourites/favourite-edit-page";
 import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
@@ -178,7 +179,12 @@ const hobbyRoute = createRoute({
     return (
       <>
         <Link to={"/hobby/new"}>{"お気に入りを作成"}</Link>
-        <FavouritePage session={context.session} />
+        <FavouritePage
+          session={context.session}
+          renderEdit={(row) => (
+            <Link to={"/hobby/$id/edit"} params={{ id: row.id }}>{`${row.name} を編集`}</Link>
+          )}
+        />
       </>
     );
   },
@@ -200,6 +206,27 @@ const hobbyNewRoute = createRoute({
     );
   },
 });
+const hobbyEditRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/hobby/$id/edit",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    const params: unknown = hobbyEditRoute.useParams();
+    const result = z.object({ id: z.string() }).safeParse(params);
+    const navigate = hobbyEditRoute.useNavigate();
+    if (!isRouteContext(context) || !result.success) throw new Error("Missing favourite context");
+    return (
+      <FavouriteEditPage
+        key={result.data.id}
+        session={context.session}
+        id={result.data.id}
+        onSuccess={() => {
+          void navigate({ to: "/hobby" });
+        }}
+      />
+    );
+  },
+});
 const routeTree = rootRoute.addChildren([
   homeRoute,
   loginRoute,
@@ -211,6 +238,7 @@ const routeTree = rootRoute.addChildren([
     profileRoute,
     hobbyRoute,
     hobbyNewRoute,
+    hobbyEditRoute,
   ]),
 ]);
 

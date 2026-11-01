@@ -17,6 +17,7 @@ export const SkillList = ({ session }: { session: AdminSession }) => {
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [reorderError, setReorderError] = useState(false);
   const pending = useRef(false);
   useEffect(() => {
     const lifecycle = { active: true };
@@ -57,6 +58,39 @@ export const SkillList = ({ session }: { session: AdminSession }) => {
       setBusy(false);
     }
   };
+  const move = async (skill: Skill, direction: -1 | 1) => {
+    if (pending.current || state.status !== "ready" || state.source !== session) return;
+    const from = state.skills.findIndex((entry) => entry.id === skill.id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= state.skills.length) return;
+    const skills = state.skills.map((entry, index) =>
+      index === from
+        ? (state.skills[to] ?? entry)
+        : index === to
+          ? (state.skills[from] ?? entry)
+          : entry,
+    );
+    pending.current = true;
+    setBusy(true);
+    setReorderError(false);
+    try {
+      await request({
+        method: "PATCH",
+        url: "/api/admin/skills/order",
+        data: { ids: skills.map((entry) => entry.id) },
+      });
+      setState((previous) =>
+        previous.status === "ready" && previous.source === session
+          ? { ...previous, skills }
+          : previous,
+      );
+    } catch {
+      setReorderError(true);
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  };
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"スキルを読み込み中"}</p>;
   if (state.status === "error") return <p role={"alert"}>{"スキルを取得できませんでした"}</p>;
@@ -64,13 +98,28 @@ export const SkillList = ({ session }: { session: AdminSession }) => {
     <section>
       <h2>{"スキル"}</h2>
       {deleteError && <p role={"alert"}>{"スキルを削除できませんでした"}</p>}
+      {reorderError && <p role={"alert"}>{"スキルの順序を変更できませんでした"}</p>}
       {state.skills.length === 0 ? (
         <p>{"スキルがありません"}</p>
       ) : (
         <ul aria-label={"スキル一覧"}>
-          {state.skills.map((skill) => (
+          {state.skills.map((skill, index) => (
             <li key={skill.id}>
               {skill.name}
+              <button
+                type={"button"}
+                disabled={busy || index === 0}
+                onClick={() => {
+                  void move(skill, -1);
+                }}
+              >{`${skill.name} を上へ`}</button>
+              <button
+                type={"button"}
+                disabled={busy || index === state.skills.length - 1}
+                onClick={() => {
+                  void move(skill, 1);
+                }}
+              >{`${skill.name} を下へ`}</button>
               <button
                 type={"button"}
                 disabled={busy}

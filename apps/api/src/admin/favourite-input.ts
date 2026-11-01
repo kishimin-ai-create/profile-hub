@@ -3,6 +3,7 @@ import { z } from "zod";
 const httpUrl = z
   .url()
   .max(2048)
+  .regex(/^https?:\/\//i)
   .refine((value) => {
     try {
       const protocol = new URL(value).protocol;

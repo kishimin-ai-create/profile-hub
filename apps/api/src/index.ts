@@ -620,7 +620,12 @@ export const createApp = (dependencies: Dependencies) => {
               properties: {
                 name: { type: "string", minLength: 1, maxLength: 200 },
                 description: { type: "string", minLength: 1, maxLength: 4000 },
-                link: { type: "string", format: "uri", maxLength: 2048, pattern: "^https?://" },
+                link: {
+                  type: "string",
+                  format: "uri",
+                  maxLength: 2048,
+                  pattern: "^[Hh][Tt][Tt][Pp][Ss]?://",
+                },
                 displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
               },
             },
@@ -749,7 +754,12 @@ export const createApp = (dependencies: Dependencies) => {
               properties: {
                 name: { type: "string", minLength: 1, maxLength: 200 },
                 description: { type: "string", minLength: 1, maxLength: 4000 },
-                link: { type: "string", format: "uri", maxLength: 2048 },
+                link: {
+                  type: "string",
+                  format: "uri",
+                  maxLength: 2048,
+                  pattern: "^[Hh][Tt][Tt][Pp][Ss]?://",
+                },
                 displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
               },
             },

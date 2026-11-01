@@ -6,7 +6,13 @@ export const browserTestDatabaseUrl = (
     if (required) throw new Error("Public browser test database is required");
     return null;
   }
-  const url = new URL(value);
+  const url = (() => {
+    try {
+      return new URL(value);
+    } catch {
+      throw new Error("Public browser database must be a dedicated local test database");
+    }
+  })();
   if (
     !["postgres:", "postgresql:"].includes(url.protocol) ||
     !["localhost", "127.0.0.1"].includes(url.hostname) ||

@@ -7,9 +7,12 @@ import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { OpenAPIV3_1 as OpenApi } from "openapi-types";
 import { z } from "zod";
 
+import type { FavouriteInput } from "./admin/create-favourite";
+import { createFavourite } from "./admin/create-favourite";
 import type { PortfolioInput } from "./admin/create-portfolio";
 import { createPortfolio } from "./admin/create-portfolio";
 import { deletePortfolio } from "./admin/delete-portfolio";
+import { favouriteInput } from "./admin/favourite-input";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
 import { reorderPortfolios } from "./admin/reorder-portfolios";
@@ -36,6 +39,7 @@ type Dependencies = {
   findAdminSessionVersion?: (id: string) => Promise<number | null>;
   revokeAdminSession?: (id: string, version: number) => Promise<boolean>;
   listFavourites: () => ReturnType<typeof listFavourites>;
+  createFavourite?: (input: FavouriteInput) => ReturnType<typeof createFavourite>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -588,6 +592,74 @@ export const createApp = (dependencies: Dependencies) => {
         return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
       if (!dependencies.createPortfolio) throw new Error("Portfolio persistence unavailable");
       const created = await dependencies.createPortfolio(result.data);
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: created }, 201);
+    },
+  );
+  app.post(
+    "/api/admin/favourites",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "createAdminFavourite",
+      tags: ["Admin favourites"],
+      security: [{ adminBearer: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["name", "description", "link", "displayOrder"],
+              properties: {
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                description: { type: "string", minLength: 1, maxLength: 4000 },
+                link: { type: "string", format: "uri", maxLength: 2048, pattern: "^https?://" },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: "Favourite created",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id", "name", "description", "link", "displayOrder"],
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      description: { type: "string" },
+                      link: { type: "string" },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const input: unknown = await context.req.json().catch(() => null);
+      const result = favouriteInput.safeParse(input);
+      if (!result.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.createFavourite) throw new Error("Favourite persistence unavailable");
+      const created = await dependencies.createFavourite(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
     },
@@ -1274,6 +1346,7 @@ const app = createApp({
   findAdminSessionVersion: (id) => findSessionVersion(getDatabase(), id),
   revokeAdminSession: (id, version) => revokeSession(getDatabase(), id, version),
   listFavourites: () => listFavourites(getDatabase()),
+  createFavourite: (input) => createFavourite(getDatabase(), input),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   createPortfolio: (input) => createPortfolio(getDatabase(), input),
   findPortfolio: (id) => findPortfolio(getDatabase(), id),

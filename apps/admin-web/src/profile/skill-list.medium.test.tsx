@@ -81,3 +81,22 @@ test("retains the skill if deletion fails", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("スキルを削除できませんでした");
   expect(screen.getByText("TypeScript")).toBeInTheDocument();
 });
+
+test("does not delete a skill when confirmation is cancelled", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  const remove = vi.fn<() => void>();
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({ data: [{ id: "1", name: "TypeScript", displayOrder: 0 }] }),
+    ),
+    http.delete("https://api.example.test/api/admin/skills/1", () => {
+      remove();
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "TypeScript を削除" }));
+  expect(remove).not.toHaveBeenCalled();
+  expect(screen.getByText("TypeScript")).toBeInTheDocument();
+});

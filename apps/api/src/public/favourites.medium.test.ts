@@ -54,7 +54,7 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
 );
 
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
-  "the configured API returns a successful favourites response",
+  "the configured API serves all public resources from the database",
   async () => {
     if (!databaseUrl) {
       throw new Error("TEST_DATABASE_URL is required");
@@ -65,6 +65,14 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
       const response = await app.request("/api/public/favourites");
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ data: [] });
+      const portfolios = await app.request("/api/public/portfolio?section=engineering");
+      expect(portfolios.status).toBe(200);
+      expect(await portfolios.json()).toEqual({ data: [] });
+      const profile = await app.request("/api/public/profile");
+      expect(profile.status).toBe(200);
+      expect(await profile.json()).toEqual({
+        data: { profile: null, skills: [], links: { engineering: [], hobby: [] } },
+      });
     } finally {
       await getDatabase().$client.end();
       if (previousUrl === undefined) {

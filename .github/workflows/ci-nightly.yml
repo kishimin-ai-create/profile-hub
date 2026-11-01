@@ -107,6 +107,18 @@ jobs:
     name: Build, E2E and VRT (${{ matrix.workspace }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    services:
+      postgres:
+        image: ${{ matrix.workspace == 'public-web' && 'postgres:17' || '' }}
+        env:
+          POSTGRES_DB: profile_hub_public_browser_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d profile_hub_public_browser_test" --health-interval
+          10s --health-timeout 5s --health-retries 5
     strategy:
       fail-fast: false
       matrix:
@@ -144,6 +156,13 @@ jobs:
         run: bunx playwright install-deps chromium webkit
         working-directory: apps/${{ matrix.workspace }}
 
+      - name: Migrate public browser test database
+        if: matrix.workspace == 'public-web'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/profile_hub_public_browser_test
+        run: bun run db:migrate
+        working-directory: apps/api
+
       - name: Install Playwright browsers
         run: bunx playwright install chromium webkit
         working-directory: apps/${{ matrix.workspace }}
@@ -162,7 +181,7 @@ jobs:
             bun run e2e:auth
           fi
           if [ "${{ matrix.workspace }}" = "public-web" ]; then
-            bun run e2e:public-api
+            PUBLIC_E2E_REQUIRE_DATABASE=1 PUBLIC_E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/profile_hub_public_browser_test bun run e2e:public-api
           fi
           if [ -d e2e ] && find e2e -type f \( -name '*.spec.*' -o -name '*.test.*' \) ! -name 'auth-session.large.test.ts' ! -name 'public-api.large.test.ts' -print -quit | grep -q .; then
             bun run e2e

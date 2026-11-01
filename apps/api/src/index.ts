@@ -27,6 +27,7 @@ import { updateFavourite } from "./admin/update-favourite";
 import { updatePortfolio } from "./admin/update-portfolio";
 import type { ProfileInput } from "./admin/update-profile";
 import { updateProfile } from "./admin/update-profile";
+import { updateSkill } from "./admin/update-skill";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
 import { refreshSession } from "./auth/refresh-session";
@@ -56,6 +57,7 @@ type Dependencies = {
   updateProfile?: (input: ProfileInput) => ReturnType<typeof updateProfile>;
   createSkill?: (input: SkillInput) => ReturnType<typeof createSkill>;
   deleteSkill?: (id: string) => ReturnType<typeof deleteSkill>;
+  updateSkill?: (id: string, input: SkillInput) => ReturnType<typeof updateSkill>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -610,6 +612,84 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.put(
+    "/api/admin/skills/:id",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "updateAdminSkill",
+      tags: ["Admin skills"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["name", "displayOrder"],
+              properties: {
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Skill updated",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id", "name", "displayOrder"],
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Skill not found", "NOT_FOUND", "Not found"),
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const input: unknown = await context.req.json().catch(() => null);
+      const parsed = skillInput.safeParse(input);
+      if (!parsed.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.updateSkill) throw new Error("Skill persistence unavailable");
+      const updated = await dependencies.updateSkill(id, parsed.data);
+      context.header("Cache-Control", "no-store");
+      if (!updated)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.json({ data: updated });
     },
   );
   app.on(
@@ -1820,6 +1900,7 @@ export const createConfiguredApp = () =>
     updateProfile: (input) => updateProfile(getDatabase(), input),
     createSkill: (input) => createSkill(getDatabase(), input),
     deleteSkill: (id) => deleteSkill(getDatabase(), id),
+    updateSkill: (id, input) => updateSkill(getDatabase(), id, input),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

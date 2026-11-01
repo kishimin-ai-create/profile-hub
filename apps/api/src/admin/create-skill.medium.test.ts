@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 import { createSkill } from "./create-skill";
 import { deleteSkill } from "./delete-skill";
+import { updateSkill } from "./update-skill";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
@@ -21,6 +22,12 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         created.id,
       ]);
       expect(rows.rows).toEqual([{ name: input.name, display_order: input.displayOrder }]);
+      const changed = { ...input, name: "Bun" };
+      expect(await updateSkill(drizzle(client), created.id, changed)).toEqual({
+        ...changed,
+        id: created.id,
+      });
+      expect(await updateSkill(drizzle(client), "9223372036854775807", changed)).toBeNull();
       expect(await deleteSkill(drizzle(client), created.id)).toBe(true);
       expect(await deleteSkill(drizzle(client), created.id)).toBe(false);
       expect(

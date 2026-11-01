@@ -67,3 +67,49 @@ test("reports a missing skill instead of opening an empty form", async () => {
   render(<RouterProvider router={router} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("スキルを取得できませんでした");
 });
+
+test("reports a failed skill request", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get(
+      "https://api.example.test/api/admin/skills",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/1/edit"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルを取得できませんでした");
+});
+
+test("keeps unsaved edits when navigation is cancelled", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({ data: [{ id: "1", name: "TypeScript", displayOrder: 0 }] }),
+    ),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/1/edit"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  await user.type(await screen.findByLabelText("スキル名"), "X");
+  await user.click(screen.getByRole("link", { name: "Dashboard" }));
+  expect(confirmation).toHaveBeenCalledOnce();
+  expect(screen.getByLabelText("スキル名")).toHaveValue("TypeScriptX");
+});

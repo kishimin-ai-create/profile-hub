@@ -20,6 +20,7 @@ import { PortfolioPage } from "../../portfolio/portfolio-page";
 import { ProfileEditPage } from "../../profile/profile-edit-page";
 import { ProfilePage } from "../../profile/profile-page";
 import { SkillCreatePage } from "../../profile/skill-create-page";
+import { SkillEditPage } from "../../profile/skill-edit-page";
 import { SkillList } from "../../profile/skill-list";
 
 type RouteSession = {
@@ -181,7 +182,15 @@ const profileRoute = createRoute({
         <Link to={"/profile/edit"}>{"プロフィールを編集"}</Link>
         <ProfilePage session={context.session} />
         <Link to={"/profile/skills/new"}>{"スキルを作成"}</Link>
-        <SkillList session={context.session} />
+        <SkillList
+          session={context.session}
+          renderEdit={(skill) => (
+            <Link
+              to={"/profile/skills/$id/edit"}
+              params={{ id: skill.id }}
+            >{`${skill.name} を編集`}</Link>
+          )}
+        />
       </>
     );
   },
@@ -213,6 +222,27 @@ const skillNewRoute = createRoute({
     return (
       <SkillCreatePage
         session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/profile" });
+        }}
+      />
+    );
+  },
+});
+const skillEditRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile/skills/$id/edit",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    const params: unknown = skillEditRoute.useParams();
+    const result = z.object({ id: z.string() }).safeParse(params);
+    const navigate = skillEditRoute.useNavigate();
+    if (!isRouteContext(context) || !result.success) throw new Error("Missing skill context");
+    return (
+      <SkillEditPage
+        key={result.data.id}
+        session={context.session}
+        id={result.data.id}
         onSuccess={() => {
           void navigate({ to: "/profile" });
         }}
@@ -288,6 +318,7 @@ const routeTree = rootRoute.addChildren([
     profileRoute,
     profileEditRoute,
     skillNewRoute,
+    skillEditRoute,
     hobbyRoute,
     hobbyNewRoute,
     hobbyEditRoute,

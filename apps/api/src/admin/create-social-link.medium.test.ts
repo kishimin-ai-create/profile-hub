@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 import { createSocialLink } from "./create-social-link";
+import { deleteSocialLink } from "./delete-social-link";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
@@ -33,6 +34,11 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
           display_order: input.displayOrder,
         },
       ]);
+      expect(await deleteSocialLink(drizzle(client), created.id)).toBe(true);
+      expect(await deleteSocialLink(drizzle(client), created.id)).toBe(false);
+      expect(
+        (await client.query("SELECT id FROM social_links WHERE id = $1", [created.id])).rows,
+      ).toEqual([]);
     } finally {
       await client.query("ROLLBACK");
       await client.end();

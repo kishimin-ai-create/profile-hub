@@ -18,6 +18,7 @@ import { createSocialLink } from "./admin/create-social-link";
 import { deleteFavourite } from "./admin/delete-favourite";
 import { deletePortfolio } from "./admin/delete-portfolio";
 import { deleteSkill } from "./admin/delete-skill";
+import { deleteSocialLink } from "./admin/delete-social-link";
 import { favouriteInput } from "./admin/favourite-input";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
@@ -64,6 +65,7 @@ type Dependencies = {
   updateSkill?: (id: string, input: SkillInput) => ReturnType<typeof updateSkill>;
   reorderSkills?: (ids: string[]) => ReturnType<typeof reorderSkills>;
   createSocialLink?: (input: SocialLinkInput) => ReturnType<typeof createSocialLink>;
+  deleteSocialLink?: (id: string) => ReturnType<typeof deleteSocialLink>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -618,6 +620,42 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.on(
+    "DELETE",
+    "/api/admin/social-links/:id",
+    describeRoute({
+      operationId: "deleteAdminSocialLink",
+      tags: ["Admin social links"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      responses: {
+        204: { description: "Social link deleted" },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Social link not found", "NOT_FOUND", "Not found"),
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.deleteSocialLink) throw new Error("Social link persistence unavailable");
+      const deleted = await dependencies.deleteSocialLink(id);
+      context.header("Cache-Control", "no-store");
+      if (!deleted)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.body(null, 204);
     },
   );
   app.post(
@@ -2084,6 +2122,7 @@ export const createConfiguredApp = () =>
     updateSkill: (id, input) => updateSkill(getDatabase(), id, input),
     reorderSkills: (ids) => reorderSkills(getDatabase(), ids),
     createSocialLink: (input) => createSocialLink(getDatabase(), input),
+    deleteSocialLink: (id) => deleteSocialLink(getDatabase(), id),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

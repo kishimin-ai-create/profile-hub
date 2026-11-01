@@ -4,6 +4,36 @@ import { createAuthorizedRequest, sessionRenewedError } from "./authorized-reque
 
 afterEach(() => vi.restoreAllMocks());
 
+test("permits only the intended profile, skill and social-link paths", async () => {
+  const send = vi
+    .spyOn(axios, "request")
+    .mockResolvedValue({
+      data: { data: [] },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    });
+  const client = createAuthorizedRequest({ accessToken: () => "access" });
+  for (const url of [
+    "/api/admin/profile",
+    "/api/admin/skills",
+    "/api/admin/skills/1",
+    "/api/admin/skills/order",
+    "/api/admin/social-links",
+    "/api/admin/social-links/1",
+    "/api/admin/social-links/order",
+  ])
+    await expect(client({ method: "GET", url })).resolves.toEqual({ data: [] });
+  for (const url of [
+    "/api/admin/profile/1",
+    "/api/admin/skills/../auth",
+    "https://attacker.example/api/admin/profile",
+  ])
+    await expect(client({ method: "GET", url })).rejects.toThrow("Invalid administrator request");
+  expect(send).toHaveBeenCalledTimes(7);
+});
+
 test("allows only favourite API paths while keeping credentials on the configured origin", async () => {
   const send = vi.spyOn(axios, "request").mockResolvedValue({
     data: { data: [] },

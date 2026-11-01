@@ -35,6 +35,10 @@ test("rejects an unsafe avatar URL", async () => {
   await user.type(screen.getByLabelText("画像 URL"), "javascript:alert(1)");
   await user.click(screen.getByRole("button", { name: "保存" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("http または https");
+  expect(screen.getByLabelText("画像 URL")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByLabelText("画像 URL")).toHaveAccessibleDescription(
+    "http または https の URL を入力してください",
+  );
   expect(save).not.toHaveBeenCalled();
 });
 

@@ -5,6 +5,7 @@ import { EngineeringHero } from "../../features/engineering/components/Engineeri
 import { EngineeringContact } from "../../features/engineering/EngineeringContact";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
 import { HobbyContact } from "../../features/hobby/HobbyContact";
+import { HobbyFavourites } from "../../features/hobby/HobbyFavourites";
 import { HomeProfile } from "../../features/home/HomeProfile";
 import { SiteLayout } from "./SiteLayout";
 
@@ -49,7 +50,12 @@ const engineeringContactRoute = createRoute({
 const hobbyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/hobby",
-  component: HobbyHero,
+  component: () => (
+    <>
+      <HobbyHero />
+      <HobbyFavourites />
+    </>
+  ),
 });
 
 const hobbyContactRoute = createRoute({

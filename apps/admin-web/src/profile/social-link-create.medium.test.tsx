@@ -82,6 +82,8 @@ test("rejects mailto for non-email links", async () => {
   await user.type(screen.getByLabelText("表示順"), "0");
   await user.click(screen.getByRole("button", { name: "作成" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("URL を確認してください");
+  expect(screen.getByLabelText("URL")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByLabelText("URL")).toHaveAccessibleDescription("URL を確認してください");
 });
 
 test("keeps unsaved link input when navigation is cancelled", async () => {

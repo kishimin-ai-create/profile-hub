@@ -33,6 +33,10 @@ test("rejects unsafe links before saving", async () => {
   await user.type(screen.getByLabelText("表示順"), "1");
   await user.click(screen.getByRole("button", { name: "作成" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("http または https");
+  expect(screen.getByLabelText("URL")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByLabelText("URL")).toHaveAccessibleDescription(
+    "http または https の URL を入力してください",
+  );
   expect(save).not.toHaveBeenCalled();
 });
 

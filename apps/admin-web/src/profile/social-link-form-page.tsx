@@ -1,5 +1,5 @@
 import { useBlocker } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest, sessionRenewedError } from "../api/authorized-request";
@@ -25,6 +25,8 @@ export const SocialLinkFormPage = ({
   const submitting = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
+  const urlError = error === "URL を確認してください";
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
     enableBeforeUnload: () => dirty.current,
@@ -117,7 +119,14 @@ export const SocialLinkFormPage = ({
           </label>
           <label>
             {"URL"}
-            <input name={"url"} required maxLength={2048} defaultValue={initial?.url} />
+            <input
+              name={"url"}
+              required
+              maxLength={2048}
+              defaultValue={initial?.url}
+              aria-invalid={urlError || undefined}
+              aria-describedby={urlError ? errorId : undefined}
+            />
           </label>
           <label>
             {"表示順"}
@@ -132,7 +141,11 @@ export const SocialLinkFormPage = ({
           </label>
           <button type={"submit"}>{initial ? "保存" : "作成"}</button>
         </fieldset>
-        {error && <p role={"alert"}>{error}</p>}
+        {error && (
+          <p id={errorId} role={"alert"}>
+            {error}
+          </p>
+        )}
       </form>
     </>
   );

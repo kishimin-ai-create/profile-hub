@@ -11,6 +11,7 @@ import { z } from "zod";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
 import { LoginPage } from "../../auth/login-page";
+import { FavouritePage } from "../../favourites/favourite-page";
 import { PortfolioCreatePage } from "../../portfolio/portfolio-create-page";
 import { PortfolioEditPage } from "../../portfolio/portfolio-edit-page";
 import { PortfolioPage } from "../../portfolio/portfolio-page";
@@ -170,6 +171,11 @@ const profileRoute = createRoute({
 const hobbyRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/hobby",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    return <FavouritePage session={context.session} />;
+  },
 });
 const routeTree = rootRoute.addChildren([
   homeRoute,

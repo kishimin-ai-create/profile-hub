@@ -142,9 +142,11 @@ jobs:
 
       - name: Install Playwright system dependencies
         run: bunx playwright install-deps chromium webkit
+        working-directory: apps/${{ matrix.workspace }}
 
       - name: Install Playwright browsers
         run: bunx playwright install chromium webkit
+        working-directory: apps/${{ matrix.workspace }}
 
       - name: Build application
         run: bun run build

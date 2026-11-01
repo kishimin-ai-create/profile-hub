@@ -26,6 +26,7 @@ import { profileInput } from "./admin/profile-input";
 import { reorderFavourites } from "./admin/reorder-favourites";
 import { reorderPortfolios } from "./admin/reorder-portfolios";
 import { reorderSkills } from "./admin/reorder-skills";
+import { reorderSocialLinks } from "./admin/reorder-social-links";
 import { skillInput } from "./admin/skill-input";
 import { socialLinkInput } from "./admin/social-link-input";
 import { updateFavourite } from "./admin/update-favourite";
@@ -68,6 +69,10 @@ type Dependencies = {
   createSocialLink?: (input: SocialLinkInput) => ReturnType<typeof createSocialLink>;
   deleteSocialLink?: (id: string) => ReturnType<typeof deleteSocialLink>;
   updateSocialLink?: (id: string, input: SocialLinkInput) => ReturnType<typeof updateSocialLink>;
+  reorderSocialLinks?: (
+    section: SocialLinkInput["section"],
+    ids: string[],
+  ) => ReturnType<typeof reorderSocialLinks>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -622,6 +627,65 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.patch(
+    "/api/admin/social-links/order",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "reorderAdminSocialLinks",
+      tags: ["Admin social links"],
+      security: [{ adminBearer: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["section", "ids"],
+              properties: {
+                section: { type: "string", enum: ["engineering", "hobby"] },
+                ids: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 500,
+                  uniqueItems: true,
+                  items: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        204: { description: "Social links reordered" },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const input: unknown = await context.req.json().catch(() => null);
+      const idSchema = z
+        .string()
+        .refine((id) => /^[1-9][0-9]{0,18}$/.test(id) && BigInt(id) <= 9223372036854775807n);
+      const parsed = z
+        .strictObject({
+          section: z.enum(["engineering", "hobby"]),
+          ids: z.array(idSchema).min(1).max(500),
+        })
+        .safeParse(input);
+      if (!parsed.success || new Set(parsed.data.ids).size !== parsed.data.ids.length)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.reorderSocialLinks) throw new Error("Social link persistence unavailable");
+      const reordered = await dependencies.reorderSocialLinks(parsed.data.section, parsed.data.ids);
+      context.header("Cache-Control", "no-store");
+      if (!reordered)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      return context.body(null, 204);
     },
   );
   app.put(
@@ -2212,6 +2276,7 @@ export const createConfiguredApp = () =>
     createSocialLink: (input) => createSocialLink(getDatabase(), input),
     deleteSocialLink: (id) => deleteSocialLink(getDatabase(), id),
     updateSocialLink: (id, input) => updateSocialLink(getDatabase(), id, input),
+    reorderSocialLinks: (section, ids) => reorderSocialLinks(getDatabase(), section, ids),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

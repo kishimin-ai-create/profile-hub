@@ -3,6 +3,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { ErrorState, LoadingState } from "../../components/QueryState";
 import { EngineeringHero } from "../../features/engineering/components/EngineeringHero";
 import { HobbyHero } from "../../features/hobby/components/HobbyHero";
+import { HobbyContact } from "../../features/hobby/HobbyContact";
 import { HomeProfile } from "../../features/home/HomeProfile";
 import { SiteLayout } from "./SiteLayout";
 
@@ -53,7 +54,7 @@ const hobbyRoute = createRoute({
 const hobbyContactRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/hobby/contact",
-  component: () => <h1>{"Hobby Contact"}</h1>,
+  component: HobbyContact,
 });
 
 const routeTree = rootRoute.addChildren([

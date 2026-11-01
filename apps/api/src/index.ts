@@ -17,6 +17,7 @@ import { favouriteInput } from "./admin/favourite-input";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
 import { reorderPortfolios } from "./admin/reorder-portfolios";
+import { updateFavourite } from "./admin/update-favourite";
 import { updatePortfolio } from "./admin/update-portfolio";
 import { loginAdmin } from "./auth/login";
 import { verifyPassword } from "./auth/password";
@@ -42,6 +43,7 @@ type Dependencies = {
   listFavourites: () => ReturnType<typeof listFavourites>;
   createFavourite?: (input: FavouriteInput) => ReturnType<typeof createFavourite>;
   deleteFavourite?: (id: string) => ReturnType<typeof deleteFavourite>;
+  updateFavourite?: (id: string, input: FavouriteInput) => ReturnType<typeof updateFavourite>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -664,6 +666,88 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createFavourite(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.put(
+    "/api/admin/favourites/:id",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "updateAdminFavourite",
+      tags: ["Admin favourites"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["name", "description", "link", "displayOrder"],
+              properties: {
+                name: { type: "string", minLength: 1, maxLength: 200 },
+                description: { type: "string", minLength: 1, maxLength: 4000 },
+                link: { type: "string", format: "uri", maxLength: 2048 },
+                displayOrder: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Favourite updated",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "object",
+                    required: ["id", "name", "description", "link", "displayOrder"],
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      description: { type: "string" },
+                      link: { type: "string" },
+                      displayOrder: { type: "integer" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Favourite not found", "NOT_FOUND", "Not found"),
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      const input: unknown = await context.req.json().catch(() => null);
+      const parsed = favouriteInput.safeParse(input);
+      if (!parsed.success)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.updateFavourite) throw new Error("Favourite persistence unavailable");
+      const updated = await dependencies.updateFavourite(id, parsed.data);
+      context.header("Cache-Control", "no-store");
+      if (!updated)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.json({ data: updated });
     },
   );
   app.on(
@@ -1386,6 +1470,7 @@ const app = createApp({
   listFavourites: () => listFavourites(getDatabase()),
   createFavourite: (input) => createFavourite(getDatabase(), input),
   deleteFavourite: (id) => deleteFavourite(getDatabase(), id),
+  updateFavourite: (id, input) => updateFavourite(getDatabase(), id, input),
   listPortfolios: (section) => listPortfolios(getDatabase(), section),
   createPortfolio: (input) => createPortfolio(getDatabase(), input),
   findPortfolio: (id) => findPortfolio(getDatabase(), id),

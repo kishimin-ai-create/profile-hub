@@ -602,6 +602,53 @@ export const createApp = (dependencies: Dependencies) => {
       return context.json({ data: created }, 201);
     },
   );
+  app.get(
+    "/api/admin/profile",
+    describeRoute({
+      operationId: "getAdminProfile",
+      tags: ["Admin profile"],
+      security: [{ adminBearer: [] }],
+      responses: {
+        200: {
+          description: "Current profile",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    anyOf: [
+                      { type: "null" },
+                      {
+                        type: "object",
+                        required: ["id", "name", "title", "bio", "avatarUrl"],
+                        properties: {
+                          id: { type: "string" },
+                          name: { type: "string" },
+                          title: { type: ["string", "null"] },
+                          bio: { type: ["string", "null"] },
+                          avatarUrl: { type: ["string", "null"] },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const { profile } = await dependencies.getPublicProfile();
+      context.header("Cache-Control", "no-store");
+      return context.json({ data: profile });
+    },
+  );
   app.post(
     "/api/admin/favourites",
     bodyLimit({ maxSize: 65536 }),

@@ -18,6 +18,9 @@ afterAll(() => server.close());
 test("creates a skill through the authenticated API and returns to profile", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(
+    http.get("https://api.example.test/api/admin/social-links", () =>
+      HttpResponse.json({ data: [] }),
+    ),
     http.post("https://api.example.test/api/admin/skills", async ({ request }) => {
       expect(request.headers.get("Authorization")).toBe("Bearer access");
       expect(await request.json()).toEqual({ name: "TypeScript", displayOrder: 0 });

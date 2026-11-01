@@ -19,6 +19,9 @@ test("edits an existing skill and returns to profile", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const state = { name: "TypeScript" };
   server.use(
+    http.get("https://api.example.test/api/admin/social-links", () =>
+      HttpResponse.json({ data: [] }),
+    ),
     http.get("https://api.example.test/api/admin/skills", () =>
       HttpResponse.json({ data: [{ id: "1", name: state.name, displayOrder: 0 }] }),
     ),

@@ -19,6 +19,9 @@ test("updates the profile and returns to its display screen", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const state = { name: "Example" };
   server.use(
+    http.get("https://api.example.test/api/admin/social-links", () =>
+      HttpResponse.json({ data: [] }),
+    ),
     http.get("https://api.example.test/api/admin/skills", () => HttpResponse.json({ data: [] })),
     http.get("https://api.example.test/api/admin/profile", () =>
       HttpResponse.json({

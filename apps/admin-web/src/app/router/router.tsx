@@ -22,6 +22,7 @@ import { ProfilePage } from "../../profile/profile-page";
 import { SkillCreatePage } from "../../profile/skill-create-page";
 import { SkillEditPage } from "../../profile/skill-edit-page";
 import { SkillList } from "../../profile/skill-list";
+import { SocialLinkList } from "../../profile/social-link-list";
 
 type RouteSession = {
   accessToken: () => string | null;
@@ -191,6 +192,7 @@ const profileRoute = createRoute({
             >{`${skill.name} を編集`}</Link>
           )}
         />
+        <SocialLinkList session={context.session} />
       </>
     );
   },

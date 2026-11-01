@@ -616,6 +616,56 @@ export const createApp = (dependencies: Dependencies) => {
       return context.json({ data: created }, 201);
     },
   );
+  app.get(
+    "/api/admin/social-links",
+    describeRoute({
+      operationId: "listAdminSocialLinks",
+      tags: ["Admin social links"],
+      security: [{ adminBearer: [] }],
+      responses: {
+        200: {
+          description: "Social links in display order by section",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["data"],
+                properties: {
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: ["id", "section", "kind", "url", "displayOrder"],
+                      properties: {
+                        id: { type: "string" },
+                        section: { type: "string", enum: ["engineering", "hobby"] },
+                        kind: { type: "string" },
+                        url: { type: "string" },
+                        displayOrder: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const { links } = await dependencies.getPublicProfile();
+      context.header("Cache-Control", "no-store");
+      return context.json({
+        data: [
+          ...links.engineering.map((link) => ({ ...link, section: "engineering" })),
+          ...links.hobby.map((link) => ({ ...link, section: "hobby" })),
+        ],
+      });
+    },
+  );
   app.patch(
     "/api/admin/skills/order",
     bodyLimit({ maxSize: 65536 }),

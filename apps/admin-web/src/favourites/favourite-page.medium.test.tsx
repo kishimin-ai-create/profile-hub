@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, test, vi } from "vitest";
@@ -9,6 +10,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   server.resetHandlers();
   vi.unstubAllEnvs();
+  vi.restoreAllMocks();
 });
 afterAll(() => server.close());
 
@@ -67,4 +69,39 @@ test("rejects a malformed favourite response", async () => {
   );
   render(<FavouritePage session={{ accessToken: () => "access" }} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
+});
+
+test("deletes a favourite only after confirmation", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({ data: [{ id: "1", name: "Tea", description: "Green tea" }] }),
+    ),
+    http.delete("https://api.example.test/api/admin/favourites/1", ({ request }) => {
+      expect(request.headers.get("Authorization")).toBe("Bearer access");
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Tea を削除" }));
+  expect(await screen.findByText("お気に入りがありません")).toBeInTheDocument();
+});
+
+test("keeps a favourite when deletion fails", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({ data: [{ id: "1", name: "Tea", description: "Green tea" }] }),
+    ),
+    http.delete(
+      "https://api.example.test/api/admin/favourites/1",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Tea を削除" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを削除できませんでした");
+  expect(screen.getByText("Tea")).toBeInTheDocument();
 });

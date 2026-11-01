@@ -14,7 +14,9 @@ export const createAuthorizedRequest =
   (session: AdminSession) =>
   async <T>(request: AdminRequest): Promise<T> => {
     if (
-      !/^\/api\/admin\/(?:portfolio|favourites)(?:\/(?:[1-9][0-9]{0,18}|order))?$/.test(request.url)
+      !/^\/api\/admin\/(?:profile|(?:portfolio|favourites|skills|social-links)(?:\/(?:[1-9][0-9]{0,18}|order))?)$/.test(
+        request.url,
+      )
     ) {
       throw new Error("Invalid administrator request");
     }

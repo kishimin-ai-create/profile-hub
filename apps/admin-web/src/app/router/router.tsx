@@ -22,6 +22,7 @@ import { ProfilePage } from "../../profile/profile-page";
 import { SkillCreatePage } from "../../profile/skill-create-page";
 import { SkillEditPage } from "../../profile/skill-edit-page";
 import { SkillList } from "../../profile/skill-list";
+import { SocialLinkFormPage } from "../../profile/social-link-form-page";
 import { SocialLinkList } from "../../profile/social-link-list";
 
 type RouteSession = {
@@ -192,6 +193,7 @@ const profileRoute = createRoute({
             >{`${skill.name} を編集`}</Link>
           )}
         />
+        <Link to={"/profile/links/new"}>{"リンクを作成"}</Link>
         <SocialLinkList session={context.session} />
       </>
     );
@@ -245,6 +247,23 @@ const skillEditRoute = createRoute({
         key={result.data.id}
         session={context.session}
         id={result.data.id}
+        onSuccess={() => {
+          void navigate({ to: "/profile" });
+        }}
+      />
+    );
+  },
+});
+const socialLinkNewRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile/links/new",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    if (!isRouteContext(context)) throw new Error("Missing session context");
+    const navigate = socialLinkNewRoute.useNavigate();
+    return (
+      <SocialLinkFormPage
+        session={context.session}
         onSuccess={() => {
           void navigate({ to: "/profile" });
         }}
@@ -321,6 +340,7 @@ const routeTree = rootRoute.addChildren([
     profileEditRoute,
     skillNewRoute,
     skillEditRoute,
+    socialLinkNewRoute,
     hobbyRoute,
     hobbyNewRoute,
     hobbyEditRoute,

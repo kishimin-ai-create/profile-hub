@@ -83,3 +83,50 @@ test("rejects mailto for non-email links", async () => {
   await user.click(screen.getByRole("button", { name: "作成" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("URL を確認してください");
 });
+
+test("keeps unsaved link input when navigation is cancelled", async () => {
+  const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/links/new"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  await user.type(await screen.findByLabelText("種類"), "website");
+  await user.click(screen.getByRole("link", { name: "Dashboard" }));
+  expect(confirmation).toHaveBeenCalledOnce();
+  expect(screen.getByLabelText("種類")).toHaveValue("website");
+});
+
+test("retains a link when saving fails", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.post(
+      "https://api.example.test/api/admin/social-links",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/links/new"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  await user.selectOptions(await screen.findByLabelText("セクション"), "engineering");
+  await user.type(screen.getByLabelText("種類"), "website");
+  await user.type(screen.getByLabelText("URL"), "https://example.com");
+  await user.type(screen.getByLabelText("表示順"), "0");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("リンクを保存できませんでした");
+  expect(screen.getByLabelText("URL")).toHaveValue("https://example.com");
+});

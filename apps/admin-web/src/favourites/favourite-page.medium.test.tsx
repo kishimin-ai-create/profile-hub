@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -123,4 +123,59 @@ test("does not delete a favourite when confirmation is cancelled", async () => {
   await userEvent.click(await screen.findByRole("button", { name: "Tea を削除" }));
   expect(remove).not.toHaveBeenCalled();
   expect(screen.getByText("Tea")).toBeInTheDocument();
+});
+
+test("reorders all favourites through the authenticated API", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "Tea", description: "Green" },
+          { id: "2", name: "Coffee", description: "Black" },
+        ],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/favourites/order", async ({ request }) => {
+      expect(request.headers.get("Authorization")).toBe("Bearer access");
+      expect(await request.json()).toEqual({ ids: ["2", "1"] });
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Coffee を上へ" }));
+  await waitFor(() => {
+    const items = within(screen.getByRole("list", { name: "お気に入り一覧" })).getAllByRole(
+      "listitem",
+    );
+    expect(items[0]).toHaveTextContent("Coffee");
+    expect(items[1]).toHaveTextContent("Tea");
+  });
+});
+
+test("keeps the displayed order if reordering fails", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "Tea", description: "Green" },
+          { id: "2", name: "Coffee", description: "Black" },
+        ],
+      }),
+    ),
+    http.patch(
+      "https://api.example.test/api/admin/favourites/order",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Coffee を上へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "お気に入りの順序を変更できませんでした",
+  );
+  const items = within(screen.getByRole("list", { name: "お気に入り一覧" })).getAllByRole(
+    "listitem",
+  );
+  expect(items[0]).toHaveTextContent("Tea");
 });

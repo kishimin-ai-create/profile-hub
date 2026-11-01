@@ -22,6 +22,7 @@ import { portfolioInput } from "./admin/portfolio-input";
 import { profileInput } from "./admin/profile-input";
 import { reorderFavourites } from "./admin/reorder-favourites";
 import { reorderPortfolios } from "./admin/reorder-portfolios";
+import { reorderSkills } from "./admin/reorder-skills";
 import { skillInput } from "./admin/skill-input";
 import { updateFavourite } from "./admin/update-favourite";
 import { updatePortfolio } from "./admin/update-portfolio";
@@ -58,6 +59,7 @@ type Dependencies = {
   createSkill?: (input: SkillInput) => ReturnType<typeof createSkill>;
   deleteSkill?: (id: string) => ReturnType<typeof deleteSkill>;
   updateSkill?: (id: string, input: SkillInput) => ReturnType<typeof updateSkill>;
+  reorderSkills?: (ids: string[]) => ReturnType<typeof reorderSkills>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -612,6 +614,59 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.patch(
+    "/api/admin/skills/order",
+    bodyLimit({ maxSize: 65536 }),
+    describeRoute({
+      operationId: "reorderAdminSkills",
+      tags: ["Admin skills"],
+      security: [{ adminBearer: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["ids"],
+              properties: {
+                ids: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 500,
+                  uniqueItems: true,
+                  items: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        204: { description: "Skills reordered" },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        413: { description: "Request body too large" },
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const input: unknown = await context.req.json().catch(() => null);
+      const idSchema = z
+        .string()
+        .refine((id) => /^[1-9][0-9]{0,18}$/.test(id) && BigInt(id) <= 9223372036854775807n);
+      const parsed = z.strictObject({ ids: z.array(idSchema).min(1).max(500) }).safeParse(input);
+      if (!parsed.success || new Set(parsed.data.ids).size !== parsed.data.ids.length)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.reorderSkills) throw new Error("Skill persistence unavailable");
+      const reordered = await dependencies.reorderSkills(parsed.data.ids);
+      context.header("Cache-Control", "no-store");
+      if (!reordered)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      return context.body(null, 204);
     },
   );
   app.put(
@@ -1901,6 +1956,7 @@ export const createConfiguredApp = () =>
     createSkill: (input) => createSkill(getDatabase(), input),
     deleteSkill: (id) => deleteSkill(getDatabase(), id),
     updateSkill: (id, input) => updateSkill(getDatabase(), id, input),
+    reorderSkills: (ids) => reorderSkills(getDatabase(), ids),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

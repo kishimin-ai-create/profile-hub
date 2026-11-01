@@ -7,7 +7,7 @@ import { createAppRouter } from "./router";
 vi.mock("../../components/PublicProfile", () => ({ PublicProfile: () => null }));
 vi.mock("../../features/engineering/EngineeringSkills", () => ({ EngineeringSkills: () => null }));
 vi.mock("../../features/hobby/HobbyFavourites", () => ({ HobbyFavourites: () => null }));
-vi.mock("../../features/hobby/HobbyProjects", () => ({ HobbyProjects: () => null }));
+vi.mock("../../components/SectionProjects", () => ({ SectionProjects: () => null }));
 vi.mock("../../features/engineering/EngineeringContact", () => ({
   EngineeringContact: () => <h1>{"Engineering Contact"}</h1>,
 }));

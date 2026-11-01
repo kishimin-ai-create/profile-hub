@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, test } from "vitest";
-import { HobbyProjects } from "./HobbyProjects";
+import { SectionProjects } from "../../components/SectionProjects";
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
@@ -14,7 +14,7 @@ const show = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <HobbyProjects />
+      <SectionProjects section={"hobby"} />
     </QueryClientProvider>,
   );
 const project = {

@@ -25,6 +25,7 @@ export const SocialLinkList = ({ session }: { session: AdminSession }) => {
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [reorderError, setReorderError] = useState(false);
   const pending = useRef(false);
   useEffect(() => {
     const lifecycle = { active: true };
@@ -65,6 +66,41 @@ export const SocialLinkList = ({ session }: { session: AdminSession }) => {
       setBusy(false);
     }
   };
+  const move = async (link: SocialLink, direction: -1 | 1) => {
+    if (pending.current || state.status !== "ready" || state.source !== session) return;
+    const section = state.links.filter((entry) => entry.section === link.section);
+    const from = section.findIndex((entry) => entry.id === link.id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= section.length) return;
+    const other = section[to];
+    if (!other) return;
+    const reordered = section.map((entry, index) =>
+      index === from ? other : index === to ? link : entry,
+    );
+    const links = state.links.map((entry) =>
+      entry.id === link.id ? other : entry.id === other.id ? link : entry,
+    );
+    pending.current = true;
+    setBusy(true);
+    setReorderError(false);
+    try {
+      await request({
+        method: "PATCH",
+        url: "/api/admin/social-links/order",
+        data: { section: link.section, ids: reordered.map((entry) => entry.id) },
+      });
+      setState((previous) =>
+        previous.status === "ready" && previous.source === session
+          ? { ...previous, links }
+          : previous,
+      );
+    } catch {
+      setReorderError(true);
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  };
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"リンクを読み込み中"}</p>;
   if (state.status === "error") return <p role={"alert"}>{"リンクを取得できませんでした"}</p>;
@@ -72,6 +108,7 @@ export const SocialLinkList = ({ session }: { session: AdminSession }) => {
     <section>
       <h2>{"リンク"}</h2>
       {deleteError && <p role={"alert"}>{"リンクを削除できませんでした"}</p>}
+      {reorderError && <p role={"alert"}>{"リンクの順序を変更できませんでした"}</p>}
       {state.links.length === 0 ? (
         <p>{"リンクがありません"}</p>
       ) : (
@@ -81,6 +118,27 @@ export const SocialLinkList = ({ session }: { session: AdminSession }) => {
               <span>{link.section === "engineering" ? "Engineering" : "Hobby"}</span>
               <span>{link.kind}</span>
               <span>{link.url}</span>
+              <button
+                type={"button"}
+                disabled={
+                  busy ||
+                  state.links.filter((entry) => entry.section === link.section)[0]?.id === link.id
+                }
+                onClick={() => {
+                  void move(link, -1);
+                }}
+              >{`${link.url} を上へ`}</button>
+              <button
+                type={"button"}
+                disabled={
+                  busy ||
+                  state.links.filter((entry) => entry.section === link.section).at(-1)?.id ===
+                    link.id
+                }
+                onClick={() => {
+                  void move(link, 1);
+                }}
+              >{`${link.url} を下へ`}</button>
               <button
                 type={"button"}
                 disabled={busy}

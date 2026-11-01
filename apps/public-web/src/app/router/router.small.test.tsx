@@ -16,6 +16,14 @@ vi.mock("../../features/hobby/HobbyContact", () => ({
 }));
 
 describe("public routes", () => {
+  test("opens engineering contact from the engineering page body", async () => {
+    const user = userEvent.setup();
+    const router = createAppRouter(createMemoryHistory({ initialEntries: ["/engineering"] }));
+    render(<RouterProvider router={router} />);
+    const main = await screen.findByRole("main");
+    await user.click(within(main).getByRole("link", { name: "仕事について連絡する" }));
+    expect(await screen.findByRole("heading", { name: "Engineering Contact" })).toBeInTheDocument();
+  });
   test("opens hobby contact from the hobby page body", async () => {
     const user = userEvent.setup();
     const router = createAppRouter(createMemoryHistory({ initialEntries: ["/hobby"] }));

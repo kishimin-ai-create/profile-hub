@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -103,5 +103,42 @@ test.each([
     expect(await screen.findByText(expected)).toBeInTheDocument();
     expect(remove).toHaveBeenCalledTimes(confirmation ? 1 : 0);
     expect(screen.queryByText(link.url) !== null).toBe(status === 500 || !confirmation);
+  },
+);
+
+test.each([204, 500])(
+  "reorders only the selected section when the API returns %i",
+  async (status) => {
+    vi.stubEnv("VITE_API_URL", "https://api.example.test");
+    server.use(
+      http.get("https://api.example.test/api/admin/social-links", () =>
+        HttpResponse.json({
+          data: [
+            link,
+            { ...link, id: "2", url: "https://two.example.com", displayOrder: 1 },
+            { ...link, id: "3", section: "hobby", url: "https://hobby.example.com" },
+          ],
+        }),
+      ),
+      http.patch("https://api.example.test/api/admin/social-links/order", async ({ request }) => {
+        expect(request.headers.get("Authorization")).toBe("Bearer access");
+        expect(await request.json()).toEqual({ section: "engineering", ids: ["2", "1"] });
+        return new HttpResponse(null, { status });
+      }),
+    );
+    render(<SocialLinkList session={{ accessToken: () => "access" }} />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "https://two.example.com を上へ" }),
+    );
+    if (status === 500) await screen.findByRole("alert");
+    await waitFor(() => {
+      const items = within(screen.getByRole("list", { name: "リンク一覧" })).getAllByRole(
+        "listitem",
+      );
+      expect(items[0]).toHaveTextContent(
+        status === 204 ? "https://two.example.com" : "https://example.com",
+      );
+      expect(items[2]).toHaveTextContent("https://hobby.example.com");
+    });
   },
 );

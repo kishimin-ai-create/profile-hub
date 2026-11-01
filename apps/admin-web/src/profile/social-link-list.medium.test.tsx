@@ -68,27 +68,40 @@ test("shows an empty link list", async () => {
   expect(await screen.findByText("リンクがありません")).toBeInTheDocument();
 });
 
-const link = { id: "1", section: "engineering", kind: "website", url: "https://example.com", displayOrder: 0 };
+const link = {
+  id: "1",
+  section: "engineering",
+  kind: "website",
+  url: "https://example.com",
+  displayOrder: 0,
+};
 
 test.each([
   { confirmation: true, status: 204, expected: "リンクがありません" },
   { confirmation: true, status: 500, expected: "リンクを削除できませんでした" },
   { confirmation: false, status: 204, expected: "https://example.com" },
-])("handles link deletion with confirmation=$confirmation and status=$status", async ({ confirmation, status, expected }) => {
-  vi.stubEnv("VITE_API_URL", "https://api.example.test");
-  vi.spyOn(window, "confirm").mockReturnValue(confirmation);
-  const remove = vi.fn();
-  server.use(
-    http.get("https://api.example.test/api/admin/social-links", () => HttpResponse.json({ data: [link] })),
-    http.delete("https://api.example.test/api/admin/social-links/1", ({ request }) => {
-      expect(request.headers.get("Authorization")).toBe("Bearer access");
-      remove();
-      return new HttpResponse(null, { status });
-    }),
-  );
-  render(<SocialLinkList session={{ accessToken: () => "access" }} />);
-  await userEvent.click(await screen.findByRole("button", { name: "https://example.com を削除" }));
-  expect(await screen.findByText(expected)).toBeInTheDocument();
-  expect(remove).toHaveBeenCalledTimes(confirmation ? 1 : 0);
-  if (status === 500) expect(screen.getByText(link.url)).toBeInTheDocument();
-});
+])(
+  "handles link deletion with confirmation=$confirmation and status=$status",
+  async ({ confirmation, status, expected }) => {
+    vi.stubEnv("VITE_API_URL", "https://api.example.test");
+    vi.spyOn(window, "confirm").mockReturnValue(confirmation);
+    const remove = vi.fn<() => void>();
+    server.use(
+      http.get("https://api.example.test/api/admin/social-links", () =>
+        HttpResponse.json({ data: [link] }),
+      ),
+      http.delete("https://api.example.test/api/admin/social-links/1", ({ request }) => {
+        expect(request.headers.get("Authorization")).toBe("Bearer access");
+        remove();
+        return new HttpResponse(null, { status });
+      }),
+    );
+    render(<SocialLinkList session={{ accessToken: () => "access" }} />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "https://example.com を削除" }),
+    );
+    expect(await screen.findByText(expected)).toBeInTheDocument();
+    expect(remove).toHaveBeenCalledTimes(confirmation ? 1 : 0);
+    expect(screen.queryByText(link.url) !== null).toBe(status === 500 || !confirmation);
+  },
+);

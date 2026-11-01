@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 import { createSkill } from "./create-skill";
+import { deleteSkill } from "./delete-skill";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
@@ -20,6 +21,11 @@ test.skipIf(!databaseUrl && process.env["REQUIRE_TEST_DATABASE"] !== "1")(
         created.id,
       ]);
       expect(rows.rows).toEqual([{ name: input.name, display_order: input.displayOrder }]);
+      expect(await deleteSkill(drizzle(client), created.id)).toBe(true);
+      expect(await deleteSkill(drizzle(client), created.id)).toBe(false);
+      expect(
+        (await client.query("SELECT id FROM skills WHERE id = $1", [created.id])).rows,
+      ).toEqual([]);
     } finally {
       await client.query("ROLLBACK");
       await client.end();

@@ -15,6 +15,7 @@ import type { SkillInput } from "./admin/create-skill";
 import { createSkill } from "./admin/create-skill";
 import { deleteFavourite } from "./admin/delete-favourite";
 import { deletePortfolio } from "./admin/delete-portfolio";
+import { deleteSkill } from "./admin/delete-skill";
 import { favouriteInput } from "./admin/favourite-input";
 import { findPortfolio } from "./admin/find-portfolio";
 import { portfolioInput } from "./admin/portfolio-input";
@@ -54,6 +55,7 @@ type Dependencies = {
   reorderFavourites?: (ids: string[]) => ReturnType<typeof reorderFavourites>;
   updateProfile?: (input: ProfileInput) => ReturnType<typeof updateProfile>;
   createSkill?: (input: SkillInput) => ReturnType<typeof createSkill>;
+  deleteSkill?: (id: string) => ReturnType<typeof deleteSkill>;
   listPortfolios: (section: PortfolioSection) => ReturnType<typeof listPortfolios>;
   createPortfolio?: (input: PortfolioInput) => ReturnType<typeof createPortfolio>;
   findPortfolio?: (id: string) => ReturnType<typeof findPortfolio>;
@@ -608,6 +610,42 @@ export const createApp = (dependencies: Dependencies) => {
       const created = await dependencies.createPortfolio(result.data);
       context.header("Cache-Control", "no-store");
       return context.json({ data: created }, 201);
+    },
+  );
+  app.on(
+    "DELETE",
+    "/api/admin/skills/:id",
+    describeRoute({
+      operationId: "deleteAdminSkill",
+      tags: ["Admin skills"],
+      security: [{ adminBearer: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string", pattern: "^[1-9][0-9]{0,18}$" },
+        },
+      ],
+      responses: {
+        204: { description: "Skill deleted" },
+        400: clientErrorResponse,
+        401: authErrorResponse,
+        403: forbiddenResponse,
+        404: errorResponse("Skill not found", "NOT_FOUND", "Not found"),
+        500: serverErrorResponse,
+      },
+    }),
+    async (context) => {
+      const id = context.req.param("id");
+      if (!/^[1-9][0-9]{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
+        return context.json({ error: { code: "CLIENT_ERROR", message: "Invalid request" } }, 400);
+      if (!dependencies.deleteSkill) throw new Error("Skill persistence unavailable");
+      const deleted = await dependencies.deleteSkill(id);
+      context.header("Cache-Control", "no-store");
+      if (!deleted)
+        return context.json({ error: { code: "NOT_FOUND", message: "Not found" } }, 404);
+      return context.body(null, 204);
     },
   );
   app.post(
@@ -1781,6 +1819,7 @@ export const createConfiguredApp = () =>
     reorderFavourites: (ids) => reorderFavourites(getDatabase(), ids),
     updateProfile: (input) => updateProfile(getDatabase(), input),
     createSkill: (input) => createSkill(getDatabase(), input),
+    deleteSkill: (id) => deleteSkill(getDatabase(), id),
     listPortfolios: (section) => listPortfolios(getDatabase(), section),
     createPortfolio: (input) => createPortfolio(getDatabase(), input),
     findPortfolio: (id) => findPortfolio(getDatabase(), id),

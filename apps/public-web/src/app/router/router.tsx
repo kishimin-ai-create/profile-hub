@@ -56,6 +56,7 @@ const hobbyRoute = createRoute({
       <HobbyHero />
       <HobbyFavourites />
       <HobbyProjects />
+      <Link to={"/hobby/contact"}>{"趣味について連絡する"}</Link>
     </>
   ),
 });

@@ -64,3 +64,29 @@ test("keeps unsaved skill input when navigation is cancelled", async () => {
   expect(confirmation).toHaveBeenCalledOnce();
   expect(screen.getByLabelText("スキル名")).toHaveValue("TypeScript");
 });
+
+test("keeps input when a skill cannot be saved", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.post(
+      "https://api.example.test/api/admin/skills",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/new"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  await user.type(await screen.findByLabelText("スキル名"), "TypeScript");
+  await user.type(screen.getByLabelText("表示順"), "0");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルを保存できませんでした");
+  expect(screen.getByLabelText("スキル名")).toHaveValue("TypeScript");
+});

@@ -36,9 +36,9 @@ export const PublicProfile = () => {
     <QueryState query={query}>
       {query.data ? (
         <section aria-label={"プロフィール"}>
-          <p>{query.data.name}</p>
-          {query.data.title && <p>{query.data.title}</p>}
-          {query.data.bio && <p>{query.data.bio}</p>}
+          <p className={"profile-name"}>{query.data.name}</p>
+          {query.data.title && <p className={"profile-title"}>{query.data.title}</p>}
+          {query.data.bio && <p className={"profile-bio"}>{query.data.bio}</p>}
         </section>
       ) : (
         <p>{"プロフィールはまだありません。"}</p>

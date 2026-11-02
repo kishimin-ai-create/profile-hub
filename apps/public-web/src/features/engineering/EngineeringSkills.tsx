@@ -36,7 +36,7 @@ const readSkills = async (): Promise<Skill[]> => {
 export const EngineeringSkills = () => {
   const query = useQuery({ queryKey: ["engineering-skills"], queryFn: readSkills });
   return (
-    <section>
+    <section className={"engineering-skills"}>
       <h2>{"技術スタック"}</h2>
       <QueryState query={query}>
         {query.data?.length ? (

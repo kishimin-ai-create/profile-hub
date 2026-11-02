@@ -109,6 +109,41 @@ p {
 .engineering-projects {
   margin-block: 48px;
 }
+.engineering-profile,
+.engineering-skills {
+  margin-block: 48px;
+}
+.engineering-profile h2,
+.engineering-skills h2 {
+  margin: 0 0 28px;
+  color: #2e59ad;
+  font-size: 12px;
+  font-weight: 700;
+}
+.engineering-profile [aria-label="プロフィール"] {
+  display: grid;
+  gap: 8px;
+}
+.engineering-profile .profile-name {
+  font-size: 21px;
+  font-weight: 700;
+}
+.engineering-profile .profile-title {
+  color: #5c6375;
+}
+.engineering-profile .profile-bio {
+  margin-top: 12px;
+  line-height: 1.7;
+}
+.engineering-skills ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 600;
+}
 .engineering-projects h2 {
   margin: 0 0 28px;
   color: #2e59ad;

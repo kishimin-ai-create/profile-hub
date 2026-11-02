@@ -39,5 +39,6 @@ test("shows the public profile on the engineering page", async () => {
     </QueryClientProvider>,
   );
   expect(await screen.findByText("Example")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "自己紹介" })).toBeInTheDocument();
   expect(screen.getByText("Introduction")).toBeInTheDocument();
 });

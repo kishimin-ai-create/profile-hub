@@ -106,6 +106,42 @@ p {
   max-width: 100%;
   height: auto;
 }
+.hobby-favourites {
+  margin-block: 48px;
+}
+.hobby-favourites h2 {
+  margin: 0 0 28px;
+  color: #2e59ad;
+  font-size: 12px;
+  font-weight: 700;
+}
+.hobby-favourites-list {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hobby-favourites-list li {
+  display: grid;
+  gap: 8px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e3dfd5;
+  border-radius: 14px;
+}
+.hobby-favourites-list a {
+  width: fit-content;
+  color: #0e1117;
+  font-size: 20px;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+.hobby-favourites-list p {
+  color: #5c6375;
+  font-size: 15px;
+  line-height: 1.6;
+}
 .section-hero {
   display: flex;
   flex-direction: column;

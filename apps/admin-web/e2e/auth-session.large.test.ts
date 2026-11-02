@@ -57,7 +57,9 @@ test("administrator edits a social link through the authenticated API", async ({
   await page.getByRole("button", { name: "ログイン" }).click();
   await page.getByRole("link", { name: "Profile" }).click();
   await page.getByRole("link", { name: "https://example.com を編集" }).click();
+  await page.getByLabel("セクション").selectOption("hobby");
   await page.getByLabel("URL").fill("https://new.example.com");
   await page.getByRole("button", { name: "保存" }).click();
   await expect(page.getByText("https://new.example.com", { exact: true })).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "https://new.example.com" })).toContainText("Hobby");
 });

@@ -38,14 +38,28 @@ const memoryApp = () =>
                 displayOrder: 0,
               },
             ]
-          : [],
+          : [
+              {
+                id: "2",
+                section: "engineering",
+                name: "Engineering project",
+                summary: "Built for work",
+                technologies: ["TypeScript"],
+                repositoryUrl: null,
+                demoUrl: null,
+                imageUrl: null,
+                displayOrder: 0,
+              },
+            ],
       ),
     getPublicProfile: () =>
       Promise.resolve({
         profile: { id: "1", name: "Example", title: "Developer", bio: "Hello", avatarUrl: null },
         skills: [],
         links: {
-          engineering: [],
+          engineering: [
+            { id: "2", kind: "github", url: "https://github.com/example", displayOrder: 0 },
+          ],
           hobby: [{ id: "1", kind: "x", url: "https://x.com/example", displayOrder: 0 }],
         },
       }),
@@ -81,16 +95,31 @@ const app =
           link: "https://example.com/music",
           displayOrder: 0,
         });
-        await database.insert(portfolios).values({
-          section: "hobby",
-          name: "Hobby project",
-          summary: "Made for fun",
-          technologies: ["TypeScript"],
-          displayOrder: 0,
-        });
-        await database
-          .insert(socialLinks)
-          .values({ section: "hobby", kind: "x", url: "https://x.com/example", displayOrder: 0 });
+        await database.insert(portfolios).values([
+          {
+            section: "hobby",
+            name: "Hobby project",
+            summary: "Made for fun",
+            technologies: ["TypeScript"],
+            displayOrder: 0,
+          },
+          {
+            section: "engineering",
+            name: "Engineering project",
+            summary: "Built for work",
+            technologies: ["TypeScript"],
+            displayOrder: 0,
+          },
+        ]);
+        await database.insert(socialLinks).values([
+          { section: "hobby", kind: "x", url: "https://x.com/example", displayOrder: 0 },
+          {
+            section: "engineering",
+            kind: "github",
+            url: "https://github.com/example",
+            displayOrder: 0,
+          },
+        ]);
         return createConfiguredApp();
       })();
 

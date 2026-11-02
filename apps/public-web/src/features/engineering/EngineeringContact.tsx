@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { customInstance } from "../../api/mutator/custom-instance";
 import { QueryState } from "../../components/QueryState";
 
-type Contact = { id: string; label: string; url: string };
+type Contact = { id: string; label: string; description: string; url: string };
 const readContacts = async (): Promise<Contact[]> => {
   const result: unknown = await customInstance({
     url: "/api/public/profile",
@@ -43,7 +43,15 @@ const readContacts = async (): Promise<Contact[]> => {
       throw new Error("Invalid URL");
     const url = new URL(entry.url);
     if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Invalid URL");
-    return [{ id: entry.id, label: kind === "github" ? "GitHub" : "Articles", url: url.href }];
+    return [
+      {
+        id: entry.id,
+        label: kind === "github" ? "GitHub" : "Articles",
+        description:
+          kind === "github" ? "コードと個人制作を紹介しています。" : "技術記事を公開しています。",
+        url: url.href,
+      },
+    ];
   });
 };
 
@@ -60,6 +68,7 @@ export const EngineeringContact = () => {
                 <a href={contact.url} target={"_blank"} rel={"noopener noreferrer"}>
                   {contact.label}
                 </a>
+                <p>{contact.description}</p>
               </li>
             ))}
           </ul>

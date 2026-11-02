@@ -22,6 +22,7 @@ import { ProfilePage } from "../../profile/profile-page";
 import { SkillCreatePage } from "../../profile/skill-create-page";
 import { SkillEditPage } from "../../profile/skill-edit-page";
 import { SkillList } from "../../profile/skill-list";
+import { SocialLinkEditPage } from "../../profile/social-link-edit-page";
 import { SocialLinkFormPage } from "../../profile/social-link-form-page";
 import { SocialLinkList } from "../../profile/social-link-list";
 
@@ -194,7 +195,15 @@ const profileRoute = createRoute({
           )}
         />
         <Link to={"/profile/links/new"}>{"リンクを作成"}</Link>
-        <SocialLinkList session={context.session} />
+        <SocialLinkList
+          session={context.session}
+          renderEdit={(link) => (
+            <Link
+              to={"/profile/links/$id/edit"}
+              params={{ id: link.id }}
+            >{`${link.url} を編集`}</Link>
+          )}
+        />
       </>
     );
   },
@@ -264,6 +273,27 @@ const socialLinkNewRoute = createRoute({
     return (
       <SocialLinkFormPage
         session={context.session}
+        onSuccess={() => {
+          void navigate({ to: "/profile" });
+        }}
+      />
+    );
+  },
+});
+const socialLinkEditRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile/links/$id/edit",
+  component: () => {
+    const context: unknown = rootRoute.useRouteContext();
+    const params: unknown = socialLinkEditRoute.useParams();
+    const result = z.object({ id: z.string() }).safeParse(params);
+    const navigate = socialLinkEditRoute.useNavigate();
+    if (!isRouteContext(context) || !result.success) throw new Error("Missing social link context");
+    return (
+      <SocialLinkEditPage
+        key={result.data.id}
+        session={context.session}
+        id={result.data.id}
         onSuccess={() => {
           void navigate({ to: "/profile" });
         }}
@@ -341,6 +371,7 @@ const routeTree = rootRoute.addChildren([
     skillNewRoute,
     skillEditRoute,
     socialLinkNewRoute,
+    socialLinkEditRoute,
     hobbyRoute,
     hobbyNewRoute,
     hobbyEditRoute,

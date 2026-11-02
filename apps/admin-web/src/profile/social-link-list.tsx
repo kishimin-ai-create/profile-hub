@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { z } from "zod";
 import { createAuthorizedRequest } from "../api/authorized-request";
 import type { AdminSession } from "../api/authorized-request";
@@ -20,7 +21,13 @@ type State =
   | { status: "error"; source: AdminSession }
   | { status: "ready"; source: AdminSession; links: SocialLink[] };
 
-export const SocialLinkList = ({ session }: { session: AdminSession }) => {
+export const SocialLinkList = ({
+  session,
+  renderEdit,
+}: {
+  session: AdminSession;
+  renderEdit?: (link: SocialLink) => ReactNode;
+}) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
   const [busy, setBusy] = useState(false);
@@ -118,6 +125,7 @@ export const SocialLinkList = ({ session }: { session: AdminSession }) => {
               <span>{link.section === "engineering" ? "Engineering" : "Hobby"}</span>
               <span>{link.kind}</span>
               <span>{link.url}</span>
+              {renderEdit?.(link)}
               <button
                 type={"button"}
                 disabled={

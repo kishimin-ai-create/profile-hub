@@ -41,11 +41,11 @@ const readFavourites = async (): Promise<Favourite[]> => {
 export const HobbyFavourites = () => {
   const query = useQuery({ queryKey: ["public-favourites"], queryFn: readFavourites });
   return (
-    <section>
+    <section className={"hobby-favourites"}>
       <h2>{"お気に入り"}</h2>
       <QueryState query={query}>
         {query.data?.length ? (
-          <ul>
+          <ul className={"hobby-favourites-list"}>
             {query.data.map((entry) => (
               <li key={entry.id}>
                 <a href={entry.link} target={"_blank"} rel={"noopener noreferrer"}>

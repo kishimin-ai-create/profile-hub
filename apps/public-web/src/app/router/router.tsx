@@ -43,7 +43,10 @@ const engineeringRoute = createRoute({
   component: () => (
     <>
       <EngineeringHero />
-      <PublicProfile />
+      <section className={"engineering-profile"}>
+        <h2>{"自己紹介"}</h2>
+        <PublicProfile />
+      </section>
       <EngineeringSkills />
       <SectionProjects section={"engineering"} />
       <Link to={"/engineering/contact"}>{"仕事について連絡する"}</Link>

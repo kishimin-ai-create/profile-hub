@@ -16,6 +16,14 @@ vi.mock("../../features/hobby/HobbyContact", () => ({
 }));
 
 describe("public routes", () => {
+  test("explains the two distinct home entry points", async () => {
+    const router = createAppRouter(createMemoryHistory({ initialEntries: ["/"] }));
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByText("仕事・技術・制作について")).toBeInTheDocument();
+    expect(screen.getByText("好きなものや日々のこと")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Engineering" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Hobby" })).toBeInTheDocument();
+  });
   test("opens engineering contact from the engineering page body", async () => {
     const user = userEvent.setup();
     const router = createAppRouter(createMemoryHistory({ initialEntries: ["/engineering"] }));

@@ -20,20 +20,30 @@ const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: () => (
-    <>
-      <h1>{"Home"}</h1>
-      <PublicProfile />
+    <div className={"home-page"}>
+      <h1 className={"visually-hidden"}>{"Home"}</h1>
+      <div className={"home-profile"}>
+        <PublicProfile />
+      </div>
       <nav aria-label={"セクション"}>
-        <ul>
+        <ul className={"home-entries"}>
           <li>
-            <Link to={"/engineering"}>{"Engineering"}</Link>
+            <h2>{"Engineering"}</h2>
+            <p>{"仕事・技術・制作について"}</p>
+            <Link to={"/engineering"} aria-label={"Engineering"}>
+              {"Engineering を見る →"}
+            </Link>
           </li>
           <li>
-            <Link to={"/hobby"}>{"Hobby"}</Link>
+            <h2>{"Hobby"}</h2>
+            <p>{"好きなものや日々のこと"}</p>
+            <Link to={"/hobby"} aria-label={"Hobby"}>
+              {"Hobby を見る →"}
+            </Link>
           </li>
         </ul>
       </nav>
-    </>
+    </div>
   ),
 });
 

@@ -44,7 +44,12 @@ export const SiteLayout = () => {
           </nav>
         )}
       </header>
-      <main id={"main-content"} tabIndex={-1} ref={mainRef}>
+      <main
+        id={"main-content"}
+        className={pathname === "/" ? "home-main" : undefined}
+        tabIndex={-1}
+        ref={mainRef}
+      >
         <Outlet />
       </main>
       <footer className={"site-footer"}>

@@ -44,6 +44,8 @@ test("shows engineering links without the hobby section", async () => {
     "https://example.com/articles",
   );
   expect(screen.getAllByRole("link")).toHaveLength(2);
+  expect(screen.getByText("コードと個人制作を紹介しています。")).toBeInTheDocument();
+  expect(screen.getByText("技術記事を公開しています。")).toBeInTheDocument();
 });
 
 test("shows an empty state for absent links", async () => {

@@ -49,3 +49,15 @@ test("unsaved portfolio input warns on browser close and in-app navigation", asy
   await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
   await page.getByRole("button", { name: "ログアウト" }).click();
 });
+
+test("administrator edits a social link through the authenticated API", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await page.getByRole("link", { name: "Profile" }).click();
+  await page.getByRole("link", { name: "https://example.com を編集" }).click();
+  await page.getByLabel("URL").fill("https://new.example.com");
+  await page.getByRole("button", { name: "保存" }).click();
+  await expect(page.getByText("https://new.example.com", { exact: true })).toBeVisible();
+});

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("activates the skip link by keyboard", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "セクション" })).toBeVisible();
   // WebKit's native Tab-to-links preference differs from Chromium in the test runner.
   await page.getByRole("link", { name: "本文へ移動" }).focus();
   await page.keyboard.press("Enter");
@@ -19,9 +19,13 @@ for (const [path, heading] of [
 ]) {
   test(`opens and reloads ${path} directly`, async ({ page }) => {
     await page.goto(path);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    if (path === "/")
+      await expect(page.getByRole("navigation", { name: "セクション" })).toBeVisible();
+    else await expect(page.getByRole("heading", { name: heading })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    if (path === "/")
+      await expect(page.getByRole("navigation", { name: "セクション" })).toBeVisible();
+    else await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   });
 }
 
@@ -45,6 +49,6 @@ for (const [section, other] of [
     await page.goBack();
     await expect(page.getByRole("region", { name: section })).toBeVisible();
     await header.getByRole("link", { name: "profile-hub" }).click();
-    await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "セクション" })).toBeVisible();
   });
 }

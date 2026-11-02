@@ -13,3 +13,10 @@ test("reads hobby data from the live API across routes", async ({ page }) => {
   );
   await expect(page.getByRole("link", { name: "GitHub" })).toHaveCount(0);
 });
+
+test("shows engineering projects without hobby entries through the live API", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Engineering", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Engineering project" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hobby project" })).toHaveCount(0);
+});

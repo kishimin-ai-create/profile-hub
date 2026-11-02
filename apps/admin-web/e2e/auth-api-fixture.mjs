@@ -14,7 +14,14 @@ import { issueSessionTokens } from "../../api/src/auth/session-tokens.ts";
 import { createApp } from "../../api/src/index.ts";
 
 const secret = "test-only-signing-secret-with-at-least-32-bytes";
-const state = { version: 0 };
+const initialLink = () => ({
+  id: "1",
+  section: "engineering",
+  kind: "website",
+  url: "https://example.com",
+  displayOrder: 0,
+});
+const state = { version: 0, link: initialLink() };
 const origin = "https://localhost:43112";
 const app = createApp({
   adminOrigin: origin,
@@ -23,10 +30,23 @@ const app = createApp({
   listFavourites: () => Promise.resolve([]),
   listPortfolios: () => Promise.resolve([]),
   getPublicProfile: () =>
-    Promise.resolve({ profile: null, skills: [], links: { engineering: [], hobby: [] } }),
+    Promise.resolve({
+      profile: null,
+      skills: [],
+      links: {
+        engineering: state.link.section === "engineering" ? [state.link] : [],
+        hobby: state.link.section === "hobby" ? [state.link] : [],
+      },
+    }),
+  updateSocialLink: (id, input) => {
+    if (id !== state.link.id) return Promise.resolve(null);
+    state.link = { id, ...input };
+    return Promise.resolve(state.link);
+  },
   loginAdmin: async (email, password) => {
     if (email !== "admin@example.test" || password !== "test-only-password")
       return { status: "invalid" };
+    state.link = initialLink();
     state.version += 1;
     return { status: "success", tokens: await issueSessionTokens("42", state.version, secret) };
   },

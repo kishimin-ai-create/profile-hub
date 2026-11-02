@@ -85,7 +85,7 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
     queryFn: () => readProjects(section),
   });
   return (
-    <section>
+    <section className={section === "engineering" ? "engineering-projects" : undefined}>
       <h2>{"作品"}</h2>
       <QueryState query={query}>
         {query.data?.length ? (
@@ -96,17 +96,21 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
                 {project.image && (
                   <ProjectImage key={project.image} name={project.name} url={project.image} />
                 )}
-                <p>{project.summary}</p>
-                <p>{project.technologies.join("、")}</p>
-                {project.repository && (
-                  <a href={project.repository} target={"_blank"} rel={"noopener noreferrer"}>
-                    {"リポジトリ"}
-                  </a>
-                )}
-                {project.demo && (
-                  <a href={project.demo} target={"_blank"} rel={"noopener noreferrer"}>
-                    {"デモ"}
-                  </a>
+                <p className={"project-summary"}>{project.summary}</p>
+                <p className={"project-technologies"}>{project.technologies.join("、")}</p>
+                {(project.repository || project.demo) && (
+                  <div className={"project-links"}>
+                    {project.repository && (
+                      <a href={project.repository} target={"_blank"} rel={"noopener noreferrer"}>
+                        {"リポジトリ"}
+                      </a>
+                    )}
+                    {project.demo && (
+                      <a href={project.demo} target={"_blank"} rel={"noopener noreferrer"}>
+                        {"デモ"}
+                      </a>
+                    )}
+                  </div>
                 )}
               </li>
             ))}

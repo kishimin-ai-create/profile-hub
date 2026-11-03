@@ -30,6 +30,16 @@ test("reports failed loading and an empty list", async () => {
   expect(await screen.findByText("作品がありません")).toBeInTheDocument();
 });
 
+test("retries loading after a temporary failure", async () => {
+  const load = vi.fn<() => Promise<import("./portfolio-list").PortfolioRow[]>>()
+    .mockRejectedValueOnce(new Error("offline"))
+    .mockResolvedValueOnce([{ id: "1", name: "Recovered", section: "hobby" }]);
+  render(<PortfolioList load={load} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("作品を取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByText("Recovered")).toBeInTheDocument();
+});
+
 test("does not show previous results after the data source changes", async () => {
   const view = render(
     <PortfolioList load={() => Promise.resolve([{ id: "1", name: "Old", section: "hobby" }])} />,

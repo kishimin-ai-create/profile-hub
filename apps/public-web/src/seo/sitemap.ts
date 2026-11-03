@@ -1,7 +1,13 @@
 import { publicPaths } from "../app/router/public-paths";
 
 const parseOrigin = (origin: string): string => {
-  const url = new URL(origin);
+  const url = (() => {
+    try {
+      return new URL(origin);
+    } catch {
+      throw new Error("SITE_ORIGIN must be an HTTP(S) origin");
+    }
+  })();
   if (
     (url.protocol !== "http:" && url.protocol !== "https:") ||
     url.username ||
@@ -13,6 +19,9 @@ const parseOrigin = (origin: string): string => {
     throw new Error("SITE_ORIGIN must be an HTTP(S) origin");
   return url.origin;
 };
+
+export const configuredOrigin = (origin: string | undefined): string =>
+  origin ? parseOrigin(origin) : "";
 
 export const generateRobots = (origin: string): string =>
   `User-agent: *\nAllow: /\nSitemap: ${parseOrigin(origin)}/sitemap.xml\n`;

@@ -3,12 +3,13 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { configDefaults, coverageConfigDefaults, defineConfig } from "vitest/config";
-import { generateRobots, generateSitemap } from "./src/seo/sitemap";
+import { configuredOrigin, generateRobots, generateSitemap } from "./src/seo/sitemap";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+const siteOrigin = configuredOrigin(process.env.SITE_ORIGIN);
 
 export default defineConfig({
-  define: { __SITE_ORIGIN__: JSON.stringify(process.env.SITE_ORIGIN ?? "") },
+  define: { __SITE_ORIGIN__: JSON.stringify(siteOrigin) },
   plugins: [
     react(),
     tailwindcss(),
@@ -17,16 +18,16 @@ export default defineConfig({
       apply: "build",
       // eslint-disable-next-line no-restricted-syntax -- Rollup's context is required to emit an asset.
       generateBundle() {
-        if (process.env.SITE_ORIGIN) {
+        if (siteOrigin) {
           this.emitFile({
             type: "asset",
             fileName: "sitemap.xml",
-            source: generateSitemap(process.env.SITE_ORIGIN),
+            source: generateSitemap(siteOrigin),
           });
           this.emitFile({
             type: "asset",
             fileName: "robots.txt",
-            source: generateRobots(process.env.SITE_ORIGIN),
+            source: generateRobots(siteOrigin),
           });
         }
       },

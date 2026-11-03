@@ -183,6 +183,8 @@ jobs:
         working-directory: apps/${{ matrix.workspace }}
 
       - name: Run E2E tests
+        env:
+          SITE_ORIGIN: ${{ matrix.workspace == 'public-web' && 'https://example.test' || '' }}
         run: |
           if [ "${{ matrix.workspace }}" = "admin-web" ]; then
             bun run e2e:auth

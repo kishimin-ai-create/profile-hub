@@ -5,6 +5,23 @@ import { describe, expect, test, vi } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
+  test.each([
+    ["作品を作成", "/portfolio/new"],
+    ["お気に入りを作成", "/hobby/new"],
+    ["プロフィールを編集", "/profile/edit"],
+  ])("opens %s from dashboard quick actions", async (label, path) => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/dashboard"] }), {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    const actions = await screen.findByRole("navigation", { name: "クイック操作" });
+    await userEvent.click(within(actions).getByRole("link", { name: label }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(path));
+  });
+
   test("shows a not-found page for an unknown route", async () => {
     const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/unknown"] }));
     render(<RouterProvider router={router} />);

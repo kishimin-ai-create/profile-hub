@@ -44,7 +44,11 @@ test("identifies each project's repository and demo links", async () => {
     http.get("*/api/public/portfolio", () =>
       HttpResponse.json({
         data: [
-          { ...project, repositoryUrl: "https://example.com/work", demoUrl: "https://example.com/demo" },
+          {
+            ...project,
+            repositoryUrl: "https://example.com/work",
+            demoUrl: "https://example.com/demo",
+          },
           { ...project, id: "2", name: "Other", demoUrl: "https://example.com/other" },
         ],
       }),
@@ -55,8 +59,14 @@ test("identifies each project's repository and demo links", async () => {
     "href",
     "https://example.com/work",
   );
-  expect(screen.getByRole("link", { name: "Work のデモ" })).toHaveAttribute("href", "https://example.com/demo");
-  expect(screen.getByRole("link", { name: "Other のデモ" })).toHaveAttribute("href", "https://example.com/other");
+  expect(screen.getByRole("link", { name: "Work のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.com/demo",
+  );
+  expect(screen.getByRole("link", { name: "Other のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.com/other",
+  );
 });
 
 test("does not display a hobby project on engineering", async () => {

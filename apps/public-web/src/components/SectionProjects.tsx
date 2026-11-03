@@ -101,12 +101,22 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
                 {(project.repository || project.demo) && (
                   <div className={"project-links"}>
                     {project.repository && (
-                      <a href={project.repository} target={"_blank"} rel={"noopener noreferrer"}>
+                      <a
+                        href={project.repository}
+                        target={"_blank"}
+                        rel={"noopener noreferrer"}
+                        aria-label={`${project.name} のリポジトリ`}
+                      >
                         {"リポジトリ"}
                       </a>
                     )}
                     {project.demo && (
-                      <a href={project.demo} target={"_blank"} rel={"noopener noreferrer"}>
+                      <a
+                        href={project.demo}
+                        target={"_blank"}
+                        rel={"noopener noreferrer"}
+                        aria-label={`${project.name} のデモ`}
+                      >
                         {"デモ"}
                       </a>
                     )}

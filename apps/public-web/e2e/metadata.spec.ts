@@ -22,11 +22,30 @@ test("updates metadata across public routes and unknown addresses", async ({ pag
     } else {
       await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
     }
+    const origin = process.env.SITE_ORIGIN;
+    if (origin && path !== "/unknown") {
+      const canonical = `${new URL(origin).origin}${path.replace(/\/+$/, "") || "/"}`;
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonical);
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", canonical);
+    } else {
+      await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+      await expect(page.locator('meta[property="og:url"]')).toHaveCount(0);
+    }
   }
   await page.getByRole("link", { name: "profile-hub" }).click();
   await expect(page).toHaveTitle("Home | profile-hub");
   await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  if (process.env.SITE_ORIGIN)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `${new URL(process.env.SITE_ORIGIN).origin}/`,
+    );
   await page.getByRole("link", { name: "Hobby を見る →", exact: true }).click();
   await expect(page).toHaveTitle("Hobby | profile-hub");
+  if (process.env.SITE_ORIGIN)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `${new URL(process.env.SITE_ORIGIN).origin}/hobby`,
+    );
   await expect(page.locator('meta[property="og:description"]')).toHaveCount(1);
 });

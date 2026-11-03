@@ -1,5 +1,24 @@
 import { expect, test } from "@playwright/test";
 
+test("dashboard quick actions open the corresponding admin forms", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  const actions = page.getByRole("navigation", { name: "クイック操作" });
+  await actions.getByRole("link", { name: "作品を作成" }).click();
+  await expect(page).toHaveURL(/\/portfolio\/new$/);
+  await expect(page.getByLabel("作品名")).toBeVisible();
+  await page.getByRole("link", { name: "Dashboard" }).click();
+  await actions.getByRole("link", { name: "お気に入りを作成" }).click();
+  await expect(page).toHaveURL(/\/hobby\/new$/);
+  await expect(page.getByLabel("名前")).toBeVisible();
+  await page.getByRole("link", { name: "Dashboard" }).click();
+  await actions.getByRole("link", { name: "プロフィールを編集" }).click();
+  await expect(page).toHaveURL(/\/profile\/edit$/);
+  await expect(page.getByRole("button", { name: "保存" })).toBeVisible();
+});
+
 test("administrator can log in, restore after reload, and log out", async ({ page, context }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

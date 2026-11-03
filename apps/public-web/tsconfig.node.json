@@ -10,6 +10,7 @@
     "orval.config.ts",
     "orval-url.ts",
     "playwright.config.ts",
+    "scripts/*.ts",
     ".storybook/main.ts"
   ]
 }

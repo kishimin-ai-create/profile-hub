@@ -20,7 +20,7 @@ test("updates metadata across public routes and unknown addresses", async ({ pag
   }
   await page.getByRole("link", { name: "profile-hub" }).click();
   await expect(page).toHaveTitle("Home | profile-hub");
-  await page.getByRole("link", { name: "Hobby", exact: true }).click();
+  await page.getByRole("link", { name: "Hobby を見る →", exact: true }).click();
   await expect(page).toHaveTitle("Hobby | profile-hub");
   await expect(page.locator('meta[property="og:description"]')).toHaveCount(1);
 });

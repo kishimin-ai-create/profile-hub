@@ -36,7 +36,7 @@ for (const [section, other] of [
   test(`navigates ${section} by keyboard without cross-section links`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
-    await page.getByRole("link", { name: section, exact: true }).focus();
+    await page.getByRole("link", { name: `${section} を見る →`, exact: true }).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("region", { name: section })).toBeVisible();
     await expect(page.getByRole("main")).toBeFocused();

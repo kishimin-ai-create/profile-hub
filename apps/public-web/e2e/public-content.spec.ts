@@ -49,7 +49,7 @@ test("reads public profile and hobby content across routes", async ({ page }) =>
   });
   await page.goto("/");
   await expect(page.getByText("Example", { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Hobby", exact: true }).click();
+  await page.getByRole("link", { name: "Hobby を見る →", exact: true }).click();
   await expect(page.getByRole("link", { name: "Music" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Project" })).toBeVisible();
   await page.getByRole("link", { name: "趣味について連絡する" }).click();

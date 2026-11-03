@@ -85,7 +85,7 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
     queryFn: () => readProjects(section),
   });
   return (
-    <section className={section === "engineering" ? "engineering-projects" : undefined}>
+    <section className={section === "engineering" ? "engineering-projects" : "hobby-projects"}>
       <h2>{"作品"}</h2>
       <QueryState query={query}>
         {query.data?.length ? (
@@ -108,6 +108,7 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
                         aria-label={`${project.name} のリポジトリ`}
                       >
                         {"リポジトリ"}
+                        {section === "hobby" && <span aria-hidden={"true"}>{" ↗"}</span>}
                       </a>
                     )}
                     {project.demo && (
@@ -118,6 +119,7 @@ export const SectionProjects = ({ section }: { section: "engineering" | "hobby" 
                         aria-label={`${project.name} のデモ`}
                       >
                         {"デモ"}
+                        {section === "hobby" && <span aria-hidden={"true"}>{" ↗"}</span>}
                       </a>
                     )}
                   </div>

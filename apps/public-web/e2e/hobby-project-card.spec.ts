@@ -6,16 +6,18 @@ for (const width of [375, 1280]) {
     await page.route("**/api/public/portfolio?*", async (route) => {
       await route.fulfill({
         json: {
-          data: [{
-            id: "1",
-            section: "hobby",
-            name: "週末の小さな道具",
-            summary: "好きなことをきっかけに、日々を少し楽しくするために作りました。".repeat(3),
-            technologies: ["TypeScript", "React"],
-            repositoryUrl: "https://example.com/repository",
-            demoUrl: "https://example.com/demo",
-            imageUrl: null,
-          }],
+          data: [
+            {
+              id: "1",
+              section: "hobby",
+              name: "週末の小さな道具",
+              summary: "好きなことをきっかけに、日々を少し楽しくするために作りました。".repeat(3),
+              technologies: ["TypeScript", "React"],
+              repositoryUrl: "https://example.com/repository",
+              demoUrl: "https://example.com/demo",
+              imageUrl: null,
+            },
+          ],
         },
       });
     });
@@ -27,6 +29,8 @@ for (const width of [375, 1280]) {
     const bounds = await card.boundingBox();
     if (bounds === null) throw new Error("Project card is not visible");
     expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
   });
 }

@@ -4,6 +4,15 @@ import { describe, expect, test } from "vitest";
 import { PageMetadata } from "./PageMetadata";
 
 describe("PageMetadata", () => {
+  test("marks an unknown page as noindex and clears it for a known page", () => {
+    const { rerender } = render(
+      <PageMetadata title={"Not found"} description={"Missing"} noIndex />,
+    );
+    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+    rerender(<PageMetadata title={"Home"} description={"Home"} />);
+    expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
+  });
+
   test("replaces optional preview images when a different page renders", () => {
     const { rerender } = render(
       <PageMetadata

@@ -39,11 +39,11 @@ test("requests hobby projects and renders optional links", async () => {
   show();
   expect(await screen.findByText("Project")).toBeInTheDocument();
   expect(screen.getByText("TypeScript")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "デモ" })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: "Project のデモ" })).toHaveAttribute(
     "href",
     "https://example.com/demo",
   );
-  expect(screen.queryByRole("link", { name: "リポジトリ" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Project のリポジトリ" })).not.toBeInTheDocument();
 });
 
 test("shows the project empty state", async () => {

@@ -39,6 +39,36 @@ test("requests and shows engineering projects", async () => {
   expect(await screen.findByRole("heading", { name: "Work" })).toBeInTheDocument();
 });
 
+test("identifies each project's repository and demo links", async () => {
+  server.use(
+    http.get("*/api/public/portfolio", () =>
+      HttpResponse.json({
+        data: [
+          {
+            ...project,
+            repositoryUrl: "https://example.com/work",
+            demoUrl: "https://example.com/demo",
+          },
+          { ...project, id: "2", name: "Other", demoUrl: "https://example.com/other" },
+        ],
+      }),
+    ),
+  );
+  show();
+  expect(await screen.findByRole("link", { name: "Work のリポジトリ" })).toHaveAttribute(
+    "href",
+    "https://example.com/work",
+  );
+  expect(screen.getByRole("link", { name: "Work のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.com/demo",
+  );
+  expect(screen.getByRole("link", { name: "Other のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.com/other",
+  );
+});
+
 test("does not display a hobby project on engineering", async () => {
   server.use(
     http.get("*/api/public/portfolio", () =>

@@ -17,9 +17,15 @@ test("updates metadata across public routes and unknown addresses", async ({ pag
       "content",
       `${title} | profile-hub`,
     );
+    if (path === "/unknown") {
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+    } else {
+      await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+    }
   }
   await page.getByRole("link", { name: "profile-hub" }).click();
   await expect(page).toHaveTitle("Home | profile-hub");
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
   await page.getByRole("link", { name: "Hobby を見る →", exact: true }).click();
   await expect(page).toHaveTitle("Hobby | profile-hub");
   await expect(page.locator('meta[property="og:description"]')).toHaveCount(1);

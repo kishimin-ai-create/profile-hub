@@ -33,4 +33,5 @@ test("validates the optional site origin before serving", () => {
   expect(configuredOrigin(undefined)).toBe("");
   expect(configuredOrigin("https://example.com/")).toBe("https://example.com");
   expect(() => configuredOrigin("https://example.com/private")).toThrow("SITE_ORIGIN");
+  expect(() => configuredOrigin("not a URL")).toThrow("SITE_ORIGIN");
 });

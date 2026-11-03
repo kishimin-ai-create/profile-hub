@@ -89,6 +89,24 @@ test("reports a failed social link request", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("リンクを取得できませんでした");
 });
 
+test("retries loading a social link after a temporary failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  let attempts = 0;
+  server.use(
+    http.get("https://api.example.test/api/admin/social-links", () => {
+      attempts += 1;
+      return attempts === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({ data: [link] });
+    }),
+  );
+  start();
+  expect(await screen.findByRole("alert")).toHaveTextContent("リンクを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByLabelText("URL")).toHaveValue(link.url);
+  expect(attempts).toBe(2);
+});
+
 test("opens a social link for editing from the profile list", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

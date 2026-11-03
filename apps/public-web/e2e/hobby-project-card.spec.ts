@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 for (const width of [375, 1280]) {
   test(`keeps Hobby project cards readable at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await page.route("**/api/public/favourites", async (route) => {
+      await route.fulfill({ json: { data: [] } });
+    });
     await page.route("**/api/public/portfolio?*", async (route) => {
       await route.fulfill({
         json: {

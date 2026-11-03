@@ -8,7 +8,10 @@ describe("PageMetadata", () => {
     const { rerender } = render(
       <PageMetadata title={"Not found"} description={"Missing"} noIndex />,
     );
-    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex",
+    );
     rerender(<PageMetadata title={"Home"} description={"Home"} />);
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
   });

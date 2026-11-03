@@ -19,5 +19,6 @@ export const metadataForPath = (pathname: string): PageMetadataProps => {
     : {
         title: "ページが見つかりません",
         description: "指定されたページは見つかりませんでした。",
+        noIndex: true,
       };
 };

@@ -3,12 +3,20 @@ export type PageMetadataProps = {
   description: string;
   image?: string;
   canonicalUrl?: string;
+  noIndex?: boolean;
 };
 
-export const PageMetadata = ({ title, description, image, canonicalUrl }: PageMetadataProps) => (
+export const PageMetadata = ({
+  title,
+  description,
+  image,
+  canonicalUrl,
+  noIndex,
+}: PageMetadataProps) => (
   <>
     <title>{`${title} | profile-hub`}</title>
     <meta name={"description"} content={description} />
+    {noIndex && <meta name={"robots"} content={"noindex"} />}
     <meta property={"og:title"} content={`${title} | profile-hub`} />
     <meta property={"og:description"} content={description} />
     <meta property={"og:type"} content={"website"} />

@@ -28,8 +28,8 @@ describe("public routes", () => {
     render(<RouterProvider router={router} />);
     expect(await screen.findByText("仕事・技術・制作について")).toBeInTheDocument();
     expect(screen.getByText("好きなものや日々のこと")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Engineering" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Hobby" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Engineering を見る →" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Hobby を見る →" })).toBeInTheDocument();
   });
   test("opens engineering contact from the engineering page body", async () => {
     const user = userEvent.setup();
@@ -83,7 +83,7 @@ describe("public routes", () => {
 
     render(<RouterProvider router={router} />);
 
-    await user.click(await screen.findByRole("link", { name: section }));
+    await user.click(await screen.findByRole("link", { name: `${section} を見る →` }));
 
     expect(await screen.findByRole("region", { name: section })).toBeInTheDocument();
   });

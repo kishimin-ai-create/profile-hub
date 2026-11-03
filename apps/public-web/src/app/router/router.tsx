@@ -30,16 +30,12 @@ const homeRoute = createRoute({
           <li>
             <h2>{"Engineering"}</h2>
             <p>{"仕事・技術・制作について"}</p>
-            <Link to={"/engineering"} aria-label={"Engineering"}>
-              {"Engineering を見る →"}
-            </Link>
+            <Link to={"/engineering"}>{"Engineering を見る →"}</Link>
           </li>
           <li>
             <h2>{"Hobby"}</h2>
             <p>{"好きなものや日々のこと"}</p>
-            <Link to={"/hobby"} aria-label={"Hobby"}>
-              {"Hobby を見る →"}
-            </Link>
+            <Link to={"/hobby"}>{"Hobby を見る →"}</Link>
           </li>
         </ul>
       </nav>

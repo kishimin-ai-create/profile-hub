@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { generateSitemap } from "./sitemap";
+import { generateRobots, generateSitemap } from "./sitemap";
 
 describe("sitemap", () => {
   test("includes each public route on the configured origin", () => {
@@ -14,5 +14,11 @@ describe("sitemap", () => {
   test.each(["javascript:alert(1)", "https://user:pass@example.com", "https://example.com/path"])(
     "rejects a non-origin URL: %s",
     (origin) => expect(() => generateSitemap(origin)).toThrow("SITE_ORIGIN"),
+  );
+});
+
+test("directs crawlers to the configured sitemap", () => {
+  expect(generateRobots("https://example.com/")).toBe(
+    "User-agent: *\nAllow: /\nSitemap: https://example.com/sitemap.xml\n",
   );
 });

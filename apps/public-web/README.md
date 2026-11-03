@@ -115,9 +115,9 @@ validation, and empty data presentation. `PageMetadata` accepts a title, descrip
 OGP image. It renders on the client; prerendering and crawler SEO remain #22.
 
 Set the `SITE_ORIGIN` environment variable to the public HTTP(S) origin when building to emit
-`sitemap.xml` for the five public routes. For example, on PowerShell use
-`$env:SITE_ORIGIN = "https://example.com"` before `bun run build`. Without this variable the
-build does not emit a sitemap; deployment must supply the actual origin.
+`sitemap.xml` for the five public routes and a `robots.txt` that advertises it. For example, on
+PowerShell use `$env:SITE_ORIGIN = "https://example.com"` before `bun run build`. Without this
+variable the build does not emit a sitemap; deployment must supply the actual origin.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

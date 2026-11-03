@@ -1,6 +1,6 @@
 import { publicPaths } from "../app/router/public-paths";
 
-export const generateSitemap = (origin: string): string => {
+const parseOrigin = (origin: string): string => {
   const url = new URL(origin);
   if (
     (url.protocol !== "http:" && url.protocol !== "https:") ||
@@ -11,7 +11,15 @@ export const generateSitemap = (origin: string): string => {
     url.hash
   )
     throw new Error("SITE_ORIGIN must be an HTTP(S) origin");
-  const entries = publicPaths.map((path) => `  <url><loc>${url.origin}${path}</loc></url>`);
+  return url.origin;
+};
+
+export const generateRobots = (origin: string): string =>
+  `User-agent: *\nAllow: /\nSitemap: ${parseOrigin(origin)}/sitemap.xml\n`;
+
+export const generateSitemap = (origin: string): string => {
+  const site = parseOrigin(origin);
+  const entries = publicPaths.map((path) => `  <url><loc>${site}${path}</loc></url>`);
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',

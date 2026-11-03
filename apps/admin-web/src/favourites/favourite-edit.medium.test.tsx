@@ -95,3 +95,37 @@ test("shows an error when loading the favourite fails", async () => {
   render(<RouterProvider router={router} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
 });
+
+test("retries loading an existing favourite after a temporary failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const calls = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () => {
+      calls.count += 1;
+      return calls.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({
+            data: [
+              {
+                id: "1",
+                name: "Tea",
+                description: "Green tea",
+                link: "https://example.com",
+                displayOrder: 1,
+              },
+            ],
+          });
+    }),
+  );
+  const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/hobby/1/edit"] }), {
+    accessToken: () => "access",
+    restore: () => Promise.resolve(false),
+    login: () => Promise.resolve(false),
+    logout: () => Promise.resolve(),
+  });
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByLabelText("名前")).toHaveValue("Tea");
+  expect(calls.count).toBe(2);
+});

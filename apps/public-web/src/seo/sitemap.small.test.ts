@@ -13,6 +13,6 @@ describe("sitemap", () => {
   });
   test.each(["javascript:alert(1)", "https://user:pass@example.com", "https://example.com/path"])(
     "rejects a non-origin URL: %s",
-    (origin) => expect(() => generateSitemap(origin)).toThrow(),
+    (origin) => expect(() => generateSitemap(origin)).toThrow("SITE_ORIGIN"),
   );
 });

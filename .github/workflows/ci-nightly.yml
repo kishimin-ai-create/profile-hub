@@ -168,8 +168,15 @@ jobs:
         working-directory: apps/${{ matrix.workspace }}
 
       - name: Build application
+        env:
+          SITE_ORIGIN: ${{ matrix.workspace == 'public-web' && 'https://example.test' || '' }}
         run: bun run build
         working-directory: apps/${{ matrix.workspace }}
+
+      - name: Verify public SEO assets
+        if: matrix.workspace == 'public-web'
+        run: bun scripts/verify-seo-build.ts
+        working-directory: apps/public-web
 
       - name: Build Storybook
         run: bun run build-storybook

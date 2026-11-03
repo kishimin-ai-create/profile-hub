@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { generateRobots, generateSitemap } from "./sitemap";
+import { canonicalForPath, generateRobots, generateSitemap } from "./sitemap";
 
 describe("sitemap", () => {
   test("includes each public route on the configured origin", () => {
@@ -21,4 +21,10 @@ test("directs crawlers to the configured sitemap", () => {
   expect(generateRobots("https://example.com/")).toBe(
     "User-agent: *\nAllow: /\nSitemap: https://example.com/sitemap.xml\n",
   );
+});
+
+test("uses the configured origin for known routes only", () => {
+  expect(canonicalForPath("https://example.com/", "/hobby/")).toBe("https://example.com/hobby");
+  expect(canonicalForPath("https://example.com", "/unknown")).toBeUndefined();
+  expect(canonicalForPath("", "/")).toBeUndefined();
 });

@@ -8,6 +8,7 @@ import { generateRobots, generateSitemap } from "./src/seo/sitemap";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  define: { __SITE_ORIGIN__: JSON.stringify(process.env.SITE_ORIGIN ?? "") },
   plugins: [
     react(),
     tailwindcss(),

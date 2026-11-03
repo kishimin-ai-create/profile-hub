@@ -105,7 +105,15 @@ test("retries loading an existing favourite after a temporary failure", async ()
       return calls.count === 1
         ? new HttpResponse(null, { status: 500 })
         : HttpResponse.json({
-            data: [{ id: "1", name: "Tea", description: "Green tea", link: "https://example.com", displayOrder: 1 }],
+            data: [
+              {
+                id: "1",
+                name: "Tea",
+                description: "Green tea",
+                link: "https://example.com",
+                displayOrder: 1,
+              },
+            ],
           });
     }),
   );

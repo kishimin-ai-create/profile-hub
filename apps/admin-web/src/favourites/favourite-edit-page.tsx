@@ -34,6 +34,7 @@ export const FavouriteEditPage = ({
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const dirty = useRef(false);
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
     enableBeforeUnload: () => dirty.current,
@@ -58,10 +59,24 @@ export const FavouriteEditPage = ({
     return () => {
       lifecycle.active = false;
     };
-  }, [id, request, session]);
+  }, [attempt, id, request, session]);
   if (state.status === "loading" || state.source !== session || state.id !== id)
     return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <div>
+        <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </div>
+    );
   return (
     <>
       <h1>{"お気に入りを編集"}</h1>

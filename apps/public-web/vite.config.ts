@@ -3,11 +3,28 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { configDefaults, coverageConfigDefaults, defineConfig } from "vitest/config";
+import { generateSitemap } from "./src/seo/sitemap";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: "public-sitemap",
+      apply: "build",
+      // eslint-disable-next-line no-restricted-syntax -- Rollup's context is required to emit an asset.
+      generateBundle() {
+        if (process.env.SITE_ORIGIN)
+          this.emitFile({
+            type: "asset",
+            fileName: "sitemap.xml",
+            source: generateSitemap(process.env.SITE_ORIGIN),
+          });
+      },
+    },
+  ],
   resolve: {
     alias: {
       "@": path.resolve(dirname, "./src"),

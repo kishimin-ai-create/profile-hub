@@ -49,6 +49,24 @@ test("shows an error when favourite loading fails", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
 });
 
+test("retries loading favourites after a temporary failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const calls = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () => {
+      calls.count += 1;
+      return calls.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({ data: [] });
+    }),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("お気に入りを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByText("お気に入りがありません")).toBeInTheDocument();
+  expect(calls.count).toBe(2);
+});
+
 test("shows an empty state when there are no favourites", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

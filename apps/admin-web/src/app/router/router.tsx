@@ -110,6 +110,22 @@ const dashboardRoute = createRoute({
     return (
       <Dashboard
         logout={context.session.logout}
+        quickActions={
+          <nav aria-label={"クイック操作"}>
+            <h2>{"クイック操作"}</h2>
+            <ul>
+              <li>
+                <Link to={"/portfolio/new"}>{"作品を作成"}</Link>
+              </li>
+              <li>
+                <Link to={"/hobby/new"}>{"お気に入りを作成"}</Link>
+              </li>
+              <li>
+                <Link to={"/profile/edit"}>{"プロフィールを編集"}</Link>
+              </li>
+            </ul>
+          </nav>
+        }
         onSuccess={() => {
           void navigate({ to: "/login" });
         }}

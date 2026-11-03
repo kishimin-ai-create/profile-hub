@@ -17,11 +17,11 @@ afterAll(() => server.close());
 
 test("retries loading an existing portfolio after a temporary failure", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
-  let attempts = 0;
+  const attempts = { count: 0 };
   server.use(
     http.get("https://api.example.test/api/admin/portfolio/42", () => {
-      attempts += 1;
-      return attempts === 1
+      attempts.count += 1;
+      return attempts.count === 1
         ? new HttpResponse(null, { status: 500 })
         : HttpResponse.json({
             data: {
@@ -48,7 +48,7 @@ test("retries loading an existing portfolio after a temporary failure", async ()
   expect(await screen.findByRole("alert")).toHaveTextContent("作品を取得できませんでした");
   await userEvent.click(screen.getByRole("button", { name: "再試行" }));
   expect(await screen.findByLabelText("作品名")).toHaveValue("Recovered");
-  expect(attempts).toBe(2);
+  expect(attempts.count).toBe(2);
 });
 
 test("an administrator can load and update a portfolio", async () => {

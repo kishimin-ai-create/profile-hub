@@ -24,6 +24,7 @@ type Props = { id: string; session: AdminSession; onSuccess: () => void };
 
 export const PortfolioEditPage = ({ id, session, onSuccess }: Props) => {
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   const dirty = useRef(false);
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
@@ -49,9 +50,23 @@ export const PortfolioEditPage = ({ id, session, onSuccess }: Props) => {
     return () => {
       lifecycle.active = false;
     };
-  }, [id, request]);
+  }, [attempt, id, request]);
   if (state.status === "loading") return <p>{"読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"作品を取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <>
+        <p role={"alert"}>{"作品を取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </>
+    );
   const { data } = state;
   return (
     <PortfolioCreate

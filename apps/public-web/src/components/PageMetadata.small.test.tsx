@@ -10,7 +10,16 @@ describe("PageMetadata", () => {
         title={"Engineering"}
         description={"仕事について"}
         image={"https://example.com/engineering.png"}
+        canonicalUrl={"https://example.com/engineering"}
       />,
+    );
+    expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://example.com/engineering",
+    );
+    expect(document.head.querySelector('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      "https://example.com/engineering",
     );
     expect(document.head.querySelector('meta[property="og:image"]')).toHaveAttribute(
       "content",
@@ -46,5 +55,7 @@ describe("PageMetadata", () => {
       "趣味について",
     );
     expect(document.head.querySelector('meta[name="twitter:image"]')).toBeNull();
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(document.head.querySelector('meta[property="og:url"]')).toBeNull();
   });
 });

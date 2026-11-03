@@ -16,6 +16,14 @@ describe("PageMetadata", () => {
       "content",
       "https://example.com/engineering.png",
     );
+    expect(document.head.querySelector('meta[name="twitter:card"]')).toHaveAttribute(
+      "content",
+      "summary_large_image",
+    );
+    expect(document.head.querySelector('meta[name="twitter:image"]')).toHaveAttribute(
+      "content",
+      "https://example.com/engineering.png",
+    );
 
     rerender(<PageMetadata title={"Hobby"} description={"趣味について"} />);
 
@@ -25,5 +33,18 @@ describe("PageMetadata", () => {
       "趣味について",
     );
     expect(document.head.querySelector('meta[property="og:image"]')).toBeNull();
+    expect(document.head.querySelector('meta[name="twitter:card"]')).toHaveAttribute(
+      "content",
+      "summary",
+    );
+    expect(document.head.querySelector('meta[name="twitter:title"]')).toHaveAttribute(
+      "content",
+      "Hobby | profile-hub",
+    );
+    expect(document.head.querySelector('meta[name="twitter:description"]')).toHaveAttribute(
+      "content",
+      "趣味について",
+    );
+    expect(document.head.querySelector('meta[name="twitter:image"]')).toBeNull();
   });
 });

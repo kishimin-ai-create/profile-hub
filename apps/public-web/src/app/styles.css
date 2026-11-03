@@ -283,6 +283,50 @@ p {
   font-size: 15px;
   line-height: 1.6;
 }
+.hobby-projects {
+  margin-block: 48px;
+}
+.hobby-projects h2 {
+  margin: 0 0 28px;
+  color: #2e59ad;
+  font-size: 12px;
+  font-weight: 700;
+}
+.hobby-projects ul {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hobby-projects li {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #dedbd1;
+  border-radius: 16px;
+}
+.hobby-projects h3 {
+  margin: 0;
+  font-size: 21px;
+}
+.hobby-projects .project-summary {
+  color: #5c6375;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.hobby-projects .project-technologies {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hobby-projects .project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 15px;
+  font-weight: 600;
+}
 .section-hero {
   display: flex;
   flex-direction: column;

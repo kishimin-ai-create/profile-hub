@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { PageMetadata } from "../../components/PageMetadata";
+import { canonicalForPath } from "../../seo/sitemap";
 import { metadataForPath } from "./page-metadata";
 
 export const SiteLayout = () => {
@@ -19,7 +20,10 @@ export const SiteLayout = () => {
 
   return (
     <div className={"site-shell"}>
-      <PageMetadata {...metadataForPath(pathname)} />
+      <PageMetadata
+        {...metadataForPath(pathname)}
+        canonicalUrl={canonicalForPath(__SITE_ORIGIN__, pathname)}
+      />
       <a className={"skip-link"} href={"#main-content"}>
         {"本文へ移動"}
       </a>

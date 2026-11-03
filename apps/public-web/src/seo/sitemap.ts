@@ -17,6 +17,13 @@ const parseOrigin = (origin: string): string => {
 export const generateRobots = (origin: string): string =>
   `User-agent: *\nAllow: /\nSitemap: ${parseOrigin(origin)}/sitemap.xml\n`;
 
+export const canonicalForPath = (origin: string, pathname: string): string | undefined => {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const path = publicPaths.find((candidate) => candidate === normalized);
+  if (!origin || !path) return undefined;
+  return `${parseOrigin(origin)}${path}`;
+};
+
 export const generateSitemap = (origin: string): string => {
   const site = parseOrigin(origin);
   const entries = publicPaths.map((path) => `  <url><loc>${site}${path}</loc></url>`);

@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
 import { HTTPException } from "hono/http-exception";
 
-import app from "./index";
+import { createConfiguredApp } from "./index";
+
+const app = createConfiguredApp();
 
 app.get("/test-unexpected-error", () => {
   throw new Error("private diagnostic details");

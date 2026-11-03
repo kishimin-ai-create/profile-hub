@@ -31,7 +31,8 @@ test("reports failed loading and an empty list", async () => {
 });
 
 test("retries loading after a temporary failure", async () => {
-  const load = vi.fn<() => Promise<import("./portfolio-list").PortfolioRow[]>>()
+  const load = vi
+    .fn<() => Promise<import("./portfolio-list").PortfolioRow[]>>()
     .mockRejectedValueOnce(new Error("offline"))
     .mockResolvedValueOnce([{ id: "1", name: "Recovered", section: "hobby" }]);
   render(<PortfolioList load={load} />);

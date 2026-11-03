@@ -15,6 +15,7 @@ type State =
 
 export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   const [section, setSection] = useState("all");
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
@@ -33,7 +34,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     return () => {
       lifecycle.active = false;
     };
-  }, [load]);
+  }, [attempt, load]);
   const current: State =
     state.status !== "loading" && state.source === load ? state : { status: "loading" };
   const rows =
@@ -110,7 +111,20 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
         <option value={"hobby"}>{"hobby"}</option>
       </select>
       {current.status === "loading" && <p>{"読み込み中"}</p>}
-      {current.status === "error" && <p role={"alert"}>{"作品を取得できませんでした"}</p>}
+      {current.status === "error" && (
+        <>
+          <p role={"alert"}>{"作品を取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </>
+      )}
       {deleteError && <p role={"alert"}>{"作品を削除できませんでした"}</p>}
       {reorderError && <p role={"alert"}>{"並べ替えできませんでした"}</p>}
       {current.status === "ready" &&

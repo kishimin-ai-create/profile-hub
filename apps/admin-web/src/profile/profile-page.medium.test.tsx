@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, test, vi } from "vitest";
@@ -46,4 +47,23 @@ test("shows an error when the profile cannot be loaded", async () => {
   );
   render(<ProfilePage session={{ accessToken: () => "access" }} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("プロフィールを取得できませんでした");
+});
+
+test("retries the profile after a temporary loading failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/profile", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({
+            data: { id: "1", name: "Recovered", title: "Developer", bio: "Hello", avatarUrl: null },
+          });
+    }),
+  );
+  render(<ProfilePage session={{ accessToken: () => "access" }} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("プロフィールを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByText("Recovered")).toBeInTheDocument();
 });

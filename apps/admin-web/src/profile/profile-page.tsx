@@ -12,6 +12,7 @@ type State =
 export const ProfilePage = ({ session }: { session: AdminSession }) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const lifecycle = { active: true };
     void request<unknown>({ method: "GET", url: "/api/admin/profile" }).then(
@@ -31,10 +32,24 @@ export const ProfilePage = ({ session }: { session: AdminSession }) => {
     return () => {
       lifecycle.active = false;
     };
-  }, [request, session]);
+  }, [attempt, request, session]);
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <>
+        <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </>
+    );
   return (
     <section>
       <h1>{"プロフィール"}</h1>

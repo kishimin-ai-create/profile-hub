@@ -39,7 +39,7 @@ export const DashboardCounts = ({ session }: { session: AdminSession }) => {
   return (
     <section aria-label={"登録状況"}>
       <h2>{"登録状況"}</h2>
-      {current.status === "loading" && <p>{"読み込み中"}</p>}
+      {current.status === "loading" && <p role={"status"}>{"読み込み中"}</p>}
       {current.status === "error" && (
         <>
           <p role={"alert"}>{"登録件数を取得できませんでした"}</p>

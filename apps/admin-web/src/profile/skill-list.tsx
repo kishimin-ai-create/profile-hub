@@ -22,6 +22,7 @@ export const SkillList = ({
 }) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [reorderError, setReorderError] = useState(false);
@@ -45,7 +46,7 @@ export const SkillList = ({
     return () => {
       lifecycle.active = false;
     };
-  }, [request, session]);
+  }, [attempt, request, session]);
   const remove = async (skill: Skill) => {
     if (pending.current || !window.confirm(`「${skill.name}」を完全に削除しますか？`)) return;
     pending.current = true;
@@ -100,7 +101,21 @@ export const SkillList = ({
   };
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"スキルを読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"スキルを取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <>
+        <p role={"alert"}>{"スキルを取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </>
+    );
   return (
     <section>
       <h2>{"スキル"}</h2>

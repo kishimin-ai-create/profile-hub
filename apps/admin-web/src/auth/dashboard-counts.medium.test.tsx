@@ -13,6 +13,13 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces while dashboard counts are loading", () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(http.get("https://api.example.test/api/admin/portfolio", () => new Promise(() => {})));
+  render(<DashboardCounts session={{ accessToken: () => "access" }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("読み込み中");
+});
+
 test("shows portfolio and favourite counts from authenticated responses", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

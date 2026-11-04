@@ -15,6 +15,32 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("retries loading a skill for editing after a temporary failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({ data: [{ id: "1", name: "Recovered", displayOrder: 0 }] });
+    }),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/1/edit"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByLabelText("スキル名")).toHaveValue("Recovered");
+});
+
 test("edits an existing skill and returns to profile", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const state = { name: "TypeScript" };

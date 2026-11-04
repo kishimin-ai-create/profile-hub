@@ -15,6 +15,31 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("retries loading the profile for editing after a temporary failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/profile", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({
+            data: { id: "1", name: "Recovered", title: null, bio: null, avatarUrl: null },
+          });
+    }),
+  );
+  const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/profile/edit"] }), {
+    accessToken: () => "access",
+    restore: () => Promise.resolve(false),
+    login: () => Promise.resolve(false),
+    logout: () => Promise.resolve(),
+  });
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("プロフィールを取得できませんでした");
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(await screen.findByLabelText("名前")).toHaveValue("Recovered");
+});
+
 test("updates the profile and returns to its display screen", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const state = { name: "Example" };

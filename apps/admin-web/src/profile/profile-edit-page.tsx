@@ -20,6 +20,7 @@ export const ProfileEditPage = ({
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const dirty = useRef(false);
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
     enableBeforeUnload: () => dirty.current,
@@ -47,10 +48,24 @@ export const ProfileEditPage = ({
     return () => {
       lifecycle.active = false;
     };
-  }, [request, session]);
+  }, [attempt, request, session]);
   if (state.status === "loading" || state.source !== session)
     return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <>
+        <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </>
+    );
   return (
     <>
       <h1>{"プロフィールを編集"}</h1>

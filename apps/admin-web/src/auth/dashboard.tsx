@@ -1,8 +1,13 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-type Props = { logout: () => Promise<void>; onSuccess: () => void; quickActions?: ReactNode };
-export const Dashboard = ({ logout, onSuccess, quickActions }: Props) => {
+type Props = {
+  logout: () => Promise<void>;
+  onSuccess: () => void;
+  quickActions?: ReactNode;
+  summary?: ReactNode;
+};
+export const Dashboard = ({ logout, onSuccess, quickActions, summary }: Props) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   const signOut = async () => {
@@ -21,6 +26,7 @@ export const Dashboard = ({ logout, onSuccess, quickActions }: Props) => {
   return (
     <>
       <h1>{"ダッシュボード"}</h1>
+      {summary}
       {quickActions}
       {error && (
         <p role={"alert"}>

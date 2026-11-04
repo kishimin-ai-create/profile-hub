@@ -10,6 +10,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { z } from "zod";
 import { createBrowserSession } from "../../auth/browser-session";
 import { Dashboard } from "../../auth/dashboard";
+import { DashboardCounts } from "../../auth/dashboard-counts";
 import { LoginPage } from "../../auth/login-page";
 import { FavouriteCreatePage } from "../../favourites/favourite-create-page";
 import { FavouriteEditPage } from "../../favourites/favourite-edit-page";
@@ -110,6 +111,7 @@ const dashboardRoute = createRoute({
     return (
       <Dashboard
         logout={context.session.logout}
+        summary={<DashboardCounts session={context.session} />}
         quickActions={
           <nav aria-label={"クイック操作"}>
             <h2>{"クイック操作"}</h2>

@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+test("dashboard shows empty counts from the authenticated API", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  const counts = page.getByRole("region", { name: "登録状況" });
+  await expect(counts.getByText("作品", { exact: true })).toBeVisible();
+  await expect(counts.getByText("お気に入り", { exact: true })).toBeVisible();
+  await expect(counts.getByText("0件", { exact: true })).toHaveCount(2);
+});
+
 test("dashboard quick actions open the corresponding admin forms", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

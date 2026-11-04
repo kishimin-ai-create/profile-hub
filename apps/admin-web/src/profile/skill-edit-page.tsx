@@ -23,6 +23,7 @@ export const SkillEditPage = ({
 }) => {
   const request = useMemo(() => createAuthorizedRequest(session), [session]);
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const lifecycle = { active: true };
     void request<unknown>({ method: "GET", url: "/api/admin/skills" }).then(
@@ -45,9 +46,23 @@ export const SkillEditPage = ({
     return () => {
       lifecycle.active = false;
     };
-  }, [id, request, session]);
+  }, [attempt, id, request, session]);
   if (state.status === "loading" || state.source !== session || state.id !== id)
     return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error") return <p role={"alert"}>{"スキルを取得できませんでした"}</p>;
+  if (state.status === "error")
+    return (
+      <>
+        <p role={"alert"}>{"スキルを取得できませんでした"}</p>
+        <button
+          type={"button"}
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          {"再試行"}
+        </button>
+      </>
+    );
   return <SkillCreatePage initial={state.skill} session={session} onSuccess={onSuccess} />;
 };

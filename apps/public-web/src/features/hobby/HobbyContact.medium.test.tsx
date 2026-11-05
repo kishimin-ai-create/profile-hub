@@ -52,6 +52,19 @@ test("shows an empty state when X is not configured", async () => {
   expect(await screen.findByText("連絡先はまだありません。")).toBeInTheDocument();
 });
 
+test("reports malformed hobby links instead of claiming there is no contact", async () => {
+  server.use(
+    http.get("*/api/public/profile", () =>
+      HttpResponse.json({
+        data: { links: { engineering: [], hobby: [{ url: "https://x.com/example" }] } },
+      }),
+    ),
+  );
+  show();
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  expect(screen.queryByText("連絡先はまだありません。")).not.toBeInTheDocument();
+});
+
 test("rejects a dangerous URL returned by the API", async () => {
   server.use(
     http.get("*/api/public/profile", () =>

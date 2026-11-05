@@ -30,3 +30,17 @@ test("reports a server error without exposing its details", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("時間をおいて再試行");
   expect(screen.queryByText("private detail")).not.toBeInTheDocument();
 });
+
+test("asks the administrator to check connectivity after a network failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.post("https://api.example.test/api/admin/auth/browser/login", () => HttpResponse.error()),
+  );
+  const session = createBrowserSession();
+  render(<LoginPage login={session.login} onSuccess={vi.fn()} />);
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("メールアドレス"), "admin@example.test");
+  await user.type(screen.getByLabelText("パスワード"), "wrong");
+  await user.click(screen.getByRole("button", { name: "ログイン" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("通信状態を確認");
+});

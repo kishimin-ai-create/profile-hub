@@ -21,11 +21,13 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
       if (await login(email, password)) onSuccess();
       else setError("ログインできませんでした");
     } catch (failure) {
-      setError(
-        isAxiosError(failure) && failure.response && failure.response.status >= 500
-          ? "ログインできませんでした。時間をおいて再試行してください。"
-          : "ログインできませんでした",
-      );
+      if (isAxiosError(failure) && !failure.response) {
+        setError("ログインできませんでした。通信状態を確認してください。");
+      } else if (isAxiosError(failure) && failure.response && failure.response.status >= 500) {
+        setError("ログインできませんでした。時間をおいて再試行してください。");
+      } else {
+        setError("ログインできませんでした");
+      }
     } finally {
       setPending(false);
     }

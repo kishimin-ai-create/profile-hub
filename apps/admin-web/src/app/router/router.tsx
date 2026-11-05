@@ -67,6 +67,11 @@ const homeRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
+  beforeLoad: async ({ context }) => {
+    const authenticated =
+      context.session.accessToken() || (await context.session.restore().catch(() => false));
+    if (authenticated) redirect({ to: "/dashboard", throw: true });
+  },
   component: () => {
     const context: unknown = rootRoute.useRouteContext();
     if (!isRouteContext(context)) throw new Error("Missing session context");

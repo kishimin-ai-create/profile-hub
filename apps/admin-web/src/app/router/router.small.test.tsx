@@ -5,6 +5,43 @@ import { describe, expect, test, vi } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
+  test("redirects an authenticated visit to login to the dashboard", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/dashboard");
+  });
+  test("restores an existing session before opening the login screen", async () => {
+    const state: { token: string | null } = { token: null };
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => state.token,
+      restore: () => {
+        state.token = "restored";
+        return Promise.resolve(true);
+      },
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/dashboard");
+  });
+  test("shows the login form when session restoration fails", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => null,
+      restore: () => Promise.reject(new Error("network unavailable")),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ログイン" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+  });
   test.each([
     ["作品を作成", "/portfolio/new"],
     ["お気に入りを作成", "/hobby/new"],

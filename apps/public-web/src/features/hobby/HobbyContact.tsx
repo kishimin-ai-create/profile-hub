@@ -22,6 +22,16 @@ const readHobbyContact = async (): Promise<string | null> => {
   )
     throw new Error("Invalid links");
   const links: unknown[] = data.links.hobby;
+  if (
+    !links.every(
+      (entry) =>
+        typeof entry === "object" &&
+        entry !== null &&
+        "kind" in entry &&
+        typeof entry.kind === "string",
+    )
+  )
+    throw new Error("Invalid link");
   const link = links.find(
     (entry) =>
       typeof entry === "object" &&

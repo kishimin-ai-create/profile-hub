@@ -3,6 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { LoginPage } from "./login-page";
 
+test("announces login progress while a request is pending", async () => {
+  const login = vi
+    .fn<(email: string, password: string) => Promise<boolean>>()
+    .mockImplementation(() => new Promise(() => {}));
+  render(<LoginPage login={login} onSuccess={vi.fn<() => void>()} />);
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");
+  await user.type(screen.getByLabelText("パスワード"), "password");
+  await user.click(screen.getByRole("button", { name: "ログイン" }));
+  expect(screen.getByRole("button", { name: "ログイン" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("ログイン中");
+});
+
 test("does not submit credentials twice before the first login completes", async () => {
   const login = vi
     .fn<(email: string, password: string) => Promise<boolean>>()

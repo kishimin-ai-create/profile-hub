@@ -17,6 +17,11 @@ for (const { label, email, password } of [
     await expect(page.locator("input:invalid")).toHaveCount(1);
     await expect(page).toHaveURL(/\/login$/);
     expect(requests).toEqual([]);
+    await page.getByLabel("メールアドレス").fill("admin@example.test");
+    await page.getByLabel("パスワード").fill("test-only-password");
+    await page.getByRole("button", { name: "ログイン" }).click();
+    await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+    expect(requests).toEqual(["POST"]);
   });
 }
 

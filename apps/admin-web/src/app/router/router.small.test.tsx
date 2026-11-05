@@ -16,6 +16,21 @@ describe("administrator route access", () => {
     expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/dashboard");
   });
+  test("restores an existing session before opening the login screen", async () => {
+    const state: { token: string | null } = { token: null };
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => state.token,
+      restore: () => {
+        state.token = "restored";
+        return Promise.resolve(true);
+      },
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/dashboard");
+  });
   test.each([
     ["作品を作成", "/portfolio/new"],
     ["お気に入りを作成", "/hobby/new"],

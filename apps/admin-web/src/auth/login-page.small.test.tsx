@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { LoginPage } from "./login-page";
@@ -11,11 +11,11 @@ test("does not submit credentials twice before the first login completes", async
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");
   await user.type(screen.getByLabelText("パスワード"), "password");
-  const form = screen.getByRole("button", { name: "ログイン" }).closest("form");
-  if (!form) throw new Error("Missing login form");
+  const form = screen.getByRole("form", { name: "ログイン" });
+  if (!(form instanceof HTMLFormElement)) throw new Error("Missing login form");
   act(() => {
-    fireEvent.submit(form);
-    fireEvent.submit(form);
+    form.requestSubmit();
+    form.requestSubmit();
   });
   expect(login).toHaveBeenCalledOnce();
 });

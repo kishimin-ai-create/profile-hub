@@ -39,6 +39,7 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
     <>
       <h1>{"ログイン"}</h1>
       <form
+        aria-label={"ログイン"}
         onSubmit={(event) => {
           void submit(event);
         }}

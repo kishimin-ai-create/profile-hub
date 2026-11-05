@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
@@ -15,6 +15,43 @@ const Example = ({ load }: { load: () => Promise<string> }) => {
 };
 
 describe("QueryState", () => {
+  test("keeps existing content visible when a background refresh fails", async () => {
+    const load = vi
+      .fn<() => Promise<string>>()
+      .mockResolvedValueOnce("公開データ")
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce("更新データ");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const RefreshExample = () => {
+      const query = useQuery({ queryKey: ["refresh"], queryFn: load });
+      return (
+        <>
+          <button
+            type={"button"}
+            onClick={() => {
+              void query.refetch();
+            }}
+          >
+            {"更新"}
+          </button>
+          <QueryState query={query}>
+            <p>{query.data}</p>
+          </QueryState>
+        </>
+      );
+    };
+    render(
+      <QueryClientProvider client={client}>
+        <RefreshExample />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("公開データ")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "更新" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText("公開データ")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+    expect(await screen.findByText("更新データ")).toBeInTheDocument();
+  });
   test("announces a paused initial query without claiming an active request", () => {
     render(
       <QueryState

@@ -1,5 +1,25 @@
 import { expect, test } from "@playwright/test";
 
+for (const { label, email, password } of [
+  { label: "invalid email", email: "invalid-email", password: "test-only-password" },
+  { label: "missing password", email: "admin@example.test", password: "" },
+]) {
+  test(`does not send login requests with ${label}`, async ({ page }) => {
+    const requests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/admin/auth/browser/login")
+        requests.push(request.method());
+    });
+    await page.goto("/login");
+    await page.getByLabel("メールアドレス").fill(email);
+    await page.getByLabel("パスワード").fill(password);
+    await page.getByRole("button", { name: "ログイン" }).click();
+    await expect(page.locator("input:invalid")).toHaveCount(1);
+    await expect(page).toHaveURL(/\/login$/);
+    expect(requests).toEqual([]);
+  });
+}
+
 test("administrator can log in using only the keyboard", async ({ page }) => {
   await page.goto("/login");
   const email = page.getByLabel("メールアドレス");

@@ -22,7 +22,7 @@ test("shows a generic message for invalid credentials", async () => {
     ),
   );
   const session = createBrowserSession();
-  render(<LoginPage login={session.login} onSuccess={vi.fn()} />);
+  render(<LoginPage login={session.login} onSuccess={vi.fn<() => void>()} />);
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.test");
   await user.type(screen.getByLabelText("パスワード"), "wrong");
@@ -39,7 +39,7 @@ test("reports a server error without exposing its details", async () => {
     ),
   );
   const session = createBrowserSession();
-  render(<LoginPage login={session.login} onSuccess={vi.fn()} />);
+  render(<LoginPage login={session.login} onSuccess={vi.fn<() => void>()} />);
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.test");
   await user.type(screen.getByLabelText("パスワード"), "wrong");
@@ -54,7 +54,7 @@ test("asks the administrator to check connectivity after a network failure", asy
     http.post("https://api.example.test/api/admin/auth/browser/login", () => HttpResponse.error()),
   );
   const session = createBrowserSession();
-  render(<LoginPage login={session.login} onSuccess={vi.fn()} />);
+  render(<LoginPage login={session.login} onSuccess={vi.fn<() => void>()} />);
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.test");
   await user.type(screen.getByLabelText("パスワード"), "wrong");

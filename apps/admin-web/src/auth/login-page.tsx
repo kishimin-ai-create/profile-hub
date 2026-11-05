@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 type Props = {
@@ -11,10 +11,12 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (pending) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setPending(true);
     setError(null);
     try {
@@ -29,6 +31,7 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
         setError("ログインできませんでした");
       }
     } finally {
+      inFlight.current = false;
       setPending(false);
     }
   };

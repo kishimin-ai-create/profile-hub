@@ -6,12 +6,14 @@ export const LoadingState = () => <p role={"status"}>{"読み込み中…"}</p>;
 export const ErrorState = ({
   onRetry,
   retrying = false,
+  message = "データを読み込めませんでした。もう一度お試しください。",
 }: {
   onRetry: () => void;
   retrying?: boolean;
+  message?: string;
 }) => (
   <div className={"error-state"}>
-    <p role={"alert"}>{"データを読み込めませんでした。もう一度お試しください。"}</p>
+    <p role={"alert"}>{message}</p>
     <button type={"button"} onClick={onRetry} disabled={retrying}>
       {"再試行"}
     </button>
@@ -19,7 +21,10 @@ export const ErrorState = ({
 );
 
 type QueryStateProps = {
-  query: Pick<UseQueryResult, "status" | "fetchStatus"> & { refetch: () => Promise<unknown> };
+  query: Pick<UseQueryResult, "status" | "fetchStatus"> & {
+    isRefetchError?: boolean;
+    refetch: () => Promise<unknown>;
+  };
   children: ReactNode;
 };
 
@@ -33,12 +38,20 @@ export const QueryState = ({ query, children }: QueryStateProps) => {
   }
   if (query.status === "error") {
     return (
-      <ErrorState
-        onRetry={() => {
-          void query.refetch();
-        }}
-        retrying={query.fetchStatus === "fetching"}
-      />
+      <>
+        {query.isRefetchError && children}
+        <ErrorState
+          onRetry={() => {
+            void query.refetch();
+          }}
+          retrying={query.fetchStatus === "fetching"}
+          message={
+            query.isRefetchError
+              ? "更新に失敗しました。表示中の内容は古い可能性があります。"
+              : undefined
+          }
+        />
+      </>
     );
   }
   return (

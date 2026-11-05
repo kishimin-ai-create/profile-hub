@@ -14,6 +14,23 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("shows a generic message for invalid credentials", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  server.use(
+    http.post("https://api.example.test/api/admin/auth/browser/login", () =>
+      HttpResponse.json({ error: "private detail" }, { status: 401 }),
+    ),
+  );
+  const session = createBrowserSession();
+  render(<LoginPage login={session.login} onSuccess={vi.fn()} />);
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("メールアドレス"), "admin@example.test");
+  await user.type(screen.getByLabelText("パスワード"), "wrong");
+  await user.click(screen.getByRole("button", { name: "ログイン" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(/^ログインできませんでした$/);
+  expect(screen.queryByText("private detail")).not.toBeInTheDocument();
+});
+
 test("reports a server error without exposing its details", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

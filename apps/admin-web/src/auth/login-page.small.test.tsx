@@ -20,6 +20,23 @@ test("does not submit credentials twice before the first login completes", async
   expect(login).toHaveBeenCalledOnce();
 });
 
+test("allows another login attempt after a failure", async () => {
+  const login = vi
+    .fn<(email: string, password: string) => Promise<boolean>>()
+    .mockResolvedValueOnce(false)
+    .mockResolvedValueOnce(true);
+  const onSuccess = vi.fn<() => void>();
+  render(<LoginPage login={login} onSuccess={onSuccess} />);
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");
+  await user.type(screen.getByLabelText("パスワード"), "password");
+  await user.click(screen.getByRole("button", { name: "ログイン" }));
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "ログイン" }));
+  expect(onSuccess).toHaveBeenCalledOnce();
+  expect(login).toHaveBeenCalledTimes(2);
+});
+
 test("submits credentials and opens the dashboard after login", async () => {
   const login = vi
     .fn<(email: string, password: string) => Promise<boolean>>()

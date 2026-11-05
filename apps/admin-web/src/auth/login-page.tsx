@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
@@ -10,17 +11,23 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
     setPending(true);
-    setError(false);
+    setError(null);
     try {
       if (await login(email, password)) onSuccess();
-      else setError(true);
-    } catch {
-      setError(true);
+      else setError("ログインできませんでした");
+    } catch (failure) {
+      if (isAxiosError(failure) && !failure.response) {
+        setError("ログインできませんでした。通信状態を確認してください。");
+      } else if (isAxiosError(failure) && failure.response && failure.response.status >= 500) {
+        setError("ログインできませんでした。時間をおいて再試行してください。");
+      } else {
+        setError("ログインできませんでした");
+      }
     } finally {
       setPending(false);
     }
@@ -54,7 +61,7 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        {error && <p role={"alert"}>{"ログインできませんでした"}</p>}
+        {error && <p role={"alert"}>{error}</p>}
 
         <button type={"submit"} disabled={pending}>
           {"ログイン"}

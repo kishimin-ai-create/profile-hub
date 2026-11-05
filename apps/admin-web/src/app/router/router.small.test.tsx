@@ -31,6 +31,17 @@ describe("administrator route access", () => {
     expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/dashboard");
   });
+  test("shows the login form when session restoration fails", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => null,
+      restore: () => Promise.reject(new Error("network unavailable")),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ログイン" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+  });
   test.each([
     ["作品を作成", "/portfolio/new"],
     ["お気に入りを作成", "/hobby/new"],

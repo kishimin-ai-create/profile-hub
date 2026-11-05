@@ -5,6 +5,17 @@ import { describe, expect, test, vi } from "vitest";
 import { createAdminRouter } from "./router";
 
 describe("administrator route access", () => {
+  test("redirects an authenticated visit to login to the dashboard", async () => {
+    const router = createAdminRouter(createMemoryHistory({ initialEntries: ["/login"] }), {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    });
+    render(<RouterProvider router={router} />);
+    expect(await screen.findByRole("heading", { name: "ダッシュボード" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/dashboard");
+  });
   test.each([
     ["作品を作成", "/portfolio/new"],
     ["お気に入りを作成", "/hobby/new"],

@@ -25,6 +25,8 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
     } catch (failure) {
       if (isAxiosError(failure) && !failure.response) {
         setError("ログインできませんでした。通信状態を確認してください。");
+      } else if (isAxiosError(failure) && failure.response?.status === 429) {
+        setError("ログインできませんでした。しばらく時間をおいて再試行してください。");
       } else if (isAxiosError(failure) && failure.response && failure.response.status >= 500) {
         setError("ログインできませんでした。時間をおいて再試行してください。");
       } else {

@@ -1,5 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+test("administrator can retry a failed login using only the keyboard", async ({ page }) => {
+  await page.goto("/login");
+  const email = page.getByLabel("メールアドレス");
+  const password = page.getByLabel("パスワード");
+  const submit = page.getByRole("button", { name: "ログイン" });
+  await expect(email).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(email).toBeFocused();
+  await page.keyboard.type("admin@example.test");
+  await page.keyboard.press("Tab");
+  await expect(password).toBeFocused();
+  await page.keyboard.type("wrong-password");
+  await page.keyboard.press("Tab");
+  await expect(submit).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("alert")).toHaveText("ログインできませんでした");
+  await page.keyboard.press("Shift+Tab");
+  await expect(password).toBeFocused();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("test-only-password");
+  await page.keyboard.press("Tab");
+  await expect(submit).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+});
+
 for (const { label, email, password } of [
   { label: "invalid email", email: "invalid-email", password: "test-only-password" },
   { label: "missing password", email: "admin@example.test", password: "" },

@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+test("administrator can log in using only the keyboard", async ({ page }) => {
+  await page.goto("/login");
+  const email = page.getByLabel("メールアドレス");
+  const password = page.getByLabel("パスワード");
+  const submit = page.getByRole("button", { name: "ログイン" });
+  await expect(email).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(email).toBeFocused();
+  await page.keyboard.type("admin@example.test");
+  await page.keyboard.press("Tab");
+  await expect(password).toBeFocused();
+  await page.keyboard.type("test-only-password");
+  await page.keyboard.press("Tab");
+  await expect(submit).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+});
+
 test("an existing browser session redirects a direct login visit", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

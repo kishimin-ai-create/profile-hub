@@ -45,6 +45,7 @@ test("allows another login attempt after a failure", async () => {
   await user.type(screen.getByLabelText("パスワード"), "password");
   await user.click(screen.getByRole("button", { name: "ログイン" }));
   expect(await screen.findByRole("alert")).toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "ログイン" }));
   expect(onSuccess).toHaveBeenCalledOnce();
   expect(login).toHaveBeenCalledTimes(2);

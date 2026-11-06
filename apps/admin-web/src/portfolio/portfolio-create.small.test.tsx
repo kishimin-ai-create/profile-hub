@@ -43,6 +43,38 @@ test("shows a save error without navigating", async () => {
   expect(onSuccess).not.toHaveBeenCalled();
 });
 
+test.each([
+  ["作品名", "作品名を入力してください"],
+  ["概要", "概要を入力してください"],
+])("associates a blank %s error with its field", async (label, message) => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(
+    <PortfolioCreate
+      initial={{
+        section: "hobby",
+        name: "Project",
+        summary: "Summary",
+        technologies: ["Bun"],
+        displayOrder: 1,
+      }}
+      save={save}
+      onSuccess={() => {}}
+    />,
+  );
+  const user = userEvent.setup();
+  const field = screen.getByLabelText(label);
+  await user.clear(field);
+  await user.type(field, "   ");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(field).toHaveAttribute("aria-invalid", "true");
+  expect(field).toHaveAccessibleDescription(message);
+  expect(save).not.toHaveBeenCalled();
+  await user.clear(field);
+  await user.type(field, "Updated");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledOnce();
+});
+
 test("replaces an earlier save error with the current input error", async () => {
   const save = vi
     .fn<(value: unknown) => Promise<void>>()

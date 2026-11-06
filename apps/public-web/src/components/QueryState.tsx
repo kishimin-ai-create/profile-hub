@@ -34,11 +34,15 @@ export const QueryState = ({ query, children }: QueryStateProps) => {
       ? query.fetchStatus === "fetching"
         ? "読み込み中…"
         : "データを待っています。"
-      : query.fetchStatus === "fetching"
+      : query.fetchStatus === "paused"
         ? query.status === "success" || query.isRefetchError
-          ? "更新中…"
-          : "読み込み中…"
-        : "";
+          ? "更新を待っています。"
+          : "データを待っています。"
+        : query.fetchStatus === "fetching"
+          ? query.status === "success" || query.isRefetchError
+            ? "更新中…"
+            : "読み込み中…"
+          : "";
   return (
     <>
       {(query.status === "success" || (query.status === "error" && query.isRefetchError)) &&

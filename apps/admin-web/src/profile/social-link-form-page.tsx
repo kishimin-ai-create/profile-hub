@@ -27,6 +27,7 @@ export const SocialLinkFormPage = ({
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
   const urlError = error === "URL を確認してください";
+  const kindError = error === "種類を入力してください";
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
     enableBeforeUnload: () => dirty.current,
@@ -60,9 +61,12 @@ export const SocialLinkFormPage = ({
       setError("URL を確認してください");
       return;
     }
+    if (!kind) {
+      setError("種類を入力してください");
+      return;
+    }
     if (
       !section.success ||
-      !kind ||
       !order ||
       !Number.isInteger(Number(order)) ||
       Number(order) < -2147483648 ||
@@ -115,7 +119,14 @@ export const SocialLinkFormPage = ({
           </label>
           <label>
             {"種類"}
-            <input name={"kind"} required maxLength={100} defaultValue={initial?.kind} />
+            <input
+              name={"kind"}
+              required
+              maxLength={100}
+              defaultValue={initial?.kind}
+              aria-invalid={kindError || undefined}
+              aria-describedby={kindError ? errorId : undefined}
+            />
           </label>
           <label>
             {"URL"}

@@ -29,17 +29,21 @@ type QueryStateProps = {
 };
 
 export const QueryState = ({ query, children }: QueryStateProps) => {
-  if (query.status === "pending") {
-    return query.fetchStatus === "fetching" ? (
-      <LoadingState />
-    ) : (
-      <p role={"status"}>{"データを待っています。"}</p>
-    );
-  }
-  if (query.status === "error") {
-    return (
-      <>
-        {query.isRefetchError && children}
+  const message =
+    query.status === "pending"
+      ? query.fetchStatus === "fetching"
+        ? "読み込み中…"
+        : "データを待っています。"
+      : query.fetchStatus === "fetching"
+        ? query.status === "success" || query.isRefetchError
+          ? "更新中…"
+          : "読み込み中…"
+        : "";
+  return (
+    <>
+      {(query.status === "success" || (query.status === "error" && query.isRefetchError)) &&
+        children}
+      {query.status === "error" && (
         <ErrorState
           onRetry={() => {
             void query.refetch();
@@ -51,13 +55,8 @@ export const QueryState = ({ query, children }: QueryStateProps) => {
               : undefined
           }
         />
-      </>
-    );
-  }
-  return (
-    <>
-      {children}
-      {query.fetchStatus === "fetching" && <p role={"status"}>{"更新中…"}</p>}
+      )}
+      <span role={"status"}>{message}</span>
     </>
   );
 };

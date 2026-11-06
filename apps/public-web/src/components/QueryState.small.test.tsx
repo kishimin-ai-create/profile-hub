@@ -15,6 +15,33 @@ const Example = ({ load }: { load: () => Promise<string> }) => {
 };
 
 describe("QueryState", () => {
+  test("announces background refreshes through an existing status region", () => {
+    const query = {
+      status: "success" as const,
+      fetchStatus: "idle" as const,
+      refetch: () => Promise.resolve(),
+    };
+    const { rerender } = render(
+      <QueryState query={query}>
+        <p>{"公開データ"}</p>
+      </QueryState>,
+    );
+    const status = screen.getByRole("status");
+    expect(status).toBeEmptyDOMElement();
+    rerender(
+      <QueryState query={{ ...query, fetchStatus: "fetching" }}>
+        <p>{"公開データ"}</p>
+      </QueryState>,
+    );
+    expect(status).toHaveTextContent("更新中");
+    expect(screen.getByText("公開データ")).toBeInTheDocument();
+    rerender(
+      <QueryState query={query}>
+        <p>{"公開データ"}</p>
+      </QueryState>,
+    );
+    expect(status).toBeEmptyDOMElement();
+  });
   test("keeps existing content visible when a background refresh fails", async () => {
     const load = vi
       .fn<() => Promise<string>>()

@@ -23,7 +23,8 @@ type Props = {
 
 export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<"failed" | "renewed" | null>(null);
+  const [error, setError] = useState<"failed" | "renewed" | "name" | "summary" | null>(null);
+  const errorId = useId();
   const [urlError, setUrlError] = useState<string | null>(null);
   const [technologyError, setTechnologyError] = useState<string | null>(null);
   const technologyErrorId = useId();
@@ -66,13 +67,15 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
     });
     setUrlError(invalidUrl ?? null);
     if (invalidUrl || invalidTechnologies) return;
-    if (
-      !section.success ||
-      !text("name") ||
-      !text("summary") ||
-      !order ||
-      !Number.isInteger(Number(order))
-    ) {
+    if (!text("name")) {
+      setError("name");
+      return;
+    }
+    if (!text("summary")) {
+      setError("summary");
+      return;
+    }
+    if (!section.success || !order || !Number.isInteger(Number(order))) {
       setError("failed");
       return;
     }
@@ -124,6 +127,8 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             defaultValue={initial?.name ?? ""}
             maxLength={200}
             required
+            aria-invalid={error === "name" || undefined}
+            aria-describedby={error === "name" ? errorId : undefined}
           />
 
           <label htmlFor={"summary"}>{"概要"}</label>
@@ -134,6 +139,8 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             defaultValue={initial?.summary ?? ""}
             maxLength={4000}
             required
+            aria-invalid={error === "summary" || undefined}
+            aria-describedby={error === "summary" ? errorId : undefined}
           />
 
           <label htmlFor={"technologies"}>{"技術（カンマ区切り）"}</label>
@@ -204,10 +211,14 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
           />
 
           {error && (
-            <p role={"alert"}>
+            <p id={errorId} role={"alert"}>
               {error === "renewed"
                 ? "認証を更新しました。もう一度保存してください"
-                : "作品を保存できませんでした"}
+                : error === "name"
+                  ? "作品名を入力してください"
+                  : error === "summary"
+                    ? "概要を入力してください"
+                    : "作品を保存できませんでした"}
             </p>
           )}
 

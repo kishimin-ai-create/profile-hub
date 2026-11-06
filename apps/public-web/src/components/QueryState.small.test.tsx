@@ -1,5 +1,5 @@
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { onlineManager, QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import { PublicQueryProvider } from "../providers/PublicQueryProvider";
@@ -15,6 +15,54 @@ const Example = ({ load }: { load: () => Promise<string> }) => {
 };
 
 describe("QueryState", () => {
+  test("prevents duplicate retries while a refresh waits for connectivity", async () => {
+    const load = vi
+      .fn<() => Promise<string>>()
+      .mockResolvedValueOnce("公開データ")
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce("更新データ");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const RefreshExample = () => {
+      const query = useQuery({ queryKey: ["offline-refresh"], queryFn: load });
+      return (
+        <>
+          <button
+            type={"button"}
+            onClick={() => {
+              void query.refetch();
+            }}
+          >
+            {"更新"}
+          </button>
+          <QueryState query={query}>
+            <p>{query.data}</p>
+          </QueryState>
+        </>
+      );
+    };
+    render(
+      <QueryClientProvider client={client}>
+        <RefreshExample />
+      </QueryClientProvider>,
+    );
+    const user = userEvent.setup();
+    try {
+      expect(await screen.findByText("公開データ")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "更新" }));
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
+      act(() => onlineManager.setOnline(false));
+      await user.click(screen.getByRole("button", { name: "再試行" }));
+      expect(await screen.findByText("更新を待っています。")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "再試行" })).toBeDisabled();
+      expect(load).toHaveBeenCalledTimes(2);
+      act(() => onlineManager.setOnline(true));
+      expect(await screen.findByText("更新データ")).toBeInTheDocument();
+      expect(load).toHaveBeenCalledTimes(3);
+    } finally {
+      act(() => onlineManager.setOnline(true));
+      client.clear();
+    }
+  });
   test("reports a paused refresh while keeping existing content", () => {
     render(
       <QueryState

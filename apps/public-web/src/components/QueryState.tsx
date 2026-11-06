@@ -52,7 +52,7 @@ export const QueryState = ({ query, children }: QueryStateProps) => {
           onRetry={() => {
             void query.refetch();
           }}
-          retrying={query.fetchStatus === "fetching"}
+          retrying={query.fetchStatus !== "idle"}
           message={
             query.isRefetchError
               ? "更新に失敗しました。表示中の内容は古い可能性があります。"

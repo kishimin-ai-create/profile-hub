@@ -40,19 +40,29 @@ test("shows portfolio and favourite counts from authenticated responses", async 
 test("retries a failed count request and displays empty counts", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const calls = { count: 0 };
+  let releaseRetry = () => {};
+  const retry = new Promise<void>((resolve) => {
+    releaseRetry = resolve;
+  });
   server.use(
-    http.get("https://api.example.test/api/admin/portfolio", () => {
+    http.get("https://api.example.test/api/admin/portfolio", async () => {
       calls.count += 1;
-      return calls.count === 1
-        ? new HttpResponse(null, { status: 500 })
-        : HttpResponse.json({ data: [] });
+      if (calls.count === 1) return new HttpResponse(null, { status: 500 });
+      await retry;
+      return HttpResponse.json({ data: [] });
     }),
     http.get("https://api.example.test/api/admin/favourites", () =>
       HttpResponse.json({ data: [] }),
     ),
   );
   render(<DashboardCounts session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
   expect(await screen.findByRole("alert")).toHaveTextContent("登録件数を取得できませんでした");
+  expect(status).toBeInTheDocument();
+  expect(status).toBeEmptyDOMElement();
   await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("読み込み中");
+  releaseRetry();
   expect(await screen.findAllByText("0件")).toHaveLength(2);
+  expect(status).toBeEmptyDOMElement();
 });

@@ -69,6 +69,21 @@ test("identifies each project's repository and demo links", async () => {
   );
 });
 
+test("renders HTTP URLs accepted by portfolio administration", async () => {
+  server.use(
+    http.get("*/api/public/portfolio", () =>
+      HttpResponse.json({
+        data: [{ ...project, demoUrl: "https:example.test/demo" }],
+      }),
+    ),
+  );
+  show();
+  expect(await screen.findByRole("link", { name: "Work のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.test/demo",
+  );
+});
+
 test("does not display a hobby project on engineering", async () => {
   server.use(
     http.get("*/api/public/portfolio", () =>
@@ -93,10 +108,10 @@ test("shows a project image and hides it when it cannot load", async () => {
   expect(screen.queryByRole("img", { name: "Work の画像" })).not.toBeInTheDocument();
 });
 
-test("rejects an unsafe image URL", async () => {
+test.each(["repositoryUrl", "demoUrl", "imageUrl"])("rejects an unsafe %s", async (field) => {
   server.use(
     http.get("*/api/public/portfolio", () =>
-      HttpResponse.json({ data: [{ ...project, imageUrl: "javascript:alert(1)" }] }),
+      HttpResponse.json({ data: [{ ...project, [field]: "javascript:alert(1)" }] }),
     ),
   );
   show();

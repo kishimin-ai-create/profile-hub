@@ -1,5 +1,43 @@
 import { expect, test } from "@playwright/test";
 
+for (const [label, message] of [
+  ["作品名", "作品名を入力してください"],
+  ["概要", "概要を入力してください"],
+]) {
+  test(`rejects a blank ${label} and saves after correction`, async ({ page }) => {
+    const requests: string[] = [];
+    await page.route("**/api/admin/portfolio", async (route) => {
+      if (route.request().method() === "POST") {
+        requests.push(route.request().method());
+        await route.fulfill({ status: 201, json: { data: { id: "1" } } });
+      } else await route.continue();
+    });
+    await page.goto("/login");
+    await page.getByLabel("メールアドレス").fill("admin@example.test");
+    await page.getByLabel("パスワード").fill("test-only-password");
+    await page.getByRole("button", { name: "ログイン" }).click();
+    await page
+      .getByRole("navigation", { name: "クイック操作" })
+      .getByRole("link", { name: "作品を作成" })
+      .click();
+    await page.getByLabel("セクション").selectOption("hobby");
+    await page.getByLabel("作品名").fill("Project");
+    await page.getByLabel("概要").fill("Summary");
+    await page.getByLabel("技術（カンマ区切り）").fill("Bun");
+    await page.getByLabel("表示順").fill("1");
+    const field = page.getByLabel(label);
+    await field.fill("   ");
+    await page.getByRole("button", { name: "作成" }).click();
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    await expect(field).toHaveAccessibleDescription(message);
+    expect(requests).toEqual([]);
+    await field.fill("Updated");
+    await page.getByRole("button", { name: "作成" }).click();
+    await expect(page).toHaveURL(/\/portfolio$/);
+    expect(requests).toEqual(["POST"]);
+  });
+}
+
 test("administrator can retry a failed login using only the keyboard", async ({ page }) => {
   await page.goto("/login");
   const email = page.getByLabel("メールアドレス");

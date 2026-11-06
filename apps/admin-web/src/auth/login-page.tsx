@@ -68,7 +68,7 @@ export const LoginPage = ({ login, onSuccess }: Props) => {
           onChange={(event) => setPassword(event.target.value)}
         />
         {error && <p role={"alert"}>{error}</p>}
-        {pending && <p role={"status"}>{"ログイン中…"}</p>}
+        <span role={"status"}>{pending ? "ログイン中…" : ""}</span>
 
         <button type={"submit"} disabled={pending}>
           {"ログイン"}

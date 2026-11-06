@@ -59,6 +59,35 @@ test("rejects unsafe portfolio URLs with a field error", async () => {
   expect(save).not.toHaveBeenCalled();
 });
 
+test("explains when technology input has no entries", async () => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(
+    <PortfolioCreate
+      initial={{
+        section: "hobby",
+        name: "Project",
+        summary: "Summary",
+        technologies: ["Bun"],
+        displayOrder: 1,
+      }}
+      save={save}
+      onSuccess={() => {}}
+    />,
+  );
+  const user = userEvent.setup();
+  const input = screen.getByLabelText("技術（カンマ区切り）");
+  await user.clear(input);
+  await user.type(input, " , ");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(input).toHaveAccessibleDescription("技術を1件以上入力してください");
+  expect(save).not.toHaveBeenCalled();
+  await user.clear(input);
+  await user.type(input, "Bun");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledOnce();
+});
+
 test.each([
   ["too many technologies", Array.from({ length: 51 }, (_, index) => `Tech${index}`).join(", ")],
   ["a technology over 100 characters", "x".repeat(101)],

@@ -25,7 +25,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<"failed" | "renewed" | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [technologyError, setTechnologyError] = useState(false);
+  const [technologyError, setTechnologyError] = useState<string | null>(null);
   const technologyErrorId = useId();
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -46,8 +46,11 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             .map((item) => item.trim())
             .filter(Boolean);
     const order = text("displayOrder");
-    const invalidTechnologies =
-      technologies.length > 50 || technologies.some((item) => item.length > 100);
+    const invalidTechnologies = !technologies.length
+      ? "技術を1件以上入力してください"
+      : technologies.length > 50 || technologies.some((item) => item.length > 100)
+        ? "技術は50件以内、各100文字以内で入力してください"
+        : null;
     setTechnologyError(invalidTechnologies);
     const links = ["repositoryUrl", "demoUrl", "imageUrl"];
     const invalidUrl = links.find((key) => {
@@ -66,7 +69,6 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
       !section.success ||
       !text("name") ||
       !text("summary") ||
-      !technologies.length ||
       !order ||
       !Number.isInteger(Number(order))
     ) {
@@ -141,12 +143,12 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             name={"technologies"}
             defaultValue={initial?.technologies.join(", ") ?? ""}
             required
-            aria-invalid={technologyError || undefined}
+            aria-invalid={technologyError ? true : undefined}
             aria-describedby={technologyError ? technologyErrorId : undefined}
           />
           {technologyError && (
             <p id={technologyErrorId} role={"alert"}>
-              {"技術は50件以内、各100文字以内で入力してください"}
+              {technologyError}
             </p>
           )}
 

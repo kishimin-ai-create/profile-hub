@@ -8,12 +8,14 @@ test("announces login progress while a request is pending", async () => {
     .fn<(email: string, password: string) => Promise<boolean>>()
     .mockImplementation(() => new Promise(() => {}));
   render(<LoginPage login={login} onSuccess={vi.fn<() => void>()} />);
+  const status = screen.getByRole("status");
+  expect(status).toBeEmptyDOMElement();
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("メールアドレス"), "admin@example.com");
   await user.type(screen.getByLabelText("パスワード"), "password");
   await user.click(screen.getByRole("button", { name: "ログイン" }));
   expect(screen.getByRole("button", { name: "ログイン" })).toBeDisabled();
-  expect(screen.getByRole("status")).toHaveTextContent("ログイン中");
+  expect(status).toHaveTextContent("ログイン中");
 });
 
 test("does not submit credentials twice before the first login completes", async () => {
@@ -45,7 +47,7 @@ test("allows another login attempt after a failure", async () => {
   await user.type(screen.getByLabelText("パスワード"), "password");
   await user.click(screen.getByRole("button", { name: "ログイン" }));
   expect(await screen.findByRole("alert")).toBeInTheDocument();
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
   await user.click(screen.getByRole("button", { name: "ログイン" }));
   expect(onSuccess).toHaveBeenCalledOnce();
   expect(login).toHaveBeenCalledTimes(2);

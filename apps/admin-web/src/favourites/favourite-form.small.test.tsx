@@ -40,6 +40,37 @@ test("rejects unsafe links before saving", async () => {
   expect(save).not.toHaveBeenCalled();
 });
 
+test.each([
+  ["名前", "名前を入力してください"],
+  ["説明", "説明を入力してください"],
+])("associates a blank %s error with its field", async (label, message) => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(
+    <FavouriteForm
+      save={save}
+      onSuccess={() => {}}
+      initial={{
+        name: "Tea",
+        description: "Green tea",
+        link: "https://example.com",
+        displayOrder: 1,
+      }}
+    />,
+  );
+  const user = userEvent.setup();
+  const field = screen.getByLabelText(label);
+  await user.clear(field);
+  await user.type(field, "   ");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(field).toHaveAttribute("aria-invalid", "true");
+  expect(field).toHaveAccessibleDescription(message);
+  expect(save).not.toHaveBeenCalled();
+  await user.clear(field);
+  await user.type(field, "Updated");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledOnce();
+});
+
 test("keeps input when session renewal requires an explicit retry", async () => {
   const onSuccess = vi.fn<() => void>();
   render(<FavouriteForm save={() => Promise.reject(sessionRenewedError)} onSuccess={onSuccess} />);

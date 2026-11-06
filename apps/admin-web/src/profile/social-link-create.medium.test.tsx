@@ -86,6 +86,29 @@ test("rejects mailto for non-email links", async () => {
   expect(screen.getByLabelText("URL")).toHaveAccessibleDescription("URL を確認してください");
 });
 
+test("associates a blank link kind error with its field", async () => {
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/links/new"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  await user.selectOptions(await screen.findByLabelText("セクション"), "hobby");
+  const kind = screen.getByLabelText("種類");
+  await user.type(kind, "   ");
+  await user.type(screen.getByLabelText("URL"), "https://example.com");
+  await user.type(screen.getByLabelText("表示順"), "0");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(kind).toHaveAttribute("aria-invalid", "true");
+  expect(kind).toHaveAccessibleDescription("種類を入力してください");
+  expect(router.state.location.pathname).toBe("/profile/links/new");
+});
+
 test("keeps unsaved link input when navigation is cancelled", async () => {
   const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
   const router = createAdminRouter(

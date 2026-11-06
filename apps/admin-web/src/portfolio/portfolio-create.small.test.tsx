@@ -86,6 +86,11 @@ test.each([
   expect(input).toHaveAttribute("aria-invalid", "true");
   expect(input).toHaveAccessibleDescription("技術は50件以内、各100文字以内で入力してください");
   expect(save).not.toHaveBeenCalled();
+  await user.clear(input);
+  await user.type(input, "Bun");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledOnce();
+  expect(input).not.toHaveAttribute("aria-invalid");
 });
 
 test("disables editing while a portfolio is being saved", async () => {

@@ -49,6 +49,27 @@ test("creates a skill through the authenticated API and returns to profile", asy
   expect(router.state.location.pathname).toBe("/profile");
 });
 
+test("associates a blank skill name error with its field", async () => {
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/new"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  const user = userEvent.setup();
+  const name = await screen.findByLabelText("スキル名");
+  await user.type(name, "   ");
+  await user.type(screen.getByLabelText("表示順"), "0");
+  await user.click(screen.getByRole("button", { name: "作成" }));
+  expect(name).toHaveAttribute("aria-invalid", "true");
+  expect(name).toHaveAccessibleDescription("スキル名を入力してください");
+  expect(router.state.location.pathname).toBe("/profile/skills/new");
+});
+
 test("keeps unsaved skill input when navigation is cancelled", async () => {
   const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
   const router = createAdminRouter(

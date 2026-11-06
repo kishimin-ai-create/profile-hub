@@ -1,5 +1,5 @@
 import { useBlocker } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { createAuthorizedRequest, sessionRenewedError } from "../api/authorized-request";
 import type { AdminSession } from "../api/authorized-request";
@@ -17,6 +17,8 @@ export const SkillCreatePage = ({
   const submitting = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
+  const nameError = error === "スキル名を入力してください";
   useBlocker({
     shouldBlockFn: () => dirty.current && !window.confirm("未保存の変更を破棄しますか？"),
     enableBeforeUnload: () => dirty.current,
@@ -30,8 +32,11 @@ export const SkillCreatePage = ({
     const rawOrder = form.get("displayOrder");
     const name = typeof rawName === "string" ? rawName.trim() : "";
     const order = typeof rawOrder === "string" ? rawOrder.trim() : "";
+    if (!name) {
+      setError("スキル名を入力してください");
+      return;
+    }
     if (
-      !name ||
       !order ||
       !Number.isInteger(Number(order)) ||
       Number(order) < -2147483648 ||
@@ -76,7 +81,14 @@ export const SkillCreatePage = ({
         <fieldset disabled={pending}>
           <label>
             {"スキル名"}
-            <input name={"name"} required maxLength={200} defaultValue={initial?.name} />
+            <input
+              name={"name"}
+              required
+              maxLength={200}
+              defaultValue={initial?.name}
+              aria-invalid={nameError || undefined}
+              aria-describedby={nameError ? errorId : undefined}
+            />
           </label>
           <label>
             {"表示順"}
@@ -91,7 +103,11 @@ export const SkillCreatePage = ({
           </label>
           <button type={"submit"}>{initial ? "保存" : "作成"}</button>
         </fieldset>
-        {error && <p role={"alert"}>{error}</p>}
+        {error && (
+          <p id={errorId} role={"alert"}>
+            {error}
+          </p>
+        )}
       </form>
     </>
   );

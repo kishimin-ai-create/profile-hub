@@ -69,6 +69,21 @@ test("identifies each project's repository and demo links", async () => {
   );
 });
 
+test("renders HTTP URLs accepted by portfolio administration", async () => {
+  server.use(
+    http.get("*/api/public/portfolio", () =>
+      HttpResponse.json({
+        data: [{ ...project, demoUrl: "https:example.test/demo" }],
+      }),
+    ),
+  );
+  show();
+  expect(await screen.findByRole("link", { name: "Work のデモ" })).toHaveAttribute(
+    "href",
+    "https://example.test/demo",
+  );
+});
+
 test("does not display a hobby project on engineering", async () => {
   server.use(
     http.get("*/api/public/portfolio", () =>

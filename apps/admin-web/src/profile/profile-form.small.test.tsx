@@ -42,6 +42,30 @@ test("rejects an unsafe avatar URL", async () => {
   expect(save).not.toHaveBeenCalled();
 });
 
+test("associates a blank profile name error with its field", async () => {
+  const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
+  render(
+    <ProfileForm
+      save={save}
+      onSuccess={() => {}}
+      initial={{ name: "Example", title: null, bio: null, avatarUrl: null }}
+    />,
+  );
+  const user = userEvent.setup();
+  const name = screen.getByLabelText("名前");
+  await user.clear(name);
+  await user.type(name, "   ");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(name).toHaveAttribute("aria-invalid", "true");
+  expect(name).toHaveAccessibleDescription("名前を入力してください");
+  expect(save).not.toHaveBeenCalled();
+  await user.clear(name);
+  await user.type(name, "Updated");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(save).toHaveBeenCalledOnce();
+  expect(name).not.toHaveAttribute("aria-invalid");
+});
+
 test("keeps changes when the session is renewed without replaying the write", async () => {
   const onSuccess = vi.fn<() => void>();
   render(

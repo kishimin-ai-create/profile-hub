@@ -40,9 +40,9 @@ test("shows portfolio and favourite counts from authenticated responses", async 
 test("retries a failed count request and displays empty counts", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const calls = { count: 0 };
-  let releaseRetry = () => {};
+  const retryControl = { release: () => {} };
   const retry = new Promise<void>((resolve) => {
-    releaseRetry = resolve;
+    retryControl.release = resolve;
   });
   server.use(
     http.get("https://api.example.test/api/admin/portfolio", async () => {
@@ -62,7 +62,7 @@ test("retries a failed count request and displays empty counts", async () => {
   expect(status).toBeEmptyDOMElement();
   await userEvent.click(screen.getByRole("button", { name: "再試行" }));
   expect(status).toHaveTextContent("読み込み中");
-  releaseRetry();
+  retryControl.release();
   expect(await screen.findAllByText("0件")).toHaveLength(2);
   expect(status).toBeEmptyDOMElement();
 });

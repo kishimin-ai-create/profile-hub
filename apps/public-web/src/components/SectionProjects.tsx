@@ -14,7 +14,7 @@ type Project = {
 };
 const optionalUrl = (value: unknown): string | null => {
   if (value === null) return null;
-  if (typeof value !== "string" || !/^https?:\/\//i.test(value)) throw new Error("Invalid URL");
+  if (typeof value !== "string") throw new Error("Invalid URL");
   const url = new URL(value);
   if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Invalid URL");
   return url.href;

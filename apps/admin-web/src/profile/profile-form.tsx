@@ -20,6 +20,7 @@ export const ProfileForm = ({ initial, save, onSuccess, onDirty }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
   const urlError = error === "http または https の URL を入力してください";
+  const nameError = error === "名前を入力してください";
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,7 +81,14 @@ export const ProfileForm = ({ initial, save, onSuccess, onDirty }: Props) => {
       <fieldset disabled={pending}>
         <label>
           {"名前"}
-          <input name={"name"} required maxLength={200} defaultValue={initial.name} />
+          <input
+            name={"name"}
+            required
+            maxLength={200}
+            defaultValue={initial.name}
+            aria-invalid={nameError || undefined}
+            aria-describedby={nameError ? errorId : undefined}
+          />
         </label>
         <label>
           {"肩書き"}

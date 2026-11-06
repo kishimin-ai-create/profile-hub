@@ -43,6 +43,35 @@ test("shows a save error without navigating", async () => {
   expect(onSuccess).not.toHaveBeenCalled();
 });
 
+test("replaces an earlier save error with the current input error", async () => {
+  const save = vi
+    .fn<(value: unknown) => Promise<void>>()
+    .mockRejectedValueOnce(new Error("offline"));
+  render(
+    <PortfolioCreate
+      initial={{
+        section: "hobby",
+        name: "Project",
+        summary: "Summary",
+        technologies: ["Bun"],
+        displayOrder: 1,
+      }}
+      save={save}
+      onSuccess={() => {}}
+    />,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("作品を保存できませんでした");
+  const input = screen.getByLabelText("技術（カンマ区切り）");
+  await user.clear(input);
+  await user.type(input, ",");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(input).toHaveAccessibleDescription("技術を1件以上入力してください");
+  expect(screen.queryByText("作品を保存できませんでした")).not.toBeInTheDocument();
+  expect(save).toHaveBeenCalledOnce();
+});
+
 test("rejects unsafe portfolio URLs with a field error", async () => {
   const save = vi.fn<(value: unknown) => Promise<void>>().mockResolvedValue();
   render(<PortfolioCreate save={save} onSuccess={() => {}} />);

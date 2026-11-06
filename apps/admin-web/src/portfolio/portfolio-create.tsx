@@ -31,6 +31,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting.current) return;
+    setError(null);
     const data = new FormData(event.currentTarget);
     const text = (key: string) => {
       const value = data.get(key);
@@ -77,7 +78,6 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
     }
     submitting.current = true;
     setPending(true);
-    setError(null);
     try {
       await save({
         section: section.data,

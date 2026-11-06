@@ -15,6 +15,17 @@ const Example = ({ load }: { load: () => Promise<string> }) => {
 };
 
 describe("QueryState", () => {
+  test("reports a paused refresh while keeping existing content", () => {
+    render(
+      <QueryState
+        query={{ status: "success", fetchStatus: "paused", refetch: () => Promise.resolve() }}
+      >
+        <p>{"公開データ"}</p>
+      </QueryState>,
+    );
+    expect(screen.getByText("公開データ")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("更新を待っています");
+  });
   test("announces background refreshes through an existing status region", () => {
     const query = {
       status: "success" as const,

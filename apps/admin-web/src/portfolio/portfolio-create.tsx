@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { z } from "zod";
 import { sessionRenewedError } from "../api/authorized-request";
@@ -25,6 +25,8 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<"failed" | "renewed" | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [technologyError, setTechnologyError] = useState(false);
+  const technologyErrorId = useId();
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -44,6 +46,9 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             .map((item) => item.trim())
             .filter(Boolean);
     const order = text("displayOrder");
+    const invalidTechnologies =
+      technologies.length > 50 || technologies.some((item) => item.length > 100);
+    setTechnologyError(invalidTechnologies);
     const links = ["repositoryUrl", "demoUrl", "imageUrl"];
     const invalidUrl = links.find((key) => {
       const value = text(key);
@@ -56,7 +61,7 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
       }
     });
     setUrlError(invalidUrl ?? null);
-    if (invalidUrl) return;
+    if (invalidUrl || invalidTechnologies) return;
     if (
       !section.success ||
       !text("name") ||
@@ -136,7 +141,14 @@ export const PortfolioCreate = ({ save, onSuccess, onDirty, initial }: Props) =>
             name={"technologies"}
             defaultValue={initial?.technologies.join(", ") ?? ""}
             required
+            aria-invalid={technologyError || undefined}
+            aria-describedby={technologyError ? technologyErrorId : undefined}
           />
+          {technologyError && (
+            <p id={technologyErrorId} role={"alert"}>
+              {"技術は50件以内、各100文字以内で入力してください"}
+            </p>
+          )}
 
           <label htmlFor={"repositoryUrl"}>{"リポジトリ URL"}</label>
 

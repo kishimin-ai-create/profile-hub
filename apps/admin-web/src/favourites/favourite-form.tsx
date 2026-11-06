@@ -20,6 +20,8 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
   const urlError = error === "http または https の URL を入力してください";
+  const nameError = error === "名前を入力してください";
+  const descriptionError = error === "説明を入力してください";
   const submitting = useRef(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,9 +41,15 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
       return;
     }
     const order = text("displayOrder");
+    if (!text("name")) {
+      setError("名前を入力してください");
+      return;
+    }
+    if (!text("description")) {
+      setError("説明を入力してください");
+      return;
+    }
     if (
-      !text("name") ||
-      !text("description") ||
       !order ||
       !Number.isInteger(Number(order)) ||
       Number(order) < -2147483648 ||
@@ -82,7 +90,14 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
       <fieldset disabled={pending}>
         <label>
           {"名前"}
-          <input name={"name"} required maxLength={200} defaultValue={initial?.name} />
+          <input
+            name={"name"}
+            required
+            maxLength={200}
+            defaultValue={initial?.name}
+            aria-invalid={nameError || undefined}
+            aria-describedby={nameError ? errorId : undefined}
+          />
         </label>
         <label>
           {"説明"}
@@ -91,6 +106,8 @@ export const FavouriteForm = ({ save, onSuccess, onDirty, initial }: Props) => {
             required
             maxLength={4000}
             defaultValue={initial?.description}
+            aria-invalid={descriptionError || undefined}
+            aria-describedby={descriptionError ? errorId : undefined}
           />
         </label>
         <label>

@@ -24,7 +24,7 @@ export const FavouritePage = ({
   const [state, setState] = useState<State>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
+  const [deleteError, setDeleteError] = useState<{ source: AdminSession } | null>(null);
   const [reorderError, setReorderError] = useState(false);
   const [notice, setNotice] = useState<{ source: AdminSession; text: string } | null>(null);
   const pending = useRef(false);
@@ -52,7 +52,7 @@ export const FavouritePage = ({
     if (pending.current || !window.confirm(`「${row.name}」を完全に削除しますか？`)) return;
     pending.current = true;
     setBusy(true);
-    setDeleteError(false);
+    setDeleteError(null);
     setNotice(null);
     try {
       await request({ method: "DELETE", url: `/api/admin/favourites/${row.id}` });
@@ -63,7 +63,7 @@ export const FavouritePage = ({
       );
       setNotice({ source: session, text: `${row.name} を削除しました` });
     } catch {
-      setDeleteError(true);
+      setDeleteError({ source: session });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -131,7 +131,9 @@ export const FavouritePage = ({
       {!loading && state.status === "ready" && (
         <section>
           <h1>{"お気に入り"}</h1>
-          {deleteError && <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>}
+          {deleteError?.source === session && (
+            <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>
+          )}
           {reorderError && <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>}
           {state.rows.length === 0 ? (
             <p>{"お気に入りがありません"}</p>

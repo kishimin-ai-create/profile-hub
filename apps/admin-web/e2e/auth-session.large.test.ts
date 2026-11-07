@@ -1,5 +1,41 @@
 import { expect, test } from "@playwright/test";
 
+test("keeps portfolio order after a failed reorder and retries", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+  await page.route("**/api/admin/portfolio", async (route) => {
+    await route.fulfill({
+      json: {
+        data: [
+          { id: "1", section: "engineering", name: "First" },
+          { id: "2", section: "engineering", name: "Second" },
+        ],
+      },
+    });
+  });
+  const requests: unknown[] = [];
+  await page.route("**/api/admin/portfolio/order", async (route) => {
+    requests.push(route.request().postDataJSON());
+    await route.fulfill({ status: requests.length === 1 ? 500 : 204 });
+  });
+  await page.goto("/portfolio");
+  const entries = page.getByRole("list", { name: "作品一覧" }).getByRole("listitem");
+  const move = page.getByRole("button", { name: "Second を上へ" });
+  await move.click();
+  await expect(page.getByRole("alert")).toHaveText("並べ替えできませんでした");
+  await expect(entries).toContainText(["First", "Second"]);
+  await move.click();
+  await expect(entries).toContainText(["Second", "First"]);
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  expect(requests).toEqual([
+    { section: "engineering", ids: ["2", "1"] },
+    { section: "engineering", ids: ["2", "1"] },
+  ]);
+});
+
 test("asks before permanently deleting a portfolio entry", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

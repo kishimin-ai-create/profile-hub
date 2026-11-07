@@ -13,6 +13,26 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces loading while retrying the profile", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/profile", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : new Promise<Response>(() => {});
+    }),
+  );
+  render(<ProfilePage session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("読み込み中");
+  await screen.findByRole("alert");
+  expect(status).toBeEmptyDOMElement();
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("読み込み中");
+});
+
 test("shows the current profile to an authenticated administrator", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

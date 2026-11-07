@@ -14,6 +14,34 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces a successful favourite reorder and clears it on failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "Tea", description: "Green" },
+          { id: "2", name: "Coffee", description: "Black" },
+        ],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/favourites/order", () => {
+      attempts.count += 1;
+      return new HttpResponse(null, { status: attempts.count === 1 ? 204 : 500 });
+    }),
+  );
+  render(<FavouritePage session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  await userEvent.click(await screen.findByRole("button", { name: "Coffee を上へ" }));
+  await waitFor(() => expect(status).toHaveTextContent("Coffee の順序を変更しました"));
+  await userEvent.click(screen.getByRole("button", { name: "Coffee を下へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "お気に入りの順序を変更できませんでした",
+  );
+  expect(status).toBeEmptyDOMElement();
+});
+
 test("announces loading again while retrying favourites", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const attempts = { count: 0 };

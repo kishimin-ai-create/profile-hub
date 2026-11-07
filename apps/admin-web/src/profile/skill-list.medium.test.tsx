@@ -55,6 +55,26 @@ test("retries skills after a temporary loading failure", async () => {
   expect(await screen.findByText("Recovered")).toBeInTheDocument();
 });
 
+test("announces loading again while retrying skills", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  let attempts = 0;
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () => {
+      attempts += 1;
+      return attempts === 1
+        ? new HttpResponse(null, { status: 500 })
+        : new Promise<Response>(() => {});
+    }),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("スキルを読み込み中");
+  await screen.findByRole("alert");
+  expect(status).toBeEmptyDOMElement();
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("スキルを読み込み中");
+});
+
 test("shows an empty skill list", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

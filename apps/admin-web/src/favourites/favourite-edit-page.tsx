@@ -60,39 +60,42 @@ export const FavouriteEditPage = ({
       lifecycle.active = false;
     };
   }, [attempt, id, request, session]);
-  if (state.status === "loading" || state.source !== session || state.id !== id)
-    return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <div>
-        <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </div>
-    );
+  const loading = state.status === "loading" || state.source !== session || state.id !== id;
   return (
     <>
-      <h1>{"お気に入りを編集"}</h1>
-      <FavouriteForm
-        initial={state.data}
-        onDirty={() => {
-          dirty.current = true;
-        }}
-        save={async (data) => {
-          await request({ method: "PUT", url: `/api/admin/favourites/${id}`, data });
-        }}
-        onSuccess={() => {
-          dirty.current = false;
-          onSuccess();
-        }}
-      />
+      <span role={"status"}>{loading ? "読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <div>
+          <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </div>
+      )}
+      {!loading && state.status === "ready" && (
+        <>
+          <h1>{"お気に入りを編集"}</h1>
+          <FavouriteForm
+            initial={state.data}
+            onDirty={() => {
+              dirty.current = true;
+            }}
+            save={async (data) => {
+              await request({ method: "PUT", url: `/api/admin/favourites/${id}`, data });
+            }}
+            onSuccess={() => {
+              dirty.current = false;
+              onSuccess();
+            }}
+          />
+        </>
+      )}
     </>
   );
 };

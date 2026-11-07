@@ -57,11 +57,11 @@ test("retries skills after a temporary loading failure", async () => {
 
 test("announces loading again while retrying skills", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
-  let attempts = 0;
+  const attempts = { count: 0 };
   server.use(
     http.get("https://api.example.test/api/admin/skills", () => {
-      attempts += 1;
-      return attempts === 1
+      attempts.count += 1;
+      return attempts.count === 1
         ? new HttpResponse(null, { status: 500 })
         : new Promise<Response>(() => {});
     }),

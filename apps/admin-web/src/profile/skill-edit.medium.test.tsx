@@ -15,6 +15,34 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces loading while retrying a skill edit", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : new Promise<Response>(() => {});
+    }),
+  );
+  const router = createAdminRouter(
+    createMemoryHistory({ initialEntries: ["/profile/skills/1/edit"] }),
+    {
+      accessToken: () => "access",
+      restore: () => Promise.resolve(false),
+      login: () => Promise.resolve(false),
+      logout: () => Promise.resolve(),
+    },
+  );
+  render(<RouterProvider router={router} />);
+  await screen.findByRole("alert");
+  const status = screen.getByRole("status");
+  expect(status).toBeEmptyDOMElement();
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("読み込み中");
+});
+
 test("retries loading a skill for editing after a temporary failure", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const attempts = { count: 0 };

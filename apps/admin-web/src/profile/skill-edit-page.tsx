@@ -47,22 +47,27 @@ export const SkillEditPage = ({
       lifecycle.active = false;
     };
   }, [attempt, id, request, session]);
-  if (state.status === "loading" || state.source !== session || state.id !== id)
-    return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <>
-        <p role={"alert"}>{"スキルを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </>
-    );
-  return <SkillCreatePage initial={state.skill} session={session} onSuccess={onSuccess} />;
+  const loading = state.status === "loading" || state.source !== session || state.id !== id;
+  return (
+    <>
+      <span role={"status"}>{loading ? "読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <>
+          <p role={"alert"}>{"スキルを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </>
+      )}
+      {!loading && state.status === "ready" && (
+        <SkillCreatePage initial={state.skill} session={session} onSuccess={onSuccess} />
+      )}
+    </>
+  );
 };

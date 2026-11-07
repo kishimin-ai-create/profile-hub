@@ -99,62 +99,65 @@ export const FavouritePage = ({
       setBusy(false);
     }
   };
-  if (state.status === "loading" || state.source !== session)
-    return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <div>
-        <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </div>
-    );
+  const loading = state.status === "loading" || state.source !== session;
   return (
-    <section>
-      <h1>{"お気に入り"}</h1>
-      {deleteError && <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>}
-      {reorderError && <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>}
-      {state.rows.length === 0 ? (
-        <p>{"お気に入りがありません"}</p>
-      ) : (
-        <ul aria-label={"お気に入り一覧"}>
-          {state.rows.map((row, index) => (
-            <li key={row.id}>
-              <h2>{row.name}</h2>
-              <p>{row.description}</p>
-              {renderEdit?.(row)}
-              <button
-                type={"button"}
-                disabled={busy || index === 0}
-                onClick={() => {
-                  void move(row, -1);
-                }}
-              >{`${row.name} を上へ`}</button>
-              <button
-                type={"button"}
-                disabled={busy || index === state.rows.length - 1}
-                onClick={() => {
-                  void move(row, 1);
-                }}
-              >{`${row.name} を下へ`}</button>
-              <button
-                type={"button"}
-                disabled={busy}
-                onClick={() => {
-                  void remove(row);
-                }}
-              >{`${row.name} を削除`}</button>
-            </li>
-          ))}
-        </ul>
+    <>
+      <span role={"status"}>{loading ? "読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <div>
+          <p role={"alert"}>{"お気に入りを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </div>
       )}
-    </section>
+      {!loading && state.status === "ready" && (
+        <section>
+          <h1>{"お気に入り"}</h1>
+          {deleteError && <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>}
+          {reorderError && <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>}
+          {state.rows.length === 0 ? (
+            <p>{"お気に入りがありません"}</p>
+          ) : (
+            <ul aria-label={"お気に入り一覧"}>
+              {state.rows.map((row, index) => (
+                <li key={row.id}>
+                  <h2>{row.name}</h2>
+                  <p>{row.description}</p>
+                  {renderEdit?.(row)}
+                  <button
+                    type={"button"}
+                    disabled={busy || index === 0}
+                    onClick={() => {
+                      void move(row, -1);
+                    }}
+                  >{`${row.name} を上へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={busy || index === state.rows.length - 1}
+                    onClick={() => {
+                      void move(row, 1);
+                    }}
+                  >{`${row.name} を下へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={busy}
+                    onClick={() => {
+                      void remove(row);
+                    }}
+                  >{`${row.name} を削除`}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+    </>
   );
 };

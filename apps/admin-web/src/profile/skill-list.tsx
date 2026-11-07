@@ -26,6 +26,7 @@ export const SkillList = ({
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [reorderError, setReorderError] = useState(false);
+  const [notice, setNotice] = useState<{ source: AdminSession; text: string } | null>(null);
   const pending = useRef(false);
   useEffect(() => {
     const lifecycle = { active: true };
@@ -52,6 +53,7 @@ export const SkillList = ({
     pending.current = true;
     setBusy(true);
     setDeleteError(false);
+    setNotice(null);
     try {
       await request({ method: "DELETE", url: `/api/admin/skills/${skill.id}` });
       setState((previous) =>
@@ -81,6 +83,7 @@ export const SkillList = ({
     pending.current = true;
     setBusy(true);
     setReorderError(false);
+    setNotice(null);
     try {
       await request({
         method: "PATCH",
@@ -92,6 +95,7 @@ export const SkillList = ({
           ? { ...previous, skills }
           : previous,
       );
+      setNotice({ source: session, text: `${skill.name} の順序を変更しました` });
     } catch {
       setReorderError(true);
     } finally {
@@ -102,7 +106,13 @@ export const SkillList = ({
   const loading = state.status === "loading" || state.source !== session;
   return (
     <>
-      <span role={"status"}>{loading ? "スキルを読み込み中" : ""}</span>
+      <span role={"status"}>
+        {loading
+          ? "スキルを読み込み中"
+          : state.status === "ready" && notice?.source === session
+            ? notice.text
+            : ""}
+      </span>
       {!loading && state.status === "error" && (
         <div>
           <p role={"alert"}>{"スキルを取得できませんでした"}</p>

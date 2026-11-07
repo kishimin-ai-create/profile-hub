@@ -61,6 +61,7 @@ export const FavouritePage = ({
           ? { ...previous, rows: previous.rows.filter((entry) => entry.id !== row.id) }
           : previous,
       );
+      setNotice({ source: session, text: `${row.name} を削除しました` });
     } catch {
       setDeleteError(true);
     } finally {

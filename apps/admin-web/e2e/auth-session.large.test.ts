@@ -1,5 +1,38 @@
 import { expect, test } from "@playwright/test";
 
+test("asks before permanently deleting a portfolio entry", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+  await page.route("**/api/admin/portfolio", async (route) => {
+    await route.fulfill({ json: { data: [{ id: "1", section: "hobby", name: "Project" }] } });
+  });
+  const requests: string[] = [];
+  await page.route("**/api/admin/portfolio/1", async (route) => {
+    requests.push(route.request().method());
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto("/portfolio");
+  const remove = page.getByRole("button", { name: "Project を削除" });
+  await expect(remove).toBeVisible();
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain("Project");
+    await dialog.dismiss();
+  });
+  await remove.click();
+  await expect(remove).toBeVisible();
+  expect(requests).toEqual([]);
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain("Project");
+    await dialog.accept();
+  });
+  await remove.click();
+  await expect(page.getByText("作品がありません")).toBeVisible();
+  expect(requests).toEqual(["DELETE"]);
+});
+
 test("reorders contact links with the keyboard within their section", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

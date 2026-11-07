@@ -18,7 +18,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
   const [attempt, setAttempt] = useState(0);
   const [section, setSection] = useState("all");
   const [busy, setBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
+  const [deleteError, setDeleteError] = useState<{ source: Props["load"] } | null>(null);
   const [reorderError, setReorderError] = useState(false);
   const [notice, setNotice] = useState<{ source: Props["load"]; text: string } | null>(null);
   const pending = useRef(false);
@@ -47,7 +47,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       return;
     pending.current = true;
     setBusy(true);
-    setDeleteError(false);
+    setDeleteError(null);
     setNotice(null);
     try {
       await remove(row.id);
@@ -58,7 +58,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       );
       setNotice({ source: load, text: `${row.name} を削除しました` });
     } catch {
-      setDeleteError(true);
+      setDeleteError({ source: load });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -136,7 +136,9 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
           </button>
         </>
       )}
-      {deleteError && <p role={"alert"}>{"作品を削除できませんでした"}</p>}
+      {current.status === "ready" && deleteError?.source === load && (
+        <p role={"alert"}>{"作品を削除できませんでした"}</p>
+      )}
       {reorderError && <p role={"alert"}>{"並べ替えできませんでした"}</p>}
       {current.status === "ready" &&
         (rows.length === 0 ? (

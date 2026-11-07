@@ -54,22 +54,27 @@ export const SocialLinkEditPage = ({
       lifecycle.active = false;
     };
   }, [attempt, id, request, session]);
-  if (state.status === "loading" || state.source !== session || state.id !== id)
-    return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <div>
-        <p role={"alert"}>{"リンクを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </div>
-    );
-  return <SocialLinkFormPage initial={state.link} session={session} onSuccess={onSuccess} />;
+  const loading = state.status === "loading" || state.source !== session || state.id !== id;
+  return (
+    <>
+      <span role={"status"}>{loading ? "読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <div>
+          <p role={"alert"}>{"リンクを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </div>
+      )}
+      {!loading && state.status === "ready" && (
+        <SocialLinkFormPage initial={state.link} session={session} onSuccess={onSuccess} />
+      )}
+    </>
+  );
 };

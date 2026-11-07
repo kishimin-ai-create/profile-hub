@@ -14,6 +14,47 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("does not show an old deletion error after the session changes", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const gate = { release: () => {}, started: false };
+  const response = new Promise<void>((resolve) => {
+    gate.release = resolve;
+  });
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", ({ request }) =>
+      HttpResponse.json({
+        data: [
+          {
+            id: "1",
+            name: request.headers.get("Authorization") === "Bearer old" ? "Old" : "New",
+            displayOrder: 0,
+          },
+        ],
+      }),
+    ),
+    http.delete("https://api.example.test/api/admin/skills/1", async () => {
+      gate.started = true;
+      await response;
+      return new HttpResponse(null, { status: 500 });
+    }),
+  );
+  const oldSession = { accessToken: () => "old" };
+  const newSession = { accessToken: () => "new" };
+  const view = render(<SkillList session={oldSession} />);
+  try {
+    await userEvent.click(await screen.findByRole("button", { name: "Old を削除" }));
+    await waitFor(() => expect(gate.started).toBe(true));
+    view.rerender(<SkillList session={newSession} />);
+    const button = await screen.findByRole("button", { name: "New を削除" });
+    gate.release();
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  } finally {
+    gate.release();
+  }
+});
+
 test("announces a successful skill deletion and clears it on failure", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   vi.spyOn(window, "confirm").mockReturnValue(true);

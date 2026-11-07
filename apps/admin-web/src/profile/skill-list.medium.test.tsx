@@ -14,6 +14,36 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces a successful skill deletion and clears it on failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "First", displayOrder: 0 },
+          { id: "2", name: "Second", displayOrder: 1 },
+        ],
+      }),
+    ),
+    http.delete(
+      "https://api.example.test/api/admin/skills/1",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "https://api.example.test/api/admin/skills/2",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  await userEvent.click(await screen.findByRole("button", { name: "First を削除" }));
+  await waitFor(() => expect(status).toHaveTextContent("First を削除しました"));
+  await userEvent.click(screen.getByRole("button", { name: "Second を削除" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルを削除できませんでした");
+  expect(status).toBeEmptyDOMElement();
+});
+
 test("announces a successful skill reorder and clears it on failure", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   const attempts = { count: 0 };

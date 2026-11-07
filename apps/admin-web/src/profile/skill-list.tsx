@@ -61,6 +61,7 @@ export const SkillList = ({
           ? { ...previous, skills: previous.skills.filter((entry) => entry.id !== skill.id) }
           : previous,
       );
+      setNotice({ source: session, text: `${skill.name} を削除しました` });
     } catch {
       setDeleteError(true);
     } finally {

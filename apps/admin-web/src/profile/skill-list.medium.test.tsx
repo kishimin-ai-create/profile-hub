@@ -14,6 +14,32 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces a successful skill reorder and clears it on failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/skills", () =>
+      HttpResponse.json({
+        data: [
+          { id: "1", name: "First", displayOrder: 0 },
+          { id: "2", name: "Second", displayOrder: 1 },
+        ],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/skills/order", () => {
+      attempts.count += 1;
+      return new HttpResponse(null, { status: attempts.count === 1 ? 204 : 500 });
+    }),
+  );
+  render(<SkillList session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  await userEvent.click(await screen.findByRole("button", { name: "Second を上へ" }));
+  await waitFor(() => expect(status).toHaveTextContent("Second の順序を変更しました"));
+  await userEvent.click(screen.getByRole("button", { name: "Second を下へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("スキルの順序を変更できませんでした");
+  expect(status).toBeEmptyDOMElement();
+});
+
 test("shows ordered skills from the authenticated API", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

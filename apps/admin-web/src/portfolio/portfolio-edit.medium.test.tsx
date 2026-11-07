@@ -46,8 +46,12 @@ test("retries loading an existing portfolio after a temporary failure", async ()
   });
   render(<RouterProvider router={router} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("作品を取得できませんでした");
+  const status = screen.getByRole("status");
+  expect(status).toBeEmptyDOMElement();
   await userEvent.click(screen.getByRole("button", { name: "再試行" }));
   expect(await screen.findByLabelText("作品名")).toHaveValue("Recovered");
+  expect(status).toBeInTheDocument();
+  expect(status).toBeEmptyDOMElement();
   expect(attempts.count).toBe(2);
 });
 

@@ -16,11 +16,11 @@ afterAll(() => server.close());
 
 test("announces loading again while retrying favourites", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
-  let attempts = 0;
+  const attempts = { count: 0 };
   server.use(
     http.get("https://api.example.test/api/admin/favourites", () => {
-      attempts += 1;
-      return attempts === 1
+      attempts.count += 1;
+      return attempts.count === 1
         ? new HttpResponse(null, { status: 500 })
         : new Promise<Response>(() => {});
     }),

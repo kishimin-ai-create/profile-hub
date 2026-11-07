@@ -20,6 +20,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [reorderError, setReorderError] = useState(false);
+  const [notice, setNotice] = useState<{ source: Props["load"]; text: string } | null>(null);
   const pending = useRef(false);
   useEffect(() => {
     const lifecycle = { active: true };
@@ -47,6 +48,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     pending.current = true;
     setBusy(true);
     setDeleteError(false);
+    setNotice(null);
     try {
       await remove(row.id);
       setState((previous) =>
@@ -77,6 +79,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     pending.current = true;
     setBusy(true);
     setReorderError(false);
+    setNotice(null);
     try {
       await reorder(
         row.section,
@@ -94,6 +97,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
             }
           : previous,
       );
+      setNotice({ source: load, text: `${row.name} の順序を変更しました` });
     } catch {
       setReorderError(true);
     } finally {
@@ -110,7 +114,13 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
         <option value={"engineering"}>{"engineering"}</option>
         <option value={"hobby"}>{"hobby"}</option>
       </select>
-      <span role={"status"}>{current.status === "loading" ? "読み込み中" : ""}</span>
+      <span role={"status"}>
+        {current.status === "loading"
+          ? "読み込み中"
+          : current.status === "ready" && notice?.source === load
+            ? notice.text
+            : ""}
+      </span>
       {current.status === "error" && (
         <>
           <p role={"alert"}>{"作品を取得できませんでした"}</p>

@@ -125,6 +125,30 @@ test("reorders entries within their own section using buttons", async () => {
   expect(items[2]).toHaveTextContent("Hobby");
 });
 
+test("announces a successful reorder and clears it on failure", async () => {
+  const reorder = vi
+    .fn<(section: "engineering" | "hobby", ids: string[]) => Promise<void>>()
+    .mockResolvedValueOnce()
+    .mockRejectedValueOnce(new Error("offline"));
+  render(
+    <PortfolioList
+      load={() =>
+        Promise.resolve([
+          { id: "1", name: "First", section: "hobby" },
+          { id: "2", name: "Second", section: "hobby" },
+        ])
+      }
+      reorder={reorder}
+    />,
+  );
+  const status = screen.getByRole("status");
+  await userEvent.click(await screen.findByRole("button", { name: "Second を上へ" }));
+  expect(status).toHaveTextContent("Second の順序を変更しました");
+  await userEvent.click(screen.getByRole("button", { name: "Second を下へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("並べ替えできませんでした");
+  expect(status).toBeEmptyDOMElement();
+});
+
 test("retains the order when the reorder request fails", async () => {
   render(
     <PortfolioList

@@ -41,6 +41,20 @@ test("retries loading after a temporary failure", async () => {
   expect(await screen.findByText("Recovered")).toBeInTheDocument();
 });
 
+test("reports loading while retrying a portfolio list", async () => {
+  const load = vi
+    .fn<() => Promise<import("./portfolio-list").PortfolioRow[]>>()
+    .mockRejectedValueOnce(new Error("offline"))
+    .mockImplementationOnce(() => new Promise(() => {}));
+  render(<PortfolioList load={load} />);
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("読み込み中");
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  expect(status).toBeEmptyDOMElement();
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("読み込み中");
+});
+
 test("does not show previous results after the data source changes", async () => {
   const view = render(
     <PortfolioList load={() => Promise.resolve([{ id: "1", name: "Old", section: "hobby" }])} />,

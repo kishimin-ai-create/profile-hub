@@ -5,6 +5,26 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, test, vi } from "vitest";
 import { SocialLinkList } from "./social-link-list";
 
+test("announces loading again while retrying links", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/social-links", () => {
+      attempts.count += 1;
+      return attempts.count === 1
+        ? new HttpResponse(null, { status: 500 })
+        : new Promise<Response>(() => {});
+    }),
+  );
+  render(<SocialLinkList session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("リンクを読み込み中");
+  await screen.findByRole("alert");
+  expect(status).toBeEmptyDOMElement();
+  await userEvent.click(screen.getByRole("button", { name: "再試行" }));
+  expect(status).toHaveTextContent("リンクを読み込み中");
+});
+
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {

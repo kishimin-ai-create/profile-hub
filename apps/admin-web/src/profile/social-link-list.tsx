@@ -109,70 +109,74 @@ export const SocialLinkList = ({
       setBusy(false);
     }
   };
-  if (state.status === "loading" || state.source !== session)
-    return <p role={"status"}>{"リンクを読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <div>
-        <p role={"alert"}>{"リンクを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </div>
-    );
+  const loading = state.status === "loading" || state.source !== session;
   return (
-    <section>
-      <h2>{"リンク"}</h2>
-      {deleteError && <p role={"alert"}>{"リンクを削除できませんでした"}</p>}
-      {reorderError && <p role={"alert"}>{"リンクの順序を変更できませんでした"}</p>}
-      {state.links.length === 0 ? (
-        <p>{"リンクがありません"}</p>
-      ) : (
-        <ul aria-label={"リンク一覧"}>
-          {state.links.map((link) => (
-            <li key={link.id}>
-              <span>{link.section === "engineering" ? "Engineering" : "Hobby"}</span>
-              <span>{link.kind}</span>
-              <span>{link.url}</span>
-              {renderEdit?.(link)}
-              <button
-                type={"button"}
-                disabled={
-                  busy ||
-                  state.links.filter((entry) => entry.section === link.section)[0]?.id === link.id
-                }
-                onClick={() => {
-                  void move(link, -1);
-                }}
-              >{`${link.url} を上へ`}</button>
-              <button
-                type={"button"}
-                disabled={
-                  busy ||
-                  state.links.filter((entry) => entry.section === link.section).at(-1)?.id ===
-                    link.id
-                }
-                onClick={() => {
-                  void move(link, 1);
-                }}
-              >{`${link.url} を下へ`}</button>
-              <button
-                type={"button"}
-                disabled={busy}
-                onClick={() => {
-                  void remove(link);
-                }}
-              >{`${link.url} を削除`}</button>
-            </li>
-          ))}
-        </ul>
+    <>
+      <span role={"status"}>{loading ? "リンクを読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <div>
+          <p role={"alert"}>{"リンクを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </div>
       )}
-    </section>
+      {!loading && state.status === "ready" && (
+        <section>
+          <h2>{"リンク"}</h2>
+          {deleteError && <p role={"alert"}>{"リンクを削除できませんでした"}</p>}
+          {reorderError && <p role={"alert"}>{"リンクの順序を変更できませんでした"}</p>}
+          {state.links.length === 0 ? (
+            <p>{"リンクがありません"}</p>
+          ) : (
+            <ul aria-label={"リンク一覧"}>
+              {state.links.map((link) => (
+                <li key={link.id}>
+                  <span>{link.section === "engineering" ? "Engineering" : "Hobby"}</span>
+                  <span>{link.kind}</span>
+                  <span>{link.url}</span>
+                  {renderEdit?.(link)}
+                  <button
+                    type={"button"}
+                    disabled={
+                      busy ||
+                      state.links.filter((entry) => entry.section === link.section)[0]?.id ===
+                        link.id
+                    }
+                    onClick={() => {
+                      void move(link, -1);
+                    }}
+                  >{`${link.url} を上へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={
+                      busy ||
+                      state.links.filter((entry) => entry.section === link.section).at(-1)?.id ===
+                        link.id
+                    }
+                    onClick={() => {
+                      void move(link, 1);
+                    }}
+                  >{`${link.url} を下へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={busy}
+                    onClick={() => {
+                      void remove(link);
+                    }}
+                  >{`${link.url} を削除`}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+    </>
   );
 };

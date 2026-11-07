@@ -51,41 +51,43 @@ export const PortfolioEditPage = ({ id, session, onSuccess }: Props) => {
       lifecycle.active = false;
     };
   }, [attempt, id, request]);
-  if (state.status === "loading") return <p>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <>
-        <p role={"alert"}>{"作品を取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </>
-    );
-  const { data } = state;
   return (
-    <PortfolioCreate
-      initial={{
-        ...data,
-        repositoryUrl: data.repositoryUrl ?? undefined,
-        demoUrl: data.demoUrl ?? undefined,
-        imageUrl: data.imageUrl ?? undefined,
-      }}
-      onDirty={() => {
-        dirty.current = true;
-      }}
-      save={async (value) => {
-        await request({ method: "PUT", url: `/api/admin/portfolio/${id}`, data: value });
-      }}
-      onSuccess={() => {
-        dirty.current = false;
-        onSuccess();
-      }}
-    />
+    <>
+      <span role={"status"}>{state.status === "loading" ? "読み込み中" : ""}</span>
+      {state.status === "error" && (
+        <>
+          <p role={"alert"}>{"作品を取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </>
+      )}
+      {state.status === "ready" && (
+        <PortfolioCreate
+          initial={{
+            ...state.data,
+            repositoryUrl: state.data.repositoryUrl ?? undefined,
+            demoUrl: state.data.demoUrl ?? undefined,
+            imageUrl: state.data.imageUrl ?? undefined,
+          }}
+          onDirty={() => {
+            dirty.current = true;
+          }}
+          save={async (value) => {
+            await request({ method: "PUT", url: `/api/admin/portfolio/${id}`, data: value });
+          }}
+          onSuccess={() => {
+            dirty.current = false;
+            onSuccess();
+          }}
+        />
+      )}
+    </>
   );
 };

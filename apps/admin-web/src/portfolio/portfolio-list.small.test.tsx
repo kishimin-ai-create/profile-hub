@@ -1,7 +1,28 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { PortfolioList } from "./portfolio-list";
+
+test("does not show an old deletion error after the data source changes", async () => {
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const pending = { reject: (_reason: Error) => {} };
+  const remove = () =>
+    new Promise<void>((_resolve, reject) => {
+      pending.reject = reject;
+    });
+  const oldLoad = () => Promise.resolve([{ id: "1", name: "Old", section: "hobby" as const }]);
+  const newLoad = () => Promise.resolve([{ id: "2", name: "New", section: "hobby" as const }]);
+  const view = render(<PortfolioList load={oldLoad} remove={remove} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Old を削除" }));
+  view.rerender(<PortfolioList load={newLoad} remove={remove} />);
+  await screen.findByText("New");
+  await act(async () => {
+    pending.reject(new Error("offline"));
+    await Promise.resolve();
+  });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  vi.restoreAllMocks();
+});
 
 test("shows each portfolio section and filters the list", async () => {
   render(

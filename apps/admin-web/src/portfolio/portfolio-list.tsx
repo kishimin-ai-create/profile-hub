@@ -56,6 +56,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
           ? { ...previous, rows: previous.rows.filter((entry) => entry.id !== row.id) }
           : previous,
       );
+      setNotice({ source: load, text: `${row.name} を削除しました` });
     } catch {
       setDeleteError(true);
     } finally {

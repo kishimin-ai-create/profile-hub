@@ -34,6 +34,48 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("announces a successful link reorder and clears it on failure", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const attempts = { count: 0 };
+  server.use(
+    http.get("https://api.example.test/api/admin/social-links", () =>
+      HttpResponse.json({
+        data: [
+          {
+            id: "1",
+            section: "engineering",
+            kind: "web",
+            url: "https://first.example",
+            displayOrder: 0,
+          },
+          {
+            id: "2",
+            section: "engineering",
+            kind: "web",
+            url: "https://second.example",
+            displayOrder: 1,
+          },
+        ],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/social-links/order", () => {
+      attempts.count += 1;
+      return new HttpResponse(null, { status: attempts.count === 1 ? 204 : 500 });
+    }),
+  );
+  render(<SocialLinkList session={{ accessToken: () => "access" }} />);
+  const status = screen.getByRole("status");
+  await userEvent.click(
+    await screen.findByRole("button", { name: "https://second.example を上へ" }),
+  );
+  await waitFor(() =>
+    expect(status).toHaveTextContent("https://second.example の順序を変更しました"),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "https://second.example を下へ" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("リンクの順序を変更できませんでした");
+  expect(status).toBeEmptyDOMElement();
+});
+
 test("shows each link with its section from the authenticated API", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   server.use(

@@ -1,5 +1,42 @@
 import { expect, test } from "@playwright/test";
 
+test("reports profile edit retry progress and opens the recovered form", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+
+  const state = { retrying: false, release: () => {} };
+  const retry = new Promise<void>((resolve) => {
+    state.release = resolve;
+  });
+  await page.route("**/api/admin/profile", async (route) => {
+    if (!state.retrying) {
+      await route.fulfill({ status: 500 });
+      return;
+    }
+    await retry;
+    await route.fulfill({
+      json: { data: { id: "1", name: "Recovered", title: null, bio: null, avatarUrl: null } },
+    });
+  });
+  try {
+    await page.goto("/profile/edit");
+    await expect(page.getByRole("alert")).toHaveText("プロフィールを取得できませんでした");
+    const status = page.getByRole("status");
+    await expect(status).toBeEmpty();
+    state.retrying = true;
+    await page.getByRole("button", { name: "再試行" }).click();
+    await expect(status).toHaveText("読み込み中");
+    state.release();
+    await expect(page.getByLabel("名前")).toHaveValue("Recovered");
+    await expect(status).toBeEmpty();
+  } finally {
+    state.release();
+  }
+});
+
 test("exposes loading status for the portfolio list and edit page", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

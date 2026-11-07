@@ -1,5 +1,48 @@
 import { expect, test } from "@playwright/test";
 
+test("reorders portfolio entries with the keyboard within their section", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+  await page.route("**/api/admin/portfolio", async (route) => {
+    await route.fulfill({
+      json: {
+        data: [
+          { id: "1", section: "engineering", name: "First" },
+          { id: "3", section: "hobby", name: "Hobby" },
+          { id: "2", section: "engineering", name: "Second" },
+        ],
+      },
+    });
+  });
+  const requests: unknown[] = [];
+  await page.route("**/api/admin/portfolio/order", async (route) => {
+    requests.push(route.request().postDataJSON());
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto("/portfolio");
+  const button = page.getByRole("button", { name: "Second を上へ" });
+  await expect(button).toBeEnabled();
+  const navigation = { steps: 0 };
+  while (
+    navigation.steps < 20 &&
+    !(await button.evaluate((node) => node === document.activeElement))
+  ) {
+    await page.keyboard.press("Tab");
+    navigation.steps += 1;
+  }
+  await expect(button).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("list", { name: "作品一覧" }).getByRole("listitem")).toContainText([
+    "Second",
+    "Hobby",
+    "First",
+  ]);
+  expect(requests).toEqual([{ section: "engineering", ids: ["2", "1"] }]);
+});
+
 test("reports profile edit retry progress and opens the recovered form", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("メールアドレス").fill("admin@example.test");

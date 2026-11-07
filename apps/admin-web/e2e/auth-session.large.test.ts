@@ -30,6 +30,7 @@ test("keeps portfolio order after a failed reorder and retries", async ({ page }
   await move.click();
   await expect(entries).toContainText(["Second", "First"]);
   await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status")).toHaveText("Second の順序を変更しました");
   expect(requests).toEqual([
     { section: "engineering", ids: ["2", "1"] },
     { section: "engineering", ids: ["2", "1"] },
@@ -161,6 +162,7 @@ test("reorders favourites with the keyboard", async ({ page }) => {
   await expect(
     page.getByRole("list", { name: "お気に入り一覧" }).getByRole("listitem"),
   ).toContainText(["Second", "First"]);
+  await expect(page.getByRole("status")).toHaveText("Second の順序を変更しました");
   expect(requests).toEqual([{ ids: ["2", "1"] }]);
 });
 

@@ -99,61 +99,64 @@ export const SkillList = ({
       setBusy(false);
     }
   };
-  if (state.status === "loading" || state.source !== session)
-    return <p role={"status"}>{"スキルを読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <>
-        <p role={"alert"}>{"スキルを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </>
-    );
+  const loading = state.status === "loading" || state.source !== session;
   return (
-    <section>
-      <h2>{"スキル"}</h2>
-      {deleteError && <p role={"alert"}>{"スキルを削除できませんでした"}</p>}
-      {reorderError && <p role={"alert"}>{"スキルの順序を変更できませんでした"}</p>}
-      {state.skills.length === 0 ? (
-        <p>{"スキルがありません"}</p>
-      ) : (
-        <ul aria-label={"スキル一覧"}>
-          {state.skills.map((skill, index) => (
-            <li key={skill.id}>
-              {skill.name}
-              {renderEdit?.(skill)}
-              <button
-                type={"button"}
-                disabled={busy || index === 0}
-                onClick={() => {
-                  void move(skill, -1);
-                }}
-              >{`${skill.name} を上へ`}</button>
-              <button
-                type={"button"}
-                disabled={busy || index === state.skills.length - 1}
-                onClick={() => {
-                  void move(skill, 1);
-                }}
-              >{`${skill.name} を下へ`}</button>
-              <button
-                type={"button"}
-                disabled={busy}
-                onClick={() => {
-                  void remove(skill);
-                }}
-              >{`${skill.name} を削除`}</button>
-            </li>
-          ))}
-        </ul>
+    <>
+      <span role={"status"}>{loading ? "スキルを読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <div>
+          <p role={"alert"}>{"スキルを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </div>
       )}
-    </section>
+      {!loading && state.status === "ready" && (
+        <section>
+          <h2>{"スキル"}</h2>
+          {deleteError && <p role={"alert"}>{"スキルを削除できませんでした"}</p>}
+          {reorderError && <p role={"alert"}>{"スキルの順序を変更できませんでした"}</p>}
+          {state.skills.length === 0 ? (
+            <p>{"スキルがありません"}</p>
+          ) : (
+            <ul aria-label={"スキル一覧"}>
+              {state.skills.map((skill, index) => (
+                <li key={skill.id}>
+                  {skill.name}
+                  {renderEdit?.(skill)}
+                  <button
+                    type={"button"}
+                    disabled={busy || index === 0}
+                    onClick={() => {
+                      void move(skill, -1);
+                    }}
+                  >{`${skill.name} を上へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={busy || index === state.skills.length - 1}
+                    onClick={() => {
+                      void move(skill, 1);
+                    }}
+                  >{`${skill.name} を下へ`}</button>
+                  <button
+                    type={"button"}
+                    disabled={busy}
+                    onClick={() => {
+                      void remove(skill);
+                    }}
+                  >{`${skill.name} を削除`}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+    </>
   );
 };

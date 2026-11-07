@@ -49,39 +49,42 @@ export const ProfileEditPage = ({
       lifecycle.active = false;
     };
   }, [attempt, request, session]);
-  if (state.status === "loading" || state.source !== session)
-    return <p role={"status"}>{"読み込み中"}</p>;
-  if (state.status === "error")
-    return (
-      <>
-        <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>
-        <button
-          type={"button"}
-          onClick={() => {
-            setState({ status: "loading" });
-            setAttempt((value) => value + 1);
-          }}
-        >
-          {"再試行"}
-        </button>
-      </>
-    );
+  const loading = state.status === "loading" || state.source !== session;
   return (
     <>
-      <h1>{"プロフィールを編集"}</h1>
-      <ProfileForm
-        initial={state.data}
-        onDirty={() => {
-          dirty.current = true;
-        }}
-        save={async (data) => {
-          await request({ method: "PUT", url: "/api/admin/profile", data });
-        }}
-        onSuccess={() => {
-          dirty.current = false;
-          onSuccess();
-        }}
-      />
+      <span role={"status"}>{loading ? "読み込み中" : ""}</span>
+      {!loading && state.status === "error" && (
+        <>
+          <p role={"alert"}>{"プロフィールを取得できませんでした"}</p>
+          <button
+            type={"button"}
+            onClick={() => {
+              setState({ status: "loading" });
+              setAttempt((value) => value + 1);
+            }}
+          >
+            {"再試行"}
+          </button>
+        </>
+      )}
+      {!loading && state.status === "ready" && (
+        <>
+          <h1>{"プロフィールを編集"}</h1>
+          <ProfileForm
+            initial={state.data}
+            onDirty={() => {
+              dirty.current = true;
+            }}
+            save={async (data) => {
+              await request({ method: "PUT", url: "/api/admin/profile", data });
+            }}
+            onSuccess={() => {
+              dirty.current = false;
+              onSuccess();
+            }}
+          />
+        </>
+      )}
     </>
   );
 };

@@ -110,7 +110,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
         <option value={"engineering"}>{"engineering"}</option>
         <option value={"hobby"}>{"hobby"}</option>
       </select>
-      {current.status === "loading" && <p>{"読み込み中"}</p>}
+      <span role={"status"}>{current.status === "loading" ? "読み込み中" : ""}</span>
       {current.status === "error" && (
         <>
           <p role={"alert"}>{"作品を取得できませんでした"}</p>

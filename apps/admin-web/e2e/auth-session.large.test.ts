@@ -1,5 +1,55 @@
 import { expect, test } from "@playwright/test";
 
+test("exposes loading status for the portfolio list and edit page", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("メールアドレス").fill("admin@example.test");
+  await page.getByLabel("パスワード").fill("test-only-password");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page.getByRole("heading", { name: "ダッシュボード" })).toBeVisible();
+  const gate = { list: () => {}, detail: () => {} };
+  const list = new Promise<void>((resolve) => {
+    gate.list = resolve;
+  });
+  const detail = new Promise<void>((resolve) => {
+    gate.detail = resolve;
+  });
+  await page.route("**/api/admin/portfolio", async (route) => {
+    await list;
+    await route.fulfill({ json: { data: [{ id: "42", section: "hobby", name: "Project" }] } });
+  });
+  await page.route("**/api/admin/portfolio/42", async (route) => {
+    await detail;
+    await route.fulfill({
+      json: {
+        data: {
+          id: "42",
+          section: "hobby",
+          name: "Project",
+          summary: "Summary",
+          technologies: ["Bun"],
+          displayOrder: 1,
+          repositoryUrl: null,
+          demoUrl: null,
+          imageUrl: null,
+        },
+      },
+    });
+  });
+  try {
+    await page.getByRole("link", { name: "Portfolio" }).click();
+    await expect(page.getByRole("status")).toHaveText("読み込み中");
+    gate.list();
+    await page.getByRole("link", { name: "Project を編集" }).click();
+    await expect(page.getByRole("status")).toHaveText("読み込み中");
+    gate.detail();
+    await expect(page.getByLabel("作品名")).toHaveValue("Project");
+    await expect(page.getByRole("status")).toBeEmpty();
+  } finally {
+    gate.list();
+    gate.detail();
+  }
+});
+
 for (const [label, message] of [
   ["作品名", "作品名を入力してください"],
   ["概要", "概要を入力してください"],

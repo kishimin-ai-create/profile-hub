@@ -100,6 +100,32 @@ test("keeps the portfolio visible when deletion fails", async () => {
   confirmation.mockRestore();
 });
 
+test("announces a successful deletion and clears it on failure", async () => {
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const remove = vi
+    .fn<(id: string) => Promise<void>>()
+    .mockResolvedValueOnce()
+    .mockRejectedValueOnce(new Error("offline"));
+  render(
+    <PortfolioList
+      load={() =>
+        Promise.resolve([
+          { id: "1", name: "First", section: "hobby" },
+          { id: "2", name: "Second", section: "hobby" },
+        ])
+      }
+      remove={remove}
+    />,
+  );
+  const status = screen.getByRole("status");
+  await userEvent.click(await screen.findByRole("button", { name: "First を削除" }));
+  expect(status).toHaveTextContent("First を削除しました");
+  await userEvent.click(screen.getByRole("button", { name: "Second を削除" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("作品を削除できませんでした");
+  expect(status).toBeEmptyDOMElement();
+  vi.restoreAllMocks();
+});
+
 test("reorders entries within their own section using buttons", async () => {
   const reorder = vi
     .fn<(section: "engineering" | "hobby", ids: string[]) => Promise<void>>()

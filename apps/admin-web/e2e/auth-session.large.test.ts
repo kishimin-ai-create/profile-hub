@@ -122,6 +122,9 @@ test("reorders contact links with the keyboard within their section", async ({ p
     "https://hobby.example",
     "https://first.example",
   ]);
+  await expect(
+    page.getByRole("status").filter({ hasText: "https://second.example の順序を変更しました" }),
+  ).toHaveCount(1);
   expect(requests).toEqual([{ section: "engineering", ids: ["2", "1"] }]);
 });
 
@@ -204,6 +207,9 @@ test("reorders skills with the keyboard", async ({ page }) => {
     "Second",
     "First",
   ]);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Second の順序を変更しました" }),
+  ).toHaveCount(1);
   expect(requests).toEqual([{ ids: ["2", "1"] }]);
 });
 

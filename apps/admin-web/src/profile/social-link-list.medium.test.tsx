@@ -7,11 +7,11 @@ import { SocialLinkList } from "./social-link-list";
 
 test("announces loading again while retrying links", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
-  let attempts = 0;
+  const attempts = { count: 0 };
   server.use(
     http.get("https://api.example.test/api/admin/social-links", () => {
-      attempts += 1;
-      return attempts === 1
+      attempts.count += 1;
+      return attempts.count === 1
         ? new HttpResponse(null, { status: 500 })
         : new Promise<Response>(() => {});
     }),

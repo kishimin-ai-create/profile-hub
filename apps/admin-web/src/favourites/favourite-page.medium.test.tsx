@@ -14,6 +14,46 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+test("does not show an old reorder error after the session changes", async () => {
+  vi.stubEnv("VITE_API_URL", "https://api.example.test");
+  const gate = { release: () => {}, started: false };
+  const response = new Promise<void>((resolve) => {
+    gate.release = resolve;
+  });
+  server.use(
+    http.get("https://api.example.test/api/admin/favourites", ({ request }) =>
+      HttpResponse.json({
+        data:
+          request.headers.get("Authorization") === "Bearer old"
+            ? [
+                { id: "1", name: "Old first", description: "First" },
+                { id: "2", name: "Old second", description: "Second" },
+              ]
+            : [{ id: "3", name: "New", description: "New" }],
+      }),
+    ),
+    http.patch("https://api.example.test/api/admin/favourites/order", async () => {
+      gate.started = true;
+      await response;
+      return new HttpResponse(null, { status: 500 });
+    }),
+  );
+  const oldSession = { accessToken: () => "old" };
+  const newSession = { accessToken: () => "new" };
+  const view = render(<FavouritePage session={oldSession} />);
+  try {
+    await userEvent.click(await screen.findByRole("button", { name: "Old second を上へ" }));
+    await waitFor(() => expect(gate.started).toBe(true));
+    view.rerender(<FavouritePage session={newSession} />);
+    const button = await screen.findByRole("button", { name: "New を削除" });
+    gate.release();
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  } finally {
+    gate.release();
+  }
+});
+
 test("does not show an old deletion error after the session changes", async () => {
   vi.stubEnv("VITE_API_URL", "https://api.example.test");
   vi.spyOn(window, "confirm").mockReturnValue(true);

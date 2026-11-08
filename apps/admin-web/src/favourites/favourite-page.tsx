@@ -25,7 +25,7 @@ export const FavouritePage = ({
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<{ source: AdminSession } | null>(null);
-  const [reorderError, setReorderError] = useState(false);
+  const [reorderError, setReorderError] = useState<{ source: AdminSession } | null>(null);
   const [notice, setNotice] = useState<{ source: AdminSession; text: string } | null>(null);
   const pending = useRef(false);
   useEffect(() => {
@@ -83,7 +83,7 @@ export const FavouritePage = ({
     );
     pending.current = true;
     setBusy(true);
-    setReorderError(false);
+    setReorderError(null);
     setNotice(null);
     try {
       await request({
@@ -98,7 +98,7 @@ export const FavouritePage = ({
       );
       setNotice({ source: session, text: `${row.name} の順序を変更しました` });
     } catch {
-      setReorderError(true);
+      setReorderError({ source: session });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -134,7 +134,9 @@ export const FavouritePage = ({
           {deleteError?.source === session && (
             <p role={"alert"}>{"お気に入りを削除できませんでした"}</p>
           )}
-          {reorderError && <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>}
+          {reorderError?.source === session && (
+            <p role={"alert"}>{"お気に入りの順序を変更できませんでした"}</p>
+          )}
           {state.rows.length === 0 ? (
             <p>{"お気に入りがありません"}</p>
           ) : (

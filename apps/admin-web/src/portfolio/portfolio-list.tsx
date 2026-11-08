@@ -22,6 +22,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
   const [reorderError, setReorderError] = useState<{ source: Props["load"] } | null>(null);
   const [notice, setNotice] = useState<{ source: Props["load"]; text: string } | null>(null);
   const pending = useRef(false);
+  const generation = useRef(0);
   useEffect(() => {
     const lifecycle = { active: true };
     void load().then(
@@ -34,6 +35,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     );
     return () => {
       lifecycle.active = false;
+      generation.current += 1;
     };
   }, [attempt, load]);
   const current: State =
@@ -46,6 +48,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     if (!remove || pending.current || !window.confirm(`「${row.name}」を完全に削除しますか？`))
       return;
     pending.current = true;
+    const operationGeneration = generation.current;
     setBusy(true);
     setDeleteError(null);
     setNotice(null);
@@ -58,7 +61,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       );
       setNotice({ source: load, text: `${row.name} を削除しました` });
     } catch {
-      setDeleteError({ source: load });
+      if (generation.current === operationGeneration) setDeleteError({ source: load });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -78,6 +81,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
           : entry,
     );
     pending.current = true;
+    const operationGeneration = generation.current;
     setBusy(true);
     setReorderError(null);
     setNotice(null);
@@ -100,7 +104,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       );
       setNotice({ source: load, text: `${row.name} の順序を変更しました` });
     } catch {
-      setReorderError({ source: load });
+      if (generation.current === operationGeneration) setReorderError({ source: load });
     } finally {
       pending.current = false;
       setBusy(false);

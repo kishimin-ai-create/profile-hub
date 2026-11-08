@@ -3,6 +3,29 @@ import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { PortfolioList } from "./portfolio-list";
 
+test("does not show an old reorder error after the data source changes", async () => {
+  const pending = { reject: (_reason: Error) => {} };
+  const reorder = () =>
+    new Promise<void>((_resolve, reject) => {
+      pending.reject = reject;
+    });
+  const oldLoad = () =>
+    Promise.resolve([
+      { id: "1", name: "Old first", section: "hobby" as const },
+      { id: "2", name: "Old second", section: "hobby" as const },
+    ]);
+  const newLoad = () => Promise.resolve([{ id: "3", name: "New", section: "hobby" as const }]);
+  const view = render(<PortfolioList load={oldLoad} reorder={reorder} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Old second を上へ" }));
+  view.rerender(<PortfolioList load={newLoad} reorder={reorder} />);
+  await screen.findByText("New");
+  await act(async () => {
+    pending.reject(new Error("offline"));
+    await Promise.resolve();
+  });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
 test("does not show an old deletion error after the data source changes", async () => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
   const pending = { reject: (_reason: Error) => {} };

@@ -24,6 +24,9 @@ test("does not show an old reorder error after the data source changes", async (
     await Promise.resolve();
   });
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  view.rerender(<PortfolioList load={oldLoad} reorder={reorder} />);
+  await screen.findByText("Old first");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
 test("does not show an old deletion error after the data source changes", async () => {
@@ -43,6 +46,9 @@ test("does not show an old deletion error after the data source changes", async 
     pending.reject(new Error("offline"));
     await Promise.resolve();
   });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  view.rerender(<PortfolioList load={oldLoad} remove={remove} />);
+  await screen.findByText("Old");
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   vi.restoreAllMocks();
 });

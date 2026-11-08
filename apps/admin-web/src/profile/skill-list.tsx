@@ -25,7 +25,7 @@ export const SkillList = ({
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<{ source: AdminSession } | null>(null);
-  const [reorderError, setReorderError] = useState(false);
+  const [reorderError, setReorderError] = useState<{ source: AdminSession } | null>(null);
   const [notice, setNotice] = useState<{ source: AdminSession; text: string } | null>(null);
   const pending = useRef(false);
   useEffect(() => {
@@ -83,7 +83,7 @@ export const SkillList = ({
     );
     pending.current = true;
     setBusy(true);
-    setReorderError(false);
+    setReorderError(null);
     setNotice(null);
     try {
       await request({
@@ -98,7 +98,7 @@ export const SkillList = ({
       );
       setNotice({ source: session, text: `${skill.name} の順序を変更しました` });
     } catch {
-      setReorderError(true);
+      setReorderError({ source: session });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -134,7 +134,9 @@ export const SkillList = ({
           {deleteError?.source === session && (
             <p role={"alert"}>{"スキルを削除できませんでした"}</p>
           )}
-          {reorderError && <p role={"alert"}>{"スキルの順序を変更できませんでした"}</p>}
+          {reorderError?.source === session && (
+            <p role={"alert"}>{"スキルの順序を変更できませんでした"}</p>
+          )}
           {state.skills.length === 0 ? (
             <p>{"スキルがありません"}</p>
           ) : (

@@ -49,6 +49,9 @@ test("does not show an old reorder error after the session changes", async () =>
     gate.release();
     await waitFor(() => expect(button).toBeEnabled());
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    view.rerender(<FavouritePage session={oldSession} />);
+    await screen.findByRole("button", { name: "Old second を上へ" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   } finally {
     gate.release();
   }
@@ -89,6 +92,9 @@ test("does not show an old deletion error after the session changes", async () =
     const button = await screen.findByRole("button", { name: "New を削除" });
     gate.release();
     await waitFor(() => expect(button).toBeEnabled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    view.rerender(<FavouritePage session={oldSession} />);
+    await screen.findByRole("button", { name: "Old を削除" });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   } finally {
     gate.release();

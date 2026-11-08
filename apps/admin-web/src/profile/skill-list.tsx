@@ -28,6 +28,7 @@ export const SkillList = ({
   const [reorderError, setReorderError] = useState<{ source: AdminSession } | null>(null);
   const [notice, setNotice] = useState<{ source: AdminSession; text: string } | null>(null);
   const pending = useRef(false);
+  const generation = useRef(0);
   useEffect(() => {
     const lifecycle = { active: true };
     void request<unknown>({ method: "GET", url: "/api/admin/skills" }).then(
@@ -46,11 +47,13 @@ export const SkillList = ({
     );
     return () => {
       lifecycle.active = false;
+      generation.current += 1;
     };
   }, [attempt, request, session]);
   const remove = async (skill: Skill) => {
     if (pending.current || !window.confirm(`「${skill.name}」を完全に削除しますか？`)) return;
     pending.current = true;
+    const operationGeneration = generation.current;
     setBusy(true);
     setDeleteError(null);
     setNotice(null);
@@ -63,7 +66,7 @@ export const SkillList = ({
       );
       setNotice({ source: session, text: `${skill.name} を削除しました` });
     } catch {
-      setDeleteError({ source: session });
+      if (generation.current === operationGeneration) setDeleteError({ source: session });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -82,6 +85,7 @@ export const SkillList = ({
           : entry,
     );
     pending.current = true;
+    const operationGeneration = generation.current;
     setBusy(true);
     setReorderError(null);
     setNotice(null);
@@ -98,7 +102,7 @@ export const SkillList = ({
       );
       setNotice({ source: session, text: `${skill.name} の順序を変更しました` });
     } catch {
-      setReorderError({ source: session });
+      if (generation.current === operationGeneration) setReorderError({ source: session });
     } finally {
       pending.current = false;
       setBusy(false);

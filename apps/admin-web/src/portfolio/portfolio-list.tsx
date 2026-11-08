@@ -19,7 +19,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
   const [section, setSection] = useState("all");
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<{ source: Props["load"] } | null>(null);
-  const [reorderError, setReorderError] = useState(false);
+  const [reorderError, setReorderError] = useState<{ source: Props["load"] } | null>(null);
   const [notice, setNotice] = useState<{ source: Props["load"]; text: string } | null>(null);
   const pending = useRef(false);
   useEffect(() => {
@@ -79,7 +79,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
     );
     pending.current = true;
     setBusy(true);
-    setReorderError(false);
+    setReorderError(null);
     setNotice(null);
     try {
       await reorder(
@@ -100,7 +100,7 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       );
       setNotice({ source: load, text: `${row.name} の順序を変更しました` });
     } catch {
-      setReorderError(true);
+      setReorderError({ source: load });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -139,7 +139,9 @@ export const PortfolioList = ({ load, remove, renderEdit, reorder }: Props) => {
       {current.status === "ready" && deleteError?.source === load && (
         <p role={"alert"}>{"作品を削除できませんでした"}</p>
       )}
-      {reorderError && <p role={"alert"}>{"並べ替えできませんでした"}</p>}
+      {current.status === "ready" && reorderError?.source === load && (
+        <p role={"alert"}>{"並べ替えできませんでした"}</p>
+      )}
       {current.status === "ready" &&
         (rows.length === 0 ? (
           <p>{"作品がありません"}</p>
